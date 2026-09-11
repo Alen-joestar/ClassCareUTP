@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestión y consulta de aulas universitarias">
+    <title>Gestión de Aulas Universitarias</title>
+    <link rel="stylesheet" href="css/aulas.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Gestión de Aulas Universitarias</h1>
+
+    <input type="checkbox" id="menu-toggle" class="menu-toggle">
+
+    <label for="menu-toggle" class="menu-button">
+        Menú
+    </label>
+
+    <nav aria-label="Navegación principal">
+        <a href="#inicio">Inicio</a>
+        <a href="#aulas">Aulas</a>
+        <a href="#consulta">Consulta</a>
+    </nav>
+</header>
+
+    <main id="inicio">
+
+        <section aria-labelledby="titulo-aulas">
+            <h2 id="titulo-aulas">Aulas universitarias</h2>
+
+            <p>
+                Consulta la información y disponibilidad de las aulas
+                registradas en la plataforma.
+            </p>
+
+            <article>
+                <h3>Consultar aula</h3>
+
+                <form id="consulta">
+                    <label for="codigo-aula">Código del aula</label>
+                    <input
+                        type="text"
+                        id="codigo-aula"
+                        name="codigo-aula"
+                        pattern="[A-Za-z]-[0-9]{3}"
+                        placeholder="Ejemplo: A-101"
+                        required
+                    >
+
+                    <label for="capacidad">Capacidad mínima</label>
+                    <input
+                        type="number"
+                        id="capacidad"
+                        name="capacidad"
+                        min="1"
+                        max="200"
+                        placeholder="Ejemplo: 40"
+                    >
+
+                    <button type="submit">Consultar</button>
+                </form>
+            </article>
+        </section>
+
+        <section id="aulas" aria-labelledby="titulo-listado">
+            <h2 id="titulo-listado">Listado de aulas</h2>
+
+            <article>
+                <h3>Aula A-101</h3>
+                <p><strong>Ubicación:</strong> Pabellón A - Primer piso</p>
+                <p><strong>Capacidad:</strong> 40 personas</p>
+                <p><strong>Estado:</strong> Disponible</p>
+            </article>
+
+            <article>
+                <h3>Aula A-102</h3>
+                <p><strong>Ubicación:</strong> Pabellón A - Primer piso</p>
+                <p><strong>Capacidad:</strong> 35 personas</p>
+                <p><strong>Estado:</strong> Mantenimiento</p>
+            </article>
+
+            <article>
+                <h3>Aula B-201</h3>
+                <p><strong>Ubicación:</strong> Pabellón B - Segundo piso</p>
+                <p><strong>Capacidad:</strong> 50 personas</p>
+                <p><strong>Estado:</strong> Disponible</p>
+            </article>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Plataforma de Gestión de Mantenimiento de Aulas Universitarias</p>
+    </footer>
+
+</body>
+</html>
+

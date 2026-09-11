@@ -1,0 +1,257 @@
+
+:root {
+    --color-primary: #1d4ed8;
+    --color-primary-dark: #1e3a8a;
+    --color-secondary: #e5e7eb;
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+    --color-text: #1f2937;
+    --color-border: #cbd5e1;
+    --color-focus: #fbbf24;
+    --color-success: #166534;
+    --color-warning: #92400e;
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background-color: var(--color-background);
+}
+
+header {
+    padding: var(--spacing-medium);
+    color: var(--color-surface);
+    background-color: var(--color-primary);
+}
+
+header h1 {
+    margin: 0 0 var(--spacing-medium);
+    font-size: 1.6rem;
+}
+
+/* Control del menú móvil: el checkbox sigue siendo accesible con teclado. */
+.menu-toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    opacity: 0;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.menu-button {
+    display: block;
+    width: fit-content;
+    padding: 0.5rem 0.75rem;
+    color: var(--color-surface);
+    background-color: var(--color-primary-dark);
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.menu-button:hover,
+.menu-toggle:focus-visible + .menu-button {
+    background-color: #172554;
+}
+
+.menu-button:focus-visible,
+.menu-toggle:focus-visible + .menu-button {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+nav {
+    display: none;
+    flex-direction: column;
+    gap: var(--spacing-small);
+    margin-top: var(--spacing-small);
+}
+
+.menu-toggle:checked + .menu-button + nav {
+    display: flex;
+}
+
+nav a {
+    padding: 0.5rem;
+    color: var(--color-surface);
+    text-decoration: none;
+    border-radius: 0.25rem;
+}
+
+nav a:hover,
+nav a:focus-visible {
+    background-color: var(--color-primary-dark);
+}
+
+nav a:focus-visible {
+    outline: 3px solid var(--color-surface);
+    outline-offset: 2px;
+}
+
+main {
+    width: min(100% - 2rem, 70rem);
+    margin: 0 auto;
+    padding: var(--spacing-large) 0;
+}
+
+section {
+    margin-bottom: var(--spacing-large);
+}
+
+section > h2 {
+    margin-bottom: var(--spacing-small);
+}
+
+article {
+    min-width: 0;
+    padding: var(--spacing-medium);
+    margin-top: var(--spacing-medium);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.08);
+}
+
+article h3 {
+    margin-top: 0;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-small);
+}
+
+label {
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 0.65rem;
+    font: inherit;
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+}
+
+input::placeholder {
+    color: #475569;
+}
+
+input:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+input:invalid:not(:placeholder-shown) {
+    border-color: var(--color-warning);
+}
+
+button {
+    width: fit-content;
+    padding: 0.65rem 1rem;
+    font: inherit;
+    color: var(--color-surface);
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+button:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+#aulas {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-medium);
+}
+
+#aulas > h2 {
+    grid-column: 1 / -1;
+}
+
+#aulas article {
+    margin-top: 0;
+}
+
+footer {
+    padding: var(--spacing-medium);
+    text-align: center;
+    background-color: var(--color-secondary);
+}
+
+
+@media (min-width: 48rem) { 
+    
+    .menu-button {
+        display: none;
+    }
+    
+    nav {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-small);
+        margin-top: 0;
+    }
+    
+    form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+        column-gap: var(--spacing-medium);
+    }
+    
+    form button {
+        grid-column: 1 / -1;
+    }
+
+    #aulas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (min-width: 64rem) {
+
+    header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-large);
+    }
+
+    header h1 {
+        min-width: 0;
+        margin: 0;
+    }
+
+    #aulas {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
