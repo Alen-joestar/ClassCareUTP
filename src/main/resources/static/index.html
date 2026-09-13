@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Módulo de Reportes para la Plataforma de Gestión de Mantenimiento de Aulas Universitarias - Registro y consulta de incidencias.">
+    <meta name="author" content="Equipo de Desarrollo Web Integrado">
+    <title>Gestión de Mantenimiento de Aulas | Módulo de Reportes</title>
+    <link rel="stylesheet" href="css/reportes.css">
+</head>
+<body>
+
+    <!-- Encabezado Institucional y Navegación Principal -->
+    <header class="main-header">
+        <section class="header-branding">
+            <figure class="header-branding__logo">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+            </figure>
+            <hgroup class="header-branding__titles">
+                <h1 class="header-title">ClassCare Campus</h1>
+                <p class="header-subtitle">Plataforma de Mantenimiento de Aulas Universitarias</p>
+            </hgroup>
+        </section>
+
+        <nav class="main-nav" aria-label="Navegación principal de módulos">
+            <ul class="main-nav__list">
+                <li class="main-nav__item">
+                    <a href="#aulas" class="main-nav__link">Aulas</a>
+                </li>
+                <li class="main-nav__item">
+                    <a href="#reportes" class="main-nav__link main-nav__link--active" aria-current="page">Reportes</a>
+                </li>
+                <li class="main-nav__item">
+                    <a href="#atenciones" class="main-nav__link">Atenciones</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main id="main-content" class="main-layout">
+
+        <!-- Sección Informativa del Módulo -->
+        <section class="module-intro" aria-labelledby="intro-title">
+            <h2 id="intro-title" class="section-title">Módulo de Reportes de Incidencias</h2>
+            <p class="module-intro__text">
+                Canal centralizado para el reporte oportuno de averías e incidencias en aulas y laboratorios universitarios.
+                Permite registrar fallas operativas y monitorear su estado en tiempo real.
+            </p>
+        </section>
+
+        <!-- Sección de Registro: Formulario Semántico con Cero Divitis -->
+        <section class="form-section" aria-labelledby="form-title">
+            <h2 id="form-title" class="section-title">Registrar Nueva Incidencia</h2>
+            <p class="section-instruction">Complete los campos obligatorios para notificar al equipo de mantenimiento técnico.</p>
+
+            <form id="form-reporte" class="reporte-form" novalidate>
+                <fieldset class="form-fieldset">
+                    <legend class="form-legend">Datos de la Incidencia</legend>
+
+                    <!-- Campo Aula -->
+                    <p class="form-group">
+                        <label for="aulaId" class="form-label">
+                            Código del Aula <span class="form-required" aria-hidden="true">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="aulaId" 
+                            name="aulaId" 
+                            class="form-input" 
+                            required 
+                            pattern="^[A-Za-z0-9\-_]{2,10}$"
+                            minlength="2" 
+                            maxlength="10" 
+                            placeholder="Ej: A-101, LAB-02"
+                            autocomplete="off"
+                            aria-describedby="aulaId-help">
+                        <small id="aulaId-help" class="form-help">Formato alfanumérico entre 2 y 10 caracteres (ej. A-101).</small>
+                    </p>
+
+                    <!-- Campo Tipo de Problema -->
+                    <p class="form-group">
+                        <label for="tipoProblema" class="form-label">
+                            Tipo de Problema <span class="form-required" aria-hidden="true">*</span>
+                        </label>
+                        <select id="tipoProblema" name="tipoProblema" class="form-select" required aria-describedby="tipoProblema-help">
+                            <option value="" disabled selected>Seleccione una categoría</option>
+                            <option value="TECNOLOGICO">Tecnológico (Proyector, PC, Audio, Red)</option>
+                            <option value="ELECTRICO">Eléctrico (Iluminación, Enchufes, Tablero)</option>
+                            <option value="MOBILIARIO">Mobiliario (Carpetas, Sillas, Pizarra)</option>
+                            <option value="INFRAESTRUCTURA">Infraestructura (Puertas, Ventanas, Techo)</option>
+                            <option value="OTRO">Otro tipo de eventualidad</option>
+                        </select>
+                        <small id="tipoProblema-help" class="form-help">Clasificación técnica para asignación del personal.</small>
+                    </p>
+
+                    <!-- Campo Prioridad -->
+                    <p class="form-group">
+                        <label for="prioridad" class="form-label">
+                            Nivel de Prioridad <span class="form-required" aria-hidden="true">*</span>
+                        </label>
+                        <select id="prioridad" name="prioridad" class="form-select" required aria-describedby="prioridad-help">
+                            <option value="" disabled selected>Seleccione la urgencia</option>
+                            <option value="ALTA">Alta (Impide el dictado de clase)</option>
+                            <option value="MEDIA">Media (Afecta parcialmente la sesión)</option>
+                            <option value="BAJA">Baja (Mantenimiento preventivo o estético)</option>
+                        </select>
+                        <small id="prioridad-help" class="form-help">Determina el tiempo límite de atención.</small>
+                    </p>
+
+                    <!-- Campo Descripción -->
+                    <p class="form-group form-group--full">
+                        <label for="descripcion" class="form-label">
+                            Descripción Detallada <span class="form-required" aria-hidden="true">*</span>
+                        </label>
+                        <textarea 
+                            id="descripcion" 
+                            name="descripcion" 
+                            class="form-textarea" 
+                            rows="4" 
+                            required 
+                            minlength="10" 
+                            maxlength="255" 
+                            placeholder="Describa el inconveniente específico observado en el aula..."
+                            aria-describedby="descripcion-help"></textarea>
+                        <small id="descripcion-help" class="form-help">Mínimo 10 caracteres y máximo 255 caracteres.</small>
+                    </p>
+
+                    <!-- Botones de Acción -->
+                    <p class="form-actions form-group--full">
+                        <button type="submit" class="btn btn--primary" id="btn-submit">
+                            <span class="btn__text">Registrar Incidencia</span>
+                        </button>
+                        <button type="reset" class="btn btn--secondary" id="btn-reset">
+                            <span class="btn__text">Limpiar Formulario</span>
+                        </button>
+                    </p>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Sección de Filtros de Búsqueda -->
+        <section class="filter-section" aria-labelledby="filter-title">
+            <h2 id="filter-title" class="section-title">Consultar Incidencias</h2>
+            <form id="form-filtro" class="filter-form">
+                <p class="form-group">
+                    <label for="filtroAula" class="form-label">Filtrar por Aula:</label>
+                    <input type="search" id="filtroAula" class="form-input" placeholder="Ej: A-101">
+                </p>
+                <p class="form-actions">
+                    <button type="button" class="btn btn--outline" id="btn-filtrar">Filtrar</button>
+                    <button type="button" class="btn btn--outline" id="btn-recargar">Ver Todos</button>
+                </p>
+            </form>
+        </section>
+
+        <!-- Sección de Tablero / Listado de Incidencias Semántico -->
+        <section class="reports-board" aria-labelledby="board-title">
+            <h2 id="board-title" class="section-title">Historial de Incidencias Registradas</h2>
+
+            <section class="reports-grid" id="contenedor-reportes" aria-live="polite">
+                <!-- Tarjeta de ejemplo semántica 1 -->
+                <article class="report-card report-card--alta">
+                    <header class="report-card__header">
+                        <span class="badge badge--prioridad badge--alta">Prioridad Alta</span>
+                        <span class="badge badge--estado badge--pendiente">Pendiente</span>
+                    </header>
+                    <section class="report-card__body">
+                        <h3 class="report-card__title">Aula A-101</h3>
+                        <p class="report-card__category"><strong>Tipo:</strong> Tecnológico</p>
+                        <p class="report-card__description">El proyector multimedia no emite señal HDMI ni enciende con el control remoto.</p>
+                    </section>
+                    <footer class="report-card__footer">
+                        <time datetime="2026-09-10T08:30:00" class="report-card__time">Registrado: Hoy, 08:30 AM</time>
+                        <span class="report-card__id">Ticket #1</span>
+                    </footer>
+                </article>
+
+                <!-- Tarjeta de ejemplo semántica 2 -->
+                <article class="report-card report-card--media">
+                    <header class="report-card__header">
+                        <span class="badge badge--prioridad badge--media">Prioridad Media</span>
+                        <span class="badge badge--estado badge--en-atencion">En Atención</span>
+                    </header>
+                    <section class="report-card__body">
+                        <h3 class="report-card__title">Aula B-202</h3>
+                        <p class="report-card__category"><strong>Tipo:</strong> Eléctrico</p>
+                        <p class="report-card__description">Foco fluorescente parpadea constantemente en la fila delantera.</p>
+                    </section>
+                    <footer class="report-card__footer">
+                        <time datetime="2026-09-09T14:15:00" class="report-card__time">Registrado: Ayer, 02:15 PM</time>
+                        <span class="report-card__id">Ticket #2</span>
+                    </footer>
+                </article>
+
+                <!-- Tarjeta de ejemplo semántica 3 -->
+                <article class="report-card report-card--baja">
+                    <header class="report-card__header">
+                        <span class="badge badge--prioridad badge--baja">Prioridad Baja</span>
+                        <span class="badge badge--estado badge--resuelto">Resuelto</span>
+                    </header>
+                    <section class="report-card__body">
+                        <h3 class="report-card__title">Aula C-305</h3>
+                        <p class="report-card__category"><strong>Tipo:</strong> Mobiliario</p>
+                        <p class="report-card__description">Silla ergonómica del docente con tornillo flojo en el respaldo.</p>
+                    </section>
+                    <footer class="report-card__footer">
+                        <time datetime="2026-09-08T11:00:00" class="report-card__time">Registrado: Hace 2 días</time>
+                        <span class="report-card__id">Ticket #3</span>
+                    </footer>
+                </article>
+            </section>
+        </section>
+
+    </main>
+
+    <!-- Pie de Página Institucional Semántico -->
+    <footer class="main-footer">
+        <section class="footer-content">
+            <p class="footer-copy">&copy; 2026 ClassCare Campus - Universidad Tecnológica del Perú (UTP).</p>
+            <p class="footer-course">Desarrollo Web Integrado | Avance de Proyecto Final 1 (APF1)</p>
+            <p class="footer-status">
+                <span class="status-indicator" aria-hidden="true"></span>
+                Servidor de API REST activo en puerto 8080
+            </p>
+        </section>
+    </footer>
+
+</body>
+</html>
