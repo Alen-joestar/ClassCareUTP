@@ -1,0 +1,622 @@
+/* ==========================================================================
+   ClassCare Campus - Módulo de Reportes de Incidencias
+   Estilos CSS3 Modernos | Mobile-First | CSS Grid & Flexbox | Custom Properties
+   Cero !important | Cero estilos en línea | Accesibilidad WCAG
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Custom Properties (Variables de Diseño Centralizadas)
+   -------------------------------------------------------------------------- */
+:root {
+    /* Paleta Cromática Institucional */
+    --color-primary: #0f4c81;
+    --color-primary-dark: #092c4c;
+    --color-primary-light: #e8f1f8;
+    --color-secondary: #0d9488;
+    --color-secondary-dark: #0f766e;
+    
+    /* Superficies y Fondos */
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f1f5f9;
+    --color-border: #cbd5e1;
+    --color-border-subtle: #e2e8f0;
+    
+    /* Escala Tipográfica y Contraste */
+    --color-text: #0f172a;
+    --color-text-muted: #475569;
+    --color-text-inverted: #ffffff;
+    
+    /* Estados de Incidencia (Semáforo Operativo) */
+    --badge-alta-bg: #fef2f2;
+    --badge-alta-text: #b91c1c;
+    --badge-alta-border: #fca5a5;
+    
+    --badge-media-bg: #fffbeb;
+    --badge-media-text: #b45309;
+    --badge-media-border: #fcd34d;
+    
+    --badge-baja-bg: #f0fdf4;
+    --badge-baja-text: #15803d;
+    --badge-baja-border: #86efac;
+    
+    --badge-pendiente-bg: #f3f4f6;
+    --badge-pendiente-text: #374151;
+    --badge-pendiente-border: #d1d5db;
+    
+    --badge-atencion-bg: #eff6ff;
+    --badge-atencion-text: #1d4ed8;
+    --badge-atencion-border: #93c5fd;
+    
+    --badge-resuelto-bg: #ecfdf5;
+    --badge-resuelto-text: #047857;
+    --badge-resuelto-border: #6ee7b7;
+
+    /* Geometría y Elevación */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+    /* Transiciones */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 250ms ease-in-out;
+
+    /* Enfoque y Accesibilidad */
+    --focus-ring: 3px solid rgba(15, 76, 129, 0.45);
+    --focus-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Reseteo y Base Global (Mobile-First: Previene Desbordamientos)
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+img, svg {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Estados de Enfoque Accesible Universal */
+:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+}
+
+/* --------------------------------------------------------------------------
+   3. Encabezado Institucional y Navegación (Flexbox)
+   -------------------------------------------------------------------------- */
+.main-header {
+    background-color: var(--color-primary-dark);
+    color: var(--color-text-inverted);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.header-branding {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.header-branding__logo svg {
+    color: #60a5fa;
+}
+
+.header-branding__titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.header-subtitle {
+    font-size: 0.8125rem;
+    color: #cbd5e1;
+}
+
+.main-nav__list {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+}
+
+.main-nav__link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.main-nav__link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.main-nav__link--active {
+    background-color: var(--color-surface);
+    color: var(--color-primary-dark);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   4. Layout Principal (Mobile-First)
+   -------------------------------------------------------------------------- */
+.main-layout {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.module-intro {
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, #f0fdf4 100%);
+    border-left: 4px solid var(--color-primary);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin-bottom: 0.5rem;
+}
+
+.module-intro__text, .section-instruction {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   5. Formulario de Registro (CSS Grid & Flexbox, Validaciones)
+   -------------------------------------------------------------------------- */
+.form-section {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-instruction {
+    margin-bottom: 1.25rem;
+}
+
+.form-fieldset {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-legend {
+    font-weight: 600;
+    font-size: 1.0625rem;
+    color: var(--color-primary);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.form-required {
+    color: var(--badge-alta-text);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.6875rem 0.875rem;
+    font-size: 0.9375rem;
+    font-family: inherit;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+    border-color: #94a3b8;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--color-primary);
+    outline: var(--focus-ring);
+    outline-offset: 0;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-help {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+/* Validación nativa visual */
+.form-input:user-invalid,
+.form-textarea:user-invalid {
+    border-color: var(--badge-alta-text);
+}
+
+/* Acciones del Formulario */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverted);
+}
+
+.btn--primary:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: var(--shadow-md);
+}
+
+.btn--secondary {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+}
+
+.btn--secondary:hover {
+    background-color: #e2e8f0;
+    color: var(--color-text);
+}
+
+.btn--outline {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn--outline:hover {
+    background-color: var(--color-primary-light);
+}
+
+/* --------------------------------------------------------------------------
+   6. Filtros de Búsqueda
+   -------------------------------------------------------------------------- */
+.filter-section {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   7. Tablero de Incidencias (CSS Grid Modular)
+   -------------------------------------------------------------------------- */
+.reports-board {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+.report-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border);
+}
+
+/* Borde indicador según prioridad */
+.report-card--alta {
+    border-left: 5px solid var(--badge-alta-text);
+}
+
+.report-card--media {
+    border-left: 5px solid var(--badge-media-text);
+}
+
+.report-card--baja {
+    border-left: 5px solid var(--badge-baja-text);
+}
+
+.report-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+}
+
+.badge--alta {
+    background-color: var(--badge-alta-bg);
+    color: var(--badge-alta-text);
+    border-color: var(--badge-alta-border);
+}
+
+.badge--media {
+    background-color: var(--badge-media-bg);
+    color: var(--badge-media-text);
+    border-color: var(--badge-media-border);
+}
+
+.badge--baja {
+    background-color: var(--badge-baja-bg);
+    color: var(--badge-baja-text);
+    border-color: var(--badge-baja-border);
+}
+
+.badge--pendiente {
+    background-color: var(--badge-pendiente-bg);
+    color: var(--badge-pendiente-text);
+    border-color: var(--badge-pendiente-border);
+}
+
+.badge--en-atencion {
+    background-color: var(--badge-atencion-bg);
+    color: var(--badge-atencion-text);
+    border-color: var(--badge-atencion-border);
+}
+
+.badge--resuelto {
+    background-color: var(--badge-resuelto-bg);
+    color: var(--badge-resuelto-text);
+    border-color: var(--badge-resuelto-border);
+}
+
+.report-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.report-card__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+}
+
+.report-card__category {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.report-card__description {
+    font-size: 0.875rem;
+    color: var(--color-text);
+    line-height: 1.45;
+}
+
+.report-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border-subtle);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.report-card__id {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+/* --------------------------------------------------------------------------
+   8. Pie de Página Institucional (Semántico)
+   -------------------------------------------------------------------------- */
+.main-footer {
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border-subtle);
+    padding: 1.5rem 1rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.footer-copy {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.footer-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: var(--radius-full);
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   9. Media Queries (Mobile-First: Progresión a Tablet y Desktop)
+   -------------------------------------------------------------------------- */
+
+/* Tablet (>= 640px) */
+@media (min-width: 640px) {
+    .main-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+    }
+
+    .form-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+
+    .filter-form {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+
+    .filter-form .form-group {
+        flex: 1;
+    }
+
+    .filter-form .form-actions {
+        margin-top: 0;
+    }
+}
+
+/* Desktop Intermedio (>= 768px) */
+@media (min-width: 768px) {
+    .main-layout {
+        padding: 2rem 1.5rem;
+    }
+
+    .form-fieldset {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .form-legend {
+        grid-column: 1 / -1;
+    }
+
+    .form-group--full {
+        grid-column: 1 / -1;
+    }
+
+    .reports-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop Grande (>= 1024px) */
+@media (min-width: 1024px) {
+    .reports-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
