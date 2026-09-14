@@ -25,4 +25,15 @@ public class AulaController {
     public Aula obtenerAula(@PathVariable Long id) {
         return aulaService.obtenerAulaPorId(id);
     }
+
+    @PostMapping
+    public Aula registrarAula(@RequestBody Aula aula) {
+        return aulaService.registrarAula(aula);
+    }
+
+    @PutMapping("/{id}")
+    public Aula actualizarAula(@PathVariable Long id, @RequestBody Aula aula) {
+    return aulaService.actualizarAula(id, aula);
+}
+
 }

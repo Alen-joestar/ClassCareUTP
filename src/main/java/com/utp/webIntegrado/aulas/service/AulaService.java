@@ -50,4 +50,25 @@ public class AulaService {
 
         return null;
     }
+
+    public Aula registrarAula(Aula aula) {
+        aula.setId((long) (aulas.size() + 1));
+        aulas.add(aula);
+        return aula;
+    }
+
+    public Aula actualizarAula(Long id, Aula aulaActualizada) {
+    Aula aulaExistente = obtenerAulaPorId(id);
+
+    if (aulaExistente == null) {
+        return null;
+    }
+
+    aulaExistente.setCodigo(aulaActualizada.getCodigo());
+    aulaExistente.setUbicacion(aulaActualizada.getUbicacion());
+    aulaExistente.setCapacidad(aulaActualizada.getCapacidad());
+    aulaExistente.setEstado(aulaActualizada.getEstado());
+
+    return aulaExistente;
+}
 }
