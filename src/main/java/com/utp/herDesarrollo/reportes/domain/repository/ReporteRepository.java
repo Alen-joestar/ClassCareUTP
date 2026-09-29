@@ -1,25 +1,20 @@
 package com.utp.herDesarrollo.reportes.domain.repository;
 
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Contrato del repositorio para la persistencia del agregado Reporte.
- * Desacoplado de la tecnología de almacenamiento para facilitar la migración futura a Spring Data JPA.
+ * Repositorio de Spring Data JPA para la entidad Reporte.
+ * Conecta directamente con la base de datos PostgreSQL proveyendo operaciones CRUD completas.
  */
-public interface ReporteRepository {
+@Repository
+public interface ReporteRepository extends JpaRepository<Reporte, Long> {
 
-    Reporte save(Reporte reporte);
-
-    Optional<Reporte> findById(Long id);
-
-    List<Reporte> findAll();
-
+    /**
+     * Consulta derivada de Spring Data para buscar reportes filtrados por aula.
+     */
     List<Reporte> findByAulaId(String aulaId);
-
-    boolean existsById(Long id);
-
-    void deleteById(Long id);
 }

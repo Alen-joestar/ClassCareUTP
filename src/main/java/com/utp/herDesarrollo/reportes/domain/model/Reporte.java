@@ -1,19 +1,47 @@
 package com.utp.herDesarrollo.reportes.domain.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Entidad central del dominio para el registro y gestión de incidencias en aulas.
+ * Entidad central del dominio mapeada con JPA para persistencia en base de datos PostgreSQL.
  */
+@Entity
+@Table(name = "reportes")
 public class Reporte {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "aula_id", nullable = false, length = 20)
     private String aulaId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_problema", nullable = false, length = 30)
     private TipoProblema tipoProblema;
+
+    @Column(name = "descripcion", nullable = false, length = 255)
     private String descripcion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "prioridad", nullable = false, length = 20)
     private Prioridad prioridad;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false, length = 20)
     private EstadoReporte estado;
+
+    @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
 
     public Reporte() {
