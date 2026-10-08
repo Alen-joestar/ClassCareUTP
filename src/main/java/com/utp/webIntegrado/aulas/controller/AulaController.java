@@ -21,6 +21,11 @@ public class AulaController {
         return aulaService.listarAulas();
     }
 
+    @GetMapping("/disponibles")
+    public List<Aula> listarAulasDisponibles() {
+        return aulaService.listarAulasDisponibles();
+}
+
     @GetMapping("/{id}")
     public Aula obtenerAula(@PathVariable Long id) {
         return aulaService.obtenerAulaPorId(id);

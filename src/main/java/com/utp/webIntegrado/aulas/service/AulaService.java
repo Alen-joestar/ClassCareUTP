@@ -19,6 +19,10 @@ public class AulaService {
         return aulaRepository.findAll();
     }
 
+    public List<Aula> listarAulasDisponibles() {
+        return aulaRepository.listarAulasDisponibles();
+    }
+
     public Aula obtenerAulaPorId(Long id) {
         return aulaRepository.findById(id).orElse(null);
     }
