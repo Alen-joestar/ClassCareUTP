@@ -173,4 +173,64 @@ class ReporteServiceTest {
         assertThrows(RecursoNoEncontradoException.class, () -> reporteService.actualizarReporte(404L, dto));
         verify(reporteRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Debe listar con filtros combinando aula y prioridad")
+    void debeListarConFiltrosPorAulaYPrioridad() {
+        List<Reporte> listaMock = List.of(
+                new Reporte(1L, "A-101", TipoProblema.TECNOLOGICO, "Proyector", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+        );
+        when(reporteRepository.findByAulaIdAndPrioridad("A-101", Prioridad.ALTA)).thenReturn(listaMock);
+
+        List<ReporteResponseDTO> resultado = reporteService.listarConFiltros("A-101", Prioridad.ALTA);
+
+        assertEquals(1, resultado.size());
+        assertEquals("A-101", resultado.get(0).getAulaId());
+        assertEquals(Prioridad.ALTA, resultado.get(0).getPrioridad());
+        verify(reporteRepository).findByAulaIdAndPrioridad("A-101", Prioridad.ALTA);
+    }
+
+    @Test
+    @DisplayName("Debe listar con filtros filtrando únicamente por aula")
+    void debeListarConFiltrosSoloPorAula() {
+        List<Reporte> listaMock = List.of(
+                new Reporte(1L, "B-202", TipoProblema.ELECTRICO, "Luz", Prioridad.MEDIA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+        );
+        when(reporteRepository.findByAulaId("B-202")).thenReturn(listaMock);
+
+        List<ReporteResponseDTO> resultado = reporteService.listarConFiltros("B-202", null);
+
+        assertEquals(1, resultado.size());
+        assertEquals("B-202", resultado.get(0).getAulaId());
+        verify(reporteRepository).findByAulaId("B-202");
+    }
+
+    @Test
+    @DisplayName("Debe listar con filtros filtrando únicamente por prioridad")
+    void debeListarConFiltrosSoloPorPrioridad() {
+        List<Reporte> listaMock = List.of(
+                new Reporte(1L, "C-303", TipoProblema.MOBILIARIO, "Mesa", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+        );
+        when(reporteRepository.findByPrioridad(Prioridad.ALTA)).thenReturn(listaMock);
+
+        List<ReporteResponseDTO> resultado = reporteService.listarConFiltros(null, Prioridad.ALTA);
+
+        assertEquals(1, resultado.size());
+        assertEquals(Prioridad.ALTA, resultado.get(0).getPrioridad());
+        verify(reporteRepository).findByPrioridad(Prioridad.ALTA);
+    }
+
+    @Test
+    @DisplayName("Debe listar con filtros llamando findAll si ambos parámetros son nulos o vacíos")
+    void debeListarConFiltrosSinParametros() {
+        List<Reporte> listaMock = List.of(
+                new Reporte(1L, "A-101", TipoProblema.TECNOLOGICO, "Proyector", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+        );
+        when(reporteRepository.findAll()).thenReturn(listaMock);
+
+        List<ReporteResponseDTO> resultado = reporteService.listarConFiltros("   ", null);
+
+        assertEquals(1, resultado.size());
+        verify(reporteRepository).findAll();
+    }
 }

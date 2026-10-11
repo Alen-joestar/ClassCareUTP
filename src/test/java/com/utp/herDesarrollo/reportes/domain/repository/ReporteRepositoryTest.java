@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @Transactional
-@DisplayName("Pruebas de Integración JPA - ReporteRepository (Semana 6)")
+@DisplayName("Pruebas de Integración JPA y JPQL - ReporteRepository (Semana 6 y 7)")
 class ReporteRepositoryTest {
 
     @Autowired
@@ -34,6 +34,17 @@ class ReporteRepositoryTest {
                 TipoProblema.TECNOLOGICO,
                 descripcion,
                 Prioridad.ALTA,
+                EstadoReporte.PENDIENTE,
+                LocalDateTime.now()
+        );
+    }
+
+    private Reporte crearReporteConPrioridad(String aulaId, String descripcion, Prioridad prioridad) {
+        return new Reporte(
+                aulaId,
+                TipoProblema.TECNOLOGICO,
+                descripcion,
+                prioridad,
                 EstadoReporte.PENDIENTE,
                 LocalDateTime.now()
         );
@@ -97,5 +108,51 @@ class ReporteRepositoryTest {
         reporteRepository.deleteById(id);
 
         assertFalse(reporteRepository.existsById(id));
+    }
+
+    @Test
+    @DisplayName("Debe filtrar reportes por aulaId usando JPQL sin distinguir mayúsculas/minúsculas")
+    void debeFiltrarPorAulaIdInsensibleMayusculasJPQL() {
+        reporteRepository.save(crearReporteEjemplo("A-101", "Falla 1"));
+        reporteRepository.save(crearReporteEjemplo("A-101", "Falla 2"));
+        reporteRepository.save(crearReporteEjemplo("B-202", "Falla 3"));
+
+        List<Reporte> resultadosMinuscula = reporteRepository.findByAulaId("a-101");
+        List<Reporte> resultadosMayuscula = reporteRepository.findByAulaId("A-101");
+
+        assertEquals(2, resultadosMinuscula.size());
+        assertEquals(2, resultadosMayuscula.size());
+    }
+
+    @Test
+    @DisplayName("Debe filtrar reportes por nivel de prioridad usando JPQL")
+    void debeFiltrarPorPrioridadJPQL() {
+        reporteRepository.save(crearReporteConPrioridad("A-101", "Falla urgente", Prioridad.ALTA));
+        reporteRepository.save(crearReporteConPrioridad("B-202", "Falla media", Prioridad.MEDIA));
+        reporteRepository.save(crearReporteConPrioridad("C-303", "Falla leve", Prioridad.BAJA));
+        reporteRepository.save(crearReporteConPrioridad("D-404", "Otra urgente", Prioridad.ALTA));
+
+        List<Reporte> altas = reporteRepository.findByPrioridad(Prioridad.ALTA);
+        List<Reporte> bajas = reporteRepository.findByPrioridad(Prioridad.BAJA);
+
+        assertEquals(2, altas.size());
+        assertTrue(altas.stream().allMatch(r -> r.getPrioridad() == Prioridad.ALTA));
+        assertEquals(1, bajas.size());
+        assertEquals(Prioridad.BAJA, bajas.get(0).getPrioridad());
+    }
+
+    @Test
+    @DisplayName("Debe filtrar reportes de forma combinada por aulaId y prioridad usando JPQL")
+    void debeFiltrarPorAulaYPrioridadJPQL() {
+        reporteRepository.save(crearReporteConPrioridad("A-101", "Falla urgente A-101", Prioridad.ALTA));
+        reporteRepository.save(crearReporteConPrioridad("A-101", "Falla baja A-101", Prioridad.BAJA));
+        reporteRepository.save(crearReporteConPrioridad("B-202", "Falla urgente B-202", Prioridad.ALTA));
+
+        List<Reporte> filtrados = reporteRepository.findByAulaIdAndPrioridad("a-101", Prioridad.ALTA);
+
+        assertEquals(1, filtrados.size());
+        assertEquals("A-101", filtrados.get(0).getAulaId());
+        assertEquals(Prioridad.ALTA, filtrados.get(0).getPrioridad());
+        assertEquals("Falla urgente A-101", filtrados.get(0).getDescripcion());
     }
 }
