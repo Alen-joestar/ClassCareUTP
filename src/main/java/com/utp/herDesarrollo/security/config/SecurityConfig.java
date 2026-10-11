@@ -3,6 +3,8 @@ package com.utp.herDesarrollo.security.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,8 +21,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Configuración central de seguridad y control de acceso basado en roles (RBAC).
- * Semana 8:
+ * Semana 8 y Semana 9:
  * - Habilita registro público de incidencias (POST /api/reportes) y consultas (GET).
+ * - Expone endpoint de autenticación (/api/auth/**) para expedición de tokens JWT.
  * - Restringe operaciones de modificación/actualización (PUT /api/reportes/**) a roles TECNICO y ADMIN.
  */
 @Configuration
@@ -36,6 +39,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Vistas estáticas y formulario web
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        // Autenticación de usuarios para expedición de tokens JWT
+                        .requestMatchers("/api/auth/**").permitAll()
                         // Endpoints de aulas universitarias (acceso de consulta libre)
                         .requestMatchers(HttpMethod.GET, "/api/aulas/**").permitAll()
                         // Módulo de Reportes: consulta pública de reportes
@@ -55,6 +60,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
