@@ -4,6 +4,7 @@ import com.utp.herDesarrollo.reportes.application.dto.ActualizarReporteDTO;
 import com.utp.herDesarrollo.reportes.application.dto.CrearReporteDTO;
 import com.utp.herDesarrollo.reportes.application.dto.ReporteResponseDTO;
 import com.utp.herDesarrollo.reportes.application.service.ReporteService;
+import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +13,7 @@ import java.util.List;
 
 /**
  * Controlador REST para la gestión de incidencias en aulas universitarias.
- * Expone los endpoints obligatorios para APF1 bajo /api/reportes.
+ * Expone endpoints REST bajo /api/reportes con soporte para filtrado avanzado JPQL.
  */
 @RestController
 @RequestMapping("/api/reportes")
@@ -25,10 +26,16 @@ public class ReporteController {
     }
 
     /**
-     * GET /api/reportes : Listar todas las incidencias.
+     * GET /api/reportes : Listar incidencias con soporte opcional para filtros avanzados en JPQL (?aulaId=...&prioridad=...).
      */
     @GetMapping
-    public ResponseEntity<List<ReporteResponseDTO>> listarTodos() {
+    public ResponseEntity<List<ReporteResponseDTO>> listarTodos(
+            @RequestParam(required = false) String aulaId,
+            @RequestParam(required = false) Prioridad prioridad) {
+        if ((aulaId != null && !aulaId.isBlank()) || prioridad != null) {
+            List<ReporteResponseDTO> reportes = reporteService.listarConFiltros(aulaId, prioridad);
+            return ResponseEntity.ok(reportes);
+        }
         List<ReporteResponseDTO> reportes = reporteService.listarTodos();
         return ResponseEntity.ok(reportes);
     }

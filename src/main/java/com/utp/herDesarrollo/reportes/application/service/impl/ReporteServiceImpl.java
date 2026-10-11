@@ -7,6 +7,7 @@ import com.utp.herDesarrollo.reportes.application.exception.RecursoNoEncontradoE
 import com.utp.herDesarrollo.reportes.application.exception.ReglaNegocioException;
 import com.utp.herDesarrollo.reportes.application.service.ReporteService;
 import com.utp.herDesarrollo.reportes.domain.model.EstadoReporte;
+import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
 import com.utp.herDesarrollo.reportes.domain.repository.ReporteRepository;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,26 @@ public class ReporteServiceImpl implements ReporteService {
     @Override
     public List<ReporteResponseDTO> listarTodos() {
         return reporteRepository.findAll().stream()
+                .map(ReporteResponseDTO::fromDomain)
+                .toList();
+    }
+
+    @Override
+    public List<ReporteResponseDTO> listarConFiltros(String aulaId, Prioridad prioridad) {
+        String aulaNormalizada = (aulaId != null && !aulaId.isBlank()) ? aulaId.trim() : null;
+
+        List<Reporte> reportes;
+        if (aulaNormalizada != null && prioridad != null) {
+            reportes = reporteRepository.findByAulaIdAndPrioridad(aulaNormalizada, prioridad);
+        } else if (aulaNormalizada != null) {
+            reportes = reporteRepository.findByAulaId(aulaNormalizada);
+        } else if (prioridad != null) {
+            reportes = reporteRepository.findByPrioridad(prioridad);
+        } else {
+            reportes = reporteRepository.findAll();
+        }
+
+        return reportes.stream()
                 .map(ReporteResponseDTO::fromDomain)
                 .toList();
     }
