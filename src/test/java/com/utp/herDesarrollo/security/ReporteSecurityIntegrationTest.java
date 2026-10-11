@@ -29,12 +29,17 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.utp.herDesarrollo.security.jwt.JwtTokenProvider;
+
 @SpringBootTest
-@DisplayName("Pruebas de Integración de Seguridad - Spring Security y RBAC (Semana 8)")
+@DisplayName("Pruebas de Integración de Seguridad - Spring Security, RBAC y JWT (Semanas 8 y 9)")
 class ReporteSecurityIntegrationTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     private MockMvc mockMvc;
 
@@ -170,5 +175,67 @@ class ReporteSecurityIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PUT /api/reportes/{id} - Debe permitir acceso mediante cabecera Authorization con token JWT válido de TECNICO (HTTP 200 OK)")
+    void putReportesConTokenJwtBearerValidoDebePermitirAcceso() throws Exception {
+        String token = jwtTokenProvider.generateToken("tecnico", List.of("ROLE_TECNICO"));
+        String json = """
+                {
+                    "descripcion": "Atendido con token JWT",
+                    "tipoProblema": "TECNOLOGICO",
+                    "prioridad": "MEDIA",
+                    "estado": "EN_ATENCION"
+                }
+                """;
+
+        when(reporteService.actualizarReporte(eq(1L), any(ActualizarReporteDTO.class)))
+                .thenReturn(crearRespuestaEjemplo(1L, EstadoReporte.EN_ATENCION));
+
+        mockMvc.perform(put("/api/reportes/1")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PUT /api/reportes/{id} - Debe rechazar acceso mediante token JWT con rol no autorizado ALUMNO (HTTP 403 Forbidden)")
+    void putReportesConTokenJwtAlumnoDebeRetornar403() throws Exception {
+        String token = jwtTokenProvider.generateToken("alumno", List.of("ROLE_ALUMNO"));
+        String json = """
+                {
+                    "descripcion": "Intento de cierre con token alumno",
+                    "tipoProblema": "TECNOLOGICO",
+                    "prioridad": "ALTA",
+                    "estado": "RESUELTO"
+                }
+                """;
+
+        mockMvc.perform(put("/api/reportes/1")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("PUT /api/reportes/{id} - Debe rechazar acceso mediante token JWT inválido o adulterado (HTTP 401 Unauthorized)")
+    void putReportesConTokenJwtInvalidoDebeRetornar401() throws Exception {
+        String json = """
+                {
+                    "descripcion": "Intento con token corrupto",
+                    "tipoProblema": "TECNOLOGICO",
+                    "prioridad": "ALTA",
+                    "estado": "RESUELTO"
+                }
+                """;
+
+        mockMvc.perform(put("/api/reportes/1")
+                        .header("Authorization", "Bearer tokenInvalidoFalso123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isUnauthorized());
     }
 }

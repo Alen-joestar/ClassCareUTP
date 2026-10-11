@@ -1,5 +1,6 @@
 package com.utp.herDesarrollo.security.config;
 
+import com.utp.herDesarrollo.security.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,18 +19,26 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Configuración central de seguridad y control de acceso basado en roles (RBAC).
  * Semana 8 y Semana 9:
  * - Habilita registro público de incidencias (POST /api/reportes) y consultas (GET).
  * - Expone endpoint de autenticación (/api/auth/**) para expedición de tokens JWT.
+ * - Registra JwtAuthenticationFilter para validar cabeceras 'Authorization: Bearer <token>'.
  * - Restringe operaciones de modificación/actualización (PUT /api/reportes/**) a roles TECNICO y ADMIN.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,7 +61,8 @@ public class SecurityConfig {
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
