@@ -195,4 +195,40 @@ class ReporteControllerTest {
                 .andExpect(jsonPath("$.descripcion", is("Proyector reemplazado")))
                 .andExpect(jsonPath("$.estado", is("RESUELTO")));
     }
+
+    @Test
+    @DisplayName("GET /api/reportes?aulaId=A-101&prioridad=ALTA - Debe retornar incidencias filtradas y HTTP 200 OK")
+    void debeListarConFiltrosQueryParamsYRetornar200() throws Exception {
+        List<ReporteResponseDTO> lista = List.of(
+                crearRespuestaEjemplo(1L, "A-101", "Proyector no enciende", EstadoReporte.PENDIENTE)
+        );
+
+        when(reporteService.listarConFiltros("A-101", Prioridad.ALTA)).thenReturn(lista);
+
+        mockMvc.perform(get("/api/reportes")
+                        .param("aulaId", "A-101")
+                        .param("prioridad", "ALTA"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].aulaId", is("A-101")))
+                .andExpect(jsonPath("$[0].prioridad", is("ALTA")));
+    }
+
+    @Test
+    @DisplayName("GET /api/reportes?prioridad=ALTA - Debe retornar incidencias filtradas solo por prioridad y HTTP 200 OK")
+    void debeListarConFiltroPrioridadYRetornar200() throws Exception {
+        List<ReporteResponseDTO> lista = List.of(
+                crearRespuestaEjemplo(1L, "B-202", "Foco roto", EstadoReporte.PENDIENTE)
+        );
+
+        when(reporteService.listarConFiltros(null, Prioridad.ALTA)).thenReturn(lista);
+
+        mockMvc.perform(get("/api/reportes")
+                        .param("prioridad", "ALTA"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].aulaId", is("B-202")));
+    }
 }

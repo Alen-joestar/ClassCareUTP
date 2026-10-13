@@ -1,25 +1,36 @@
 package com.utp.herDesarrollo.reportes.domain.repository;
 
+import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Contrato del repositorio para la persistencia del agregado Reporte.
- * Desacoplado de la tecnología de almacenamiento para facilitar la migración futura a Spring Data JPA.
+ * Repositorio de Spring Data JPA para la entidad Reporte.
+ * Integra consultas personalizadas en JPQL para filtrado avanzado por aula y prioridad.
  */
-public interface ReporteRepository {
+@Repository
+public interface ReporteRepository extends JpaRepository<Reporte, Long> {
 
-    Reporte save(Reporte reporte);
+    /**
+     * Consulta personalizada en JPQL para buscar reportes por aula (insensible a mayúsculas/minúsculas).
+     */
+    @Query("SELECT r FROM Reporte r WHERE UPPER(r.aulaId) = UPPER(:aulaId) ORDER BY r.fechaRegistro DESC")
+    List<Reporte> findByAulaId(@Param("aulaId") String aulaId);
 
-    Optional<Reporte> findById(Long id);
+    /**
+     * Consulta personalizada en JPQL para filtrar incidencias por su nivel de urgencia/prioridad.
+     */
+    @Query("SELECT r FROM Reporte r WHERE r.prioridad = :prioridad ORDER BY r.fechaRegistro DESC")
+    List<Reporte> findByPrioridad(@Param("prioridad") Prioridad prioridad);
 
-    List<Reporte> findAll();
-
-    List<Reporte> findByAulaId(String aulaId);
-
-    boolean existsById(Long id);
-
-    void deleteById(Long id);
+    /**
+     * Consulta personalizada en JPQL para filtrado combinado por aula y prioridad.
+     */
+    @Query("SELECT r FROM Reporte r WHERE UPPER(r.aulaId) = UPPER(:aulaId) AND r.prioridad = :prioridad ORDER BY r.fechaRegistro DESC")
+    List<Reporte> findByAulaIdAndPrioridad(@Param("aulaId") String aulaId, @Param("prioridad") Prioridad prioridad);
 }
