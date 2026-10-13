@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Vistas estáticas y formulario web
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/error", "/atenciones/**").permitAll()
                         // Autenticación de usuarios para expedición de tokens JWT
                         .requestMatchers("/api/auth/**").permitAll()
                         // Endpoints de aulas universitarias (acceso de consulta libre)
@@ -58,6 +58,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/reportes").permitAll()
                         // Módulo de Reportes: actualización de incidencias restringida a personal técnico o admin
                         .requestMatchers(HttpMethod.PUT, "/api/reportes/**").hasAnyRole("TECNICO", "ADMIN")
+                        // Módulo de Atenciones: endpoints libres
+                        .requestMatchers("/api/atenciones/**").permitAll()
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )

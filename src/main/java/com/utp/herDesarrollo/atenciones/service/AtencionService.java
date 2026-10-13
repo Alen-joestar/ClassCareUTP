@@ -1,6 +1,6 @@
-package com.utp.atenciones.service;
+package com.utp.herDesarrollo.atenciones.service;
 
-import com.utp.atenciones.model.Atencion;
+import com.utp.herDesarrollo.atenciones.model.Atencion;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

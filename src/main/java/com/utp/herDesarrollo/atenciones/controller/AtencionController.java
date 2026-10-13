@@ -1,7 +1,7 @@
-package com.utp.atenciones.controller;
+package com.utp.herDesarrollo.atenciones.controller;
 
-import com.utp.atenciones.model.Atencion;
-import com.utp.atenciones.service.AtencionService;
+import com.utp.herDesarrollo.atenciones.model.Atencion;
+import com.utp.herDesarrollo.atenciones.service.AtencionService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

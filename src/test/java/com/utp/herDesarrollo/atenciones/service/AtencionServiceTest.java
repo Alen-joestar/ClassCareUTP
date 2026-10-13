@@ -1,6 +1,6 @@
-package com.utp.atenciones.service;
+package com.utp.herDesarrollo.atenciones.service;
 
-import com.utp.atenciones.model.Atencion;
+import com.utp.herDesarrollo.atenciones.model.Atencion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

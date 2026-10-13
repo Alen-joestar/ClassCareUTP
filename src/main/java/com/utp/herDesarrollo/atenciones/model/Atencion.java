@@ -1,4 +1,4 @@
-package com.utp.atenciones.model;
+package com.utp.herDesarrollo.atenciones.model;
 
 public class Atencion {
     private Long id;
