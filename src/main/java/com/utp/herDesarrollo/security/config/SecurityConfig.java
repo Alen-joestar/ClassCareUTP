@@ -72,8 +72,12 @@ public class SecurityConfig {
                         // Módulo de Reportes: actualización restringida a personal técnico o admin
                         .requestMatchers(HttpMethod.PUT, "/api/reportes/**").hasAnyRole("TECNICO", "ADMIN")
 
-                        // Módulo de Atenciones: endpoints de atenciones
-                        .requestMatchers("/api/atenciones/**").permitAll()
+                        // Módulo de Atenciones: consulta y registro libre
+                        .requestMatchers(HttpMethod.GET, "/api/atenciones/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/atenciones").permitAll()
+
+                        // Módulo de Atenciones: actualización restringida a personal técnico o admin
+                        .requestMatchers(HttpMethod.PUT, "/api/atenciones/**").hasAnyRole("TECNICO", "ADMIN")
 
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
