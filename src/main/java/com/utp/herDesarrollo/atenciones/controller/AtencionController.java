@@ -1,7 +1,12 @@
 package com.utp.herDesarrollo.atenciones.controller;
 
-import com.utp.herDesarrollo.atenciones.model.Atencion;
+import com.utp.herDesarrollo.atenciones.dto.ActualizarEstadoAtencionDTO;
+import com.utp.herDesarrollo.atenciones.dto.AtencionResponseDTO;
+import com.utp.herDesarrollo.atenciones.dto.CrearAtencionDTO;
+import com.utp.herDesarrollo.atenciones.model.EstadoAtencion;
 import com.utp.herDesarrollo.atenciones.service.AtencionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,26 +17,43 @@ public class AtencionController {
 
     private final AtencionService atencionService;
 
-    // Inyección de dependencias
     public AtencionController(AtencionService atencionService) {
         this.atencionService = atencionService;
     }
 
-    // GET - listar todas las atenciones
     @GetMapping
-    public List<Atencion> listarTodas() {
-        return atencionService.listarTodas();
+    public ResponseEntity<List<AtencionResponseDTO>> listar(
+            @RequestParam(required = false) EstadoAtencion estado) {
+        List<AtencionResponseDTO> resultado = (estado != null)
+                ? atencionService.listarPorEstado(estado)
+                : atencionService.listarTodas();
+        return ResponseEntity.ok(resultado);
     }
 
-    // POST - registrar nueva atencion
+    @GetMapping("/{id}")
+    public ResponseEntity<AtencionResponseDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(atencionService.buscarPorId(id));
+    }
+
+    @GetMapping("/reporte/{reporteId}")
+    public ResponseEntity<List<AtencionResponseDTO>> listarPorReporte(@PathVariable Long reporteId) {
+        return ResponseEntity.ok(atencionService.listarPorReporte(reporteId));
+    }
+
+    @GetMapping("/tecnico/{nombreTecnico}")
+    public ResponseEntity<List<AtencionResponseDTO>> listarPorTecnico(@PathVariable String nombreTecnico) {
+        return ResponseEntity.ok(atencionService.listarPorTecnico(nombreTecnico));
+    }
+
     @PostMapping
-    public Atencion crear(@RequestBody Atencion atencion) {
-        return atencionService.crear(atencion);
+    public ResponseEntity<AtencionResponseDTO> crear(@RequestBody CrearAtencionDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(atencionService.crearAtencion(dto));
     }
 
-    // PUT - actualizar estado
     @PutMapping("/{id}/estado")
-    public Atencion actualizarEstado(@PathVariable Long id, @RequestParam String nuevoEstado) {
-        return atencionService.actualizarEstado(id, nuevoEstado);
+    public ResponseEntity<AtencionResponseDTO> actualizarEstado(
+            @PathVariable Long id,
+            @RequestBody ActualizarEstadoAtencionDTO dto) {
+        return ResponseEntity.ok(atencionService.actualizarEstado(id, dto));
     }
 }

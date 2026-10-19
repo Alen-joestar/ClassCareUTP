@@ -1,46 +1,25 @@
 package com.utp.herDesarrollo.atenciones.service;
 
-import com.utp.herDesarrollo.atenciones.model.Atencion;
-import org.springframework.stereotype.Service;
+import com.utp.herDesarrollo.atenciones.dto.ActualizarEstadoAtencionDTO;
+import com.utp.herDesarrollo.atenciones.dto.AtencionResponseDTO;
+import com.utp.herDesarrollo.atenciones.dto.CrearAtencionDTO;
+import com.utp.herDesarrollo.atenciones.model.EstadoAtencion;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-@Service
-public class AtencionService {
+public interface AtencionService {
 
-    private final List<Atencion> atenciones = new ArrayList<>();
-    private Long contadorId = 1L;
+    AtencionResponseDTO crearAtencion(CrearAtencionDTO dto);
 
-    public Atencion crear(Atencion atencion) {
-        atencion.setId(contadorId++);
-        atencion.setEstado("Pendiente");
-        atenciones.add(atencion);
-        return atencion;
-    }
+    List<AtencionResponseDTO> listarTodas();
 
-    public List<Atencion> listarTodas() {
-        return atenciones;
-    }
+    List<AtencionResponseDTO> listarPorEstado(EstadoAtencion estado);
 
-    public Atencion actualizarEstado(Long id, String nuevoEstado) {
-        Optional<Atencion> encontrada = atenciones.stream()
-                .filter(a -> a.getId().equals(id))
-                .findFirst();
+    List<AtencionResponseDTO> listarPorReporte(Long reporteId);
 
-        if (encontrada.isEmpty()) {
-            throw new RuntimeException("Atencion no encontrada con id: " + id);
-        }
+    List<AtencionResponseDTO> listarPorTecnico(String tecnico);
 
-        Atencion atencion = encontrada.get();
+    AtencionResponseDTO buscarPorId(Long id);
 
-        // Regla de negocio: no se puede pasar a Resuelto sin estar En atención
-        if ("Resuelto".equals(nuevoEstado) && !"En atención".equals(atencion.getEstado())) {
-            throw new RuntimeException("No se puede resolver sin estar En atención primero");
-        }
-
-        atencion.setEstado(nuevoEstado);
-        return atencion;
-    }
+    AtencionResponseDTO actualizarEstado(Long id, ActualizarEstadoAtencionDTO dto);
 }
