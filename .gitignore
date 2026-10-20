@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Node / Angular ###
+**/node_modules/
+**/.angular/
+**/dist/
+frontend/.vscode/
