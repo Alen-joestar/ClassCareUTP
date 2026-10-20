@@ -1,12 +1,13 @@
 package com.utp.herDesarrollo.security.config;
 
 import com.utp.herDesarrollo.security.jwt.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,11 +24,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * Configuración central de seguridad y control de acceso basado en roles (RBAC).
- * Semana 8 y Semana 9:
- * - Habilita registro público de incidencias (POST /api/reportes) y consultas (GET).
- * - Expone endpoint de autenticación (/api/auth/**) para expedición de tokens JWT.
- * - Registra JwtAuthenticationFilter para validar cabeceras 'Authorization: Bearer <token>'.
- * - Restringe operaciones de modificación/actualización (PUT /api/reportes/**) a roles TECNICO y ADMIN.
+ * Unifica las políticas de acceso para los tres módulos:
+ * - Reportes: consulta pública, registro libre y actualización restringida (TECNICO, ADMIN).
+ * - Aulas: consulta pública y gestión restringida (POST, PUT, DELETE para TECNICO, ADMIN).
+ * - Atenciones: endpoints libres y vistas de seguimiento.
  */
 @Configuration
 @EnableWebSecurity
@@ -44,27 +44,45 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Vistas estáticas y formulario web
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/error", "/atenciones/**").permitAll()
-                        // Autenticación de usuarios para expedición de tokens JWT
+                        // Vistas estáticas de los tres módulos
+                        .requestMatchers(
+                                "/", "/index.html", "/css/**",
+                                "/js/**", "/images/**", "/error",
+                                "/aulas/**", "/atenciones/**"
+                        ).permitAll()
+
+                        // Autenticación JWT
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Endpoints de aulas universitarias (acceso de consulta libre)
+
+                        // Módulo de Aulas: consultas públicas
                         .requestMatchers(HttpMethod.GET, "/api/aulas/**").permitAll()
-                        // Módulo de Reportes: consulta pública de reportes
+
+                        // Módulo de Aulas: gestión técnica restringida
+                        .requestMatchers(HttpMethod.POST, "/api/aulas/**").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/aulas/**").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/aulas/**").hasAnyRole("TECNICO", "ADMIN")
+
+                        // Módulo de Reportes: consulta y registro libre
                         .requestMatchers(HttpMethod.GET, "/api/reportes/**").permitAll()
-                        // Módulo de Reportes: creación pública de reportes
                         .requestMatchers(HttpMethod.POST, "/api/reportes").permitAll()
-                        // Módulo de Reportes: actualización de incidencias restringida a personal técnico o admin
+
+                        // Módulo de Reportes: actualización restringida a personal técnico o admin
                         .requestMatchers(HttpMethod.PUT, "/api/reportes/**").hasAnyRole("TECNICO", "ADMIN")
-                        // Módulo de Atenciones: endpoints libres
+
+                        // Módulo de Atenciones: endpoints de atenciones
                         .requestMatchers("/api/atenciones/**").permitAll()
+
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
@@ -75,21 +93,27 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+    public UserDetailsService userDetailsService(
+            PasswordEncoder passwordEncoder,
+            @Value("${app.security.tecnico.password}") String passwordTecnico,
+            @Value("${app.security.admin.password}") String passwordAdmin
+    ) {
         UserDetails tecnico = User.builder()
                 .username("tecnico")
-                .password(passwordEncoder.encode("tecnico123"))
+                .password(passwordEncoder.encode(passwordTecnico))
                 .roles("TECNICO")
                 .build();
 
         UserDetails admin = User.builder()
                 .username("admin")
-                .password(passwordEncoder.encode("admin123"))
+                .password(passwordEncoder.encode(passwordAdmin))
                 .roles("ADMIN")
                 .build();
 

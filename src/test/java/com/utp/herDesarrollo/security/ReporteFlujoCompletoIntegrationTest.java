@@ -1,6 +1,8 @@
 package com.utp.herDesarrollo.security;
 
 import com.jayway.jsonpath.JsonPath;
+import com.utp.herDesarrollo.aulas.model.Aula;
+import com.utp.herDesarrollo.aulas.repository.AulaRepository;
 import com.utp.herDesarrollo.reportes.domain.model.EstadoReporte;
 import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
@@ -46,6 +48,9 @@ class ReporteFlujoCompletoIntegrationTest {
     @Autowired
     private ReporteRepository reporteRepository;
 
+    @Autowired
+    private AulaRepository aulaRepository;
+
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -54,6 +59,13 @@ class ReporteFlujoCompletoIntegrationTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+
+        if (!aulaRepository.existsByCodigo("LAB-102")) {
+            aulaRepository.save(new Aula(null, "LAB-102", "Pabellón Laboratorios", 30, "Disponible"));
+        }
+        if (!aulaRepository.existsByCodigo("P-301")) {
+            aulaRepository.save(new Aula(null, "P-301", "Pabellón Principal", 40, "Disponible"));
+        }
     }
 
     @Test
@@ -199,8 +211,9 @@ class ReporteFlujoCompletoIntegrationTest {
     @Test
     @DisplayName("Debe permitir actualización de incidencia por rol ADMIN con token JWT")
     void debePermitirModificacionPorAdminConJwt() throws Exception {
+        Aula aulaP301 = aulaRepository.findByCodigo("P-301").orElseThrow();
         Reporte nuevo = reporteRepository.save(new Reporte(
-                "P-301",
+                aulaP301,
                 com.utp.herDesarrollo.reportes.domain.model.TipoProblema.MOBILIARIO,
                 "Silla rota",
                 Prioridad.BAJA,

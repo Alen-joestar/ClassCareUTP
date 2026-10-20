@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestión y consulta de aulas universitarias en la plataforma ClassCare Campus.">
+    <meta name="author" content="Equipo de Desarrollo Web Integrado">
+    <title>ClassCare Campus | Catálogo de Aulas</title>
+    <link rel="stylesheet" href="/css/campus.css">
+    <link rel="stylesheet" href="css/aulas.css">
+</head>
+<body>
+
+    <!-- Encabezado Institucional Unificado -->
+    <header class="campus-header">
+        <div class="campus-brand">
+            <div class="campus-brand__logo" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+            </div>
+            <div class="campus-brand__titles">
+                <h1 class="campus-brand__name">ClassCare Campus</h1>
+                <p class="campus-brand__desc">Gestión y Mantenimiento de Aulas Universitarias</p>
+            </div>
+        </div>
+
+        <nav class="campus-nav" aria-label="Navegación principal de módulos">
+            <ul class="campus-nav__list">
+                <li class="campus-nav__item">
+                    <a href="/" class="campus-nav__link">Reportes</a>
+                </li>
+                <li class="campus-nav__item">
+                    <a href="/aulas/index.html" class="campus-nav__link campus-nav__link--active" aria-current="page">Aulas</a>
+                </li>
+                <li class="campus-nav__item">
+                    <a href="/atenciones/index.html" class="campus-nav__link">Atenciones</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main id="main-content" class="campus-layout">
+
+        <!-- Sección Informativa del Módulo -->
+        <section class="campus-intro" aria-labelledby="intro-aulas-title">
+            <h2 id="intro-aulas-title" class="campus-intro__title">Módulo de Catálogo de Aulas</h2>
+            <p class="campus-intro__text">
+                Directorio centralizado de infraestructura educativa del campus universitario.
+                Verifique la disponibilidad operativa, aforo asignado y estado de mantenimiento en tiempo real.
+            </p>
+        </section>
+
+        <!-- Sección de Filtro y Consulta de Aulas -->
+        <section class="campus-card" aria-labelledby="consulta-title">
+            <h2 id="consulta-title" class="campus-card__title">Consultar Disponibilidad de Espacios</h2>
+            <p class="campus-card__instruction">Filtre por código de aula o aforo mínimo para verificar condiciones de uso.</p>
+
+            <form id="form-consulta-aula" class="campus-form">
+                <fieldset class="campus-fieldset">
+                    <legend class="campus-legend">Criterios de Búsqueda</legend>
+
+                    <p class="form-group">
+                        <label for="codigo-aula" class="form-label">Código del Aula</label>
+                        <input
+                            type="text"
+                            id="codigo-aula"
+                            name="codigo-aula"
+                            class="form-input"
+                            placeholder="Ej: A-101, B-201"
+                            autocomplete="off">
+                        <small class="form-help">Ingrese el identificador oficial de aula o laboratorio.</small>
+                    </p>
+
+                    <p class="form-group">
+                        <label for="capacidad" class="form-label">Capacidad Mínima</label>
+                        <input
+                            type="number"
+                            id="capacidad"
+                            name="capacidad"
+                            min="1"
+                            max="200"
+                            class="form-input"
+                            placeholder="Ej: 30">
+                        <small class="form-help">Aforo mínimo requerido para la actividad académica.</small>
+                    </p>
+
+                    <p class="form-actions form-group--full">
+                        <button type="submit" class="btn btn--primary" id="btn-consultar">
+                            Buscar Espacios
+                        </button>
+                        <button type="button" class="btn btn--secondary" id="btn-limpiar">
+                            Restablecer Filtros
+                        </button>
+                    </p>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Sección de Listado de Aulas -->
+        <section class="campus-card" aria-labelledby="listado-title">
+            <h2 id="listado-title" class="campus-card__title">Aulas y Laboratorios Registrados</h2>
+            <p class="campus-card__instruction">Relación completa de espacios físicos con indicador de disponibilidad operativa.</p>
+
+            <div class="campus-grid" id="grid-aulas" aria-live="polite">
+                <!-- Tarjeta 1: A-101 -->
+                <article class="item-card item-card--baja" data-codigo="A-101" data-capacidad="40">
+                    <header class="item-card__header">
+                        <span class="badge badge--disponible">Disponible</span>
+                        <span class="item-card__id">Pabellón A</span>
+                    </header>
+                    <div class="item-card__body">
+                        <h3 class="item-card__title">Aula A-101</h3>
+                        <p class="item-card__meta"><strong>Ubicación:</strong> Pabellón A - Primer piso</p>
+                        <p class="item-card__desc">Aforo disponible para 40 estudiantes. Espacio operativo para dictado regular.</p>
+                    </div>
+                    <footer class="item-card__footer">
+                        <span>Aforo: 40 personas</span>
+                        <a href="/?aula=A-101" class="btn btn--outline" style="padding: 0.35rem 0.75rem; font-size: 0.8125rem;">Reportar Falla</a>
+                    </footer>
+                </article>
+
+                <!-- Tarjeta 2: A-102 -->
+                <article class="item-card item-card--alta" data-codigo="A-102" data-capacidad="35">
+                    <header class="item-card__header">
+                        <span class="badge badge--mantenimiento">Mantenimiento</span>
+                        <span class="item-card__id">Pabellón A</span>
+                    </header>
+                    <div class="item-card__body">
+                        <h3 class="item-card__title">Aula A-102</h3>
+                        <p class="item-card__meta"><strong>Ubicación:</strong> Pabellón A - Primer piso</p>
+                        <p class="item-card__desc">Espacio en intervención técnica por reporte de alta severidad activo.</p>
+                    </div>
+                    <footer class="item-card__footer">
+                        <span>Aforo: 35 personas</span>
+                        <a href="/?aula=A-102" class="btn btn--outline" style="padding: 0.35rem 0.75rem; font-size: 0.8125rem;">Ver Falla</a>
+                    </footer>
+                </article>
+
+                <!-- Tarjeta 3: B-201 -->
+                <article class="item-card item-card--baja" data-codigo="B-201" data-capacidad="50">
+                    <header class="item-card__header">
+                        <span class="badge badge--disponible">Disponible</span>
+                        <span class="item-card__id">Pabellón B</span>
+                    </header>
+                    <div class="item-card__body">
+                        <h3 class="item-card__title">Aula B-201</h3>
+                        <p class="item-card__meta"><strong>Ubicación:</strong> Pabellón B - Segundo piso</p>
+                        <p class="item-card__desc">Aforo disponible para 50 estudiantes. Auditorio para clases magistrales.</p>
+                    </div>
+                    <footer class="item-card__footer">
+                        <span>Aforo: 50 personas</span>
+                        <a href="/?aula=B-201" class="btn btn--outline" style="padding: 0.35rem 0.75rem; font-size: 0.8125rem;">Reportar Falla</a>
+                    </footer>
+                </article>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Pie de Página Institucional Unificado -->
+    <footer class="campus-footer">
+        <div class="footer-content">
+            <p><strong>ClassCare Campus</strong> &copy; 2026 Universidad Tecnológica del Perú (UTP).</p>
+            <p>Plataforma Integrada de Mantenimiento y Aulas Universitarias | APF2</p>
+            <p class="footer-status">
+                <span class="status-dot" aria-hidden="true"></span>
+                Servidor de API REST activo y sincronizado en puerto 8080
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const grid = document.getElementById("grid-aulas");
+            const form = document.getElementById("form-consulta-aula");
+            const inputCodigo = document.getElementById("codigo-aula");
+            const inputCapacidad = document.getElementById("capacidad");
+            const btnLimpiar = document.getElementById("btn-limpiar");
+
+            // Intenta cargar aulas reales del backend si la API responde
+            fetch("/api/aulas")
+                .then(res => res.ok ? res.json() : Promise.reject("API no disponible"))
+                .then(aulas => {
+                    if (Array.isArray(aulas) && aulas.length > 0) {
+                        grid.innerHTML = "";
+                        aulas.forEach(aula => {
+                            const isMantenimiento = aula.estado === "Mantenimiento";
+                            const isOcupada = aula.estado === "Ocupada";
+                            const badgeClass = isMantenimiento ? "badge--mantenimiento" : (isOcupada ? "badge--ocupada" : "badge--disponible");
+                            const borderClass = isMantenimiento ? "item-card--alta" : (isOcupada ? "item-card--media" : "item-card--baja");
+                            const actionLabel = isMantenimiento ? "Ver Falla" : "Reportar Falla";
+
+                            const card = document.createElement("article");
+                            card.className = `item-card ${borderClass}`;
+                            card.dataset.codigo = aula.codigo;
+                            card.dataset.capacidad = aula.capacidad || "0";
+                            card.innerHTML = `
+                                <header class="item-card__header">
+                                    <span class="badge ${badgeClass}">${aula.estado}</span>
+                                    <span class="item-card__id">${aula.codigo}</span>
+                                </header>
+                                <div class="item-card__body">
+                                    <h3 class="item-card__title">Aula ${aula.codigo}</h3>
+                                    <p class="item-card__meta"><strong>Ubicación:</strong> ${aula.ubicacion || "Campus central"}</p>
+                                    <p class="item-card__desc">Aforo registrado: ${aula.capacidad} estudiantes. Estado operativo verificado.</p>
+                                </div>
+                                <footer class="item-card__footer">
+                                    <span>Aforo: ${aula.capacidad} personas</span>
+                                    <a href="/?aula=${encodeURIComponent(aula.codigo)}" class="btn btn--outline" style="padding: 0.35rem 0.75rem; font-size: 0.8125rem;">${actionLabel}</a>
+                                </footer>
+                            `;
+                            grid.appendChild(card);
+                        });
+                    }
+                })
+                .catch(() => {
+                    // Mantiene el fallback estático ya presente en el HTML
+                });
+
+            // Función de filtrado interactivo
+            const filtrar = (e) => {
+                if (e) e.preventDefault();
+                const codigoQuery = (inputCodigo.value || "").trim().toUpperCase();
+                const capacidadMin = parseInt(inputCapacidad.value, 10) || 0;
+                const items = grid.querySelectorAll(".item-card");
+
+                items.forEach(item => {
+                    const cod = (item.dataset.codigo || "").toUpperCase();
+                    const cap = parseInt(item.dataset.capacidad, 10) || 0;
+                    const matchesCodigo = !codigoQuery || cod.includes(codigoQuery);
+                    const matchesCapacidad = cap >= capacidadMin;
+
+                    if (matchesCodigo && matchesCapacidad) {
+                        item.style.display = "";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            };
+
+            form?.addEventListener("submit", filtrar);
+            inputCodigo?.addEventListener("input", filtrar);
+            inputCapacidad?.addEventListener("input", filtrar);
+
+            btnLimpiar?.addEventListener("click", () => {
+                if (inputCodigo) inputCodigo.value = "";
+                if (inputCapacidad) inputCapacidad.value = "";
+                grid.querySelectorAll(".item-card").forEach(i => i.style.display = "");
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,640 @@
+/* ==========================================================================
+   ClassCare Campus - Sistema de Diseño Unificado (Design Tokens & Core UI)
+   Basado en principios de diseño institucional: claridad operativa, alto contraste,
+   estética sobria universitaria y cero clichés generativos de IA.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design Tokens (Custom Properties)
+   -------------------------------------------------------------------------- */
+:root {
+    /* Identidad Cromática Institucional (4-6 tonos principales) */
+    --campus-navy-deep: #0f2038;       /* Encabezado y solidez institucional */
+    --campus-navy-dark: #162c4b;       /* Hover y variantes de navegación */
+    --campus-accent: #1d4ed8;          /* Azul cobalto para interacción activa */
+    --campus-accent-hover: #1e40af;    /* Estado hover de interacción */
+    --campus-bg: #f8fafc;              /* Lienzo arquitectónico sobrio */
+    --campus-surface: #ffffff;         /* Superficie de paneles y tarjetas */
+    --campus-surface-subtle: #f1f5f9;  /* Fondos secundarios y controles */
+
+    /* Tipografía y Jerarquía */
+    --campus-text-strong: #0f172a;     /* Títulos y datos de alto contraste (14:1) */
+    --campus-text: #1e293b;            /* Cuerpo de texto principal (12.8:1) */
+    --campus-text-muted: #64748b;      /* Etiquetas secundarias e instrucciones */
+    --campus-text-light: #94a3b8;      /* Metadatos sobre fondos oscuros */
+    --campus-text-inverted: #ffffff;   /* Texto sobre fondo institucional */
+
+    /* Límites y Estructura */
+    --campus-border: #e2e8f0;          /* Separaciones sutiles */
+    --campus-border-strong: #cbd5e1;   /* Bordes de formularios y tarjetas */
+    --campus-border-focus: #1d4ed8;    /* Borde en foco */
+
+    /* Estados Operativos (WCAG AAA - Alto Contraste y Cero Neón) */
+    --status-critical-bg: #fee2e2;
+    --status-critical-text: #991b1b;
+    --status-critical-border: #fca5a5;
+
+    --status-warning-bg: #fef3c7;
+    --status-warning-text: #92400e;
+    --status-warning-border: #fcd34d;
+
+    --status-success-bg: #dcfce7;
+    --status-success-text: #166534;
+    --status-success-border: #86efac;
+
+    --status-neutral-bg: #f1f5f9;
+    --status-neutral-text: #334155;
+    --status-neutral-border: #cbd5e1;
+
+    /* Radios y Elevaciones Físicas */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-pill: 9999px;
+
+    --shadow-flat: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-elevated: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+
+    /* Enfoque Accesible */
+    --focus-ring: 3px solid rgba(29, 78, 216, 0.35);
+    --focus-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Reseteo y Base Tipográfica
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--campus-bg);
+    color: var(--campus-text);
+    line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Enfoque visible universal accesible */
+:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+}
+
+img, svg {
+    display: block;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   3. Encabezado Institucional Unificado
+   -------------------------------------------------------------------------- */
+.campus-header {
+    background-color: var(--campus-navy-deep);
+    color: var(--campus-text-inverted);
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid #1e3a5f;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.campus-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.campus-brand__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #60a5fa;
+    flex-shrink: 0;
+}
+
+.campus-brand__titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.campus-brand__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--campus-text-inverted);
+    line-height: 1.2;
+}
+
+.campus-brand__desc {
+    font-size: 0.8125rem;
+    color: var(--campus-text-light);
+    font-weight: 400;
+}
+
+.campus-nav {
+    display: flex;
+    align-items: center;
+}
+
+.campus-nav__list {
+    display: flex;
+    list-style: none;
+    gap: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 0.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.campus-nav__link {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    border-radius: var(--radius-sm);
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.campus-nav__link:hover {
+    color: var(--campus-text-inverted);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.campus-nav__link--active {
+    background-color: var(--campus-surface);
+    color: var(--campus-navy-deep);
+    box-shadow: var(--shadow-flat);
+}
+
+.campus-nav__link--active:hover {
+    background-color: var(--campus-surface);
+    color: var(--campus-navy-deep);
+}
+
+/* --------------------------------------------------------------------------
+   4. Layout Principal & Secciones de Contenido
+   -------------------------------------------------------------------------- */
+.campus-layout {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.campus-intro {
+    background-color: var(--campus-surface);
+    border: 1px solid var(--campus-border);
+    border-left: 4px solid var(--campus-accent);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-flat);
+}
+
+.campus-intro__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--campus-text-strong);
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.01em;
+}
+
+.campus-intro__text {
+    font-size: 0.9375rem;
+    color: var(--campus-text-muted);
+    max-width: 75ch;
+    line-height: 1.5;
+}
+
+/* Contenedor tipo Panel / Card */
+.campus-card {
+    background-color: var(--campus-surface);
+    border: 1px solid var(--campus-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-flat);
+}
+
+.campus-card__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--campus-text-strong);
+    margin-bottom: 0.25rem;
+}
+
+.campus-card__instruction {
+    font-size: 0.875rem;
+    color: var(--campus-text-muted);
+    margin-bottom: 1.25rem;
+    max-width: 70ch;
+}
+
+/* --------------------------------------------------------------------------
+   5. Formulario & Controles Accesibles
+   -------------------------------------------------------------------------- */
+.campus-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.campus-fieldset {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.campus-legend {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--campus-text-strong);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--campus-border);
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--campus-text-strong);
+}
+
+.form-required {
+    color: var(--status-critical-text);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.65rem 0.875rem;
+    font-size: 0.9375rem;
+    font-family: inherit;
+    border: 1px solid var(--campus-border-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--campus-surface);
+    color: var(--campus-text-strong);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+    border-color: #94a3b8;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--campus-accent);
+    outline: var(--focus-ring);
+    outline-offset: 0;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-help {
+    font-size: 0.75rem;
+    color: var(--campus-text-muted);
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. Botones de Acción
+   -------------------------------------------------------------------------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn--primary {
+    background-color: var(--campus-accent);
+    color: var(--campus-text-inverted);
+}
+
+.btn--primary:hover {
+    background-color: var(--campus-accent-hover);
+    box-shadow: var(--shadow-flat);
+}
+
+.btn--secondary {
+    background-color: var(--campus-surface-subtle);
+    color: var(--campus-text);
+    border-color: var(--campus-border-strong);
+}
+
+.btn--secondary:hover {
+    background-color: #e2e8f0;
+}
+
+.btn--outline {
+    background-color: transparent;
+    color: var(--campus-accent);
+    border-color: var(--campus-accent);
+}
+
+.btn--outline:hover {
+    background-color: #eff6ff;
+}
+
+/* --------------------------------------------------------------------------
+   7. Insignias de Estado (Badges Operativos WCAG AAA)
+   -------------------------------------------------------------------------- */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    line-height: 1.3;
+}
+
+/* Prioridad & Fallas Críticas */
+.badge--alta,
+.badge--mantenimiento {
+    background-color: var(--status-critical-bg);
+    color: var(--status-critical-text);
+    border-color: var(--status-critical-border);
+}
+
+/* Urgencia Media & En Atención */
+.badge--media,
+.badge--en-atencion,
+.badge--ocupada {
+    background-color: var(--status-warning-bg);
+    color: var(--status-warning-text);
+    border-color: var(--status-warning-border);
+}
+
+/* Baja, Resuelto & Disponible */
+.badge--baja,
+.badge--resuelto,
+.badge--disponible {
+    background-color: var(--status-success-bg);
+    color: var(--status-success-text);
+    border-color: var(--status-success-border);
+}
+
+/* Neutral / Pendiente */
+.badge--pendiente {
+    background-color: var(--status-neutral-bg);
+    color: var(--status-neutral-text);
+    border-color: var(--status-neutral-border);
+}
+
+/* --------------------------------------------------------------------------
+   8. Cuadrículas y Tarjetas de Información
+   -------------------------------------------------------------------------- */
+.campus-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+.item-card {
+    background-color: var(--campus-surface);
+    border: 1px solid var(--campus-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-flat);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.item-card:hover {
+    border-color: var(--campus-border-strong);
+    box-shadow: var(--shadow-elevated);
+}
+
+/* Borde indicador sutil por severidad */
+.item-card--alta {
+    border-left: 4px solid var(--status-critical-text);
+}
+
+.item-card--media {
+    border-left: 4px solid var(--status-warning-text);
+}
+
+.item-card--baja {
+    border-left: 4px solid var(--status-success-text);
+}
+
+.item-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.item-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.item-card__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--campus-text-strong);
+}
+
+.item-card__meta {
+    font-size: 0.8125rem;
+    color: var(--campus-text-muted);
+}
+
+.item-card__desc {
+    font-size: 0.875rem;
+    color: var(--campus-text);
+    line-height: 1.5;
+}
+
+.item-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--campus-border);
+    font-size: 0.75rem;
+    color: var(--campus-text-muted);
+}
+
+.item-card__id {
+    font-weight: 700;
+    color: var(--campus-navy-deep);
+}
+
+/* --------------------------------------------------------------------------
+   9. Pie de Página Institucional Unificado
+   -------------------------------------------------------------------------- */
+.campus-footer {
+    background-color: var(--campus-surface);
+    border-top: 1px solid var(--campus-border);
+    padding: 1.5rem 1.25rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.8125rem;
+    color: var(--campus-text-muted);
+}
+
+.footer-content strong {
+    color: var(--campus-text-strong);
+}
+
+.footer-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: var(--radius-pill);
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   10. Media Queries Progresivas (Mobile-First)
+   -------------------------------------------------------------------------- */
+@media (min-width: 640px) {
+    .campus-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+    }
+
+    .form-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+
+    .filter-inline {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+    }
+
+    .filter-inline .form-group {
+        flex: 1;
+    }
+
+    .filter-inline .form-actions {
+        margin-top: 0;
+    }
+}
+
+@media (min-width: 768px) {
+    .campus-layout {
+        padding: 2.25rem 2rem;
+    }
+
+    .campus-fieldset {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .campus-legend,
+    .form-group--full {
+        grid-column: 1 / -1;
+    }
+
+    .campus-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .campus-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Reducción de movimiento respetuosa */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

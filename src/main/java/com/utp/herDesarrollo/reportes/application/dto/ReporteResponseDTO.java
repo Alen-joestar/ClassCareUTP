@@ -14,6 +14,8 @@ public class ReporteResponseDTO {
 
     private Long id;
     private String aulaId;
+    private Long aulaInternoId;
+    private String aulaUbicacion;
     private TipoProblema tipoProblema;
     private String descripcion;
     private Prioridad prioridad;
@@ -37,7 +39,7 @@ public class ReporteResponseDTO {
         if (reporte == null) {
             return null;
         }
-        return new ReporteResponseDTO(
+        ReporteResponseDTO dto = new ReporteResponseDTO(
                 reporte.getId(),
                 reporte.getAulaId(),
                 reporte.getTipoProblema(),
@@ -46,6 +48,11 @@ public class ReporteResponseDTO {
                 reporte.getEstado(),
                 reporte.getFechaRegistro()
         );
+        if (reporte.getAula() != null) {
+            dto.setAulaInternoId(reporte.getAula().getId());
+            dto.setAulaUbicacion(reporte.getAula().getUbicacion());
+        }
+        return dto;
     }
 
     public Long getId() {
@@ -62,6 +69,22 @@ public class ReporteResponseDTO {
 
     public void setAulaId(String aulaId) {
         this.aulaId = aulaId;
+    }
+
+    public Long getAulaInternoId() {
+        return aulaInternoId;
+    }
+
+    public void setAulaInternoId(Long aulaInternoId) {
+        this.aulaInternoId = aulaInternoId;
+    }
+
+    public String getAulaUbicacion() {
+        return aulaUbicacion;
+    }
+
+    public void setAulaUbicacion(String aulaUbicacion) {
+        this.aulaUbicacion = aulaUbicacion;
     }
 
     public TipoProblema getTipoProblema() {

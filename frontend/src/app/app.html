@@ -1,0 +1,47 @@
+<!-- Encabezado Institucional ClassCare Campus (Angular SPA) -->
+<header class="campus-header">
+  <div class="campus-brand">
+    <div class="campus-brand__logo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+    </div>
+    <div class="campus-brand__titles">
+      <h1 class="campus-brand__name">ClassCare Campus</h1>
+      <p class="campus-brand__desc">Plataforma Angular SPA — Gestión y Mantenimiento</p>
+    </div>
+  </div>
+
+  <nav class="campus-nav" aria-label="Navegación principal">
+    <ul class="campus-nav__list">
+      <li class="campus-nav__item">
+        <a routerLink="/reportes" routerLinkActive="campus-nav__link--active" class="campus-nav__link">
+          Reportes
+        </a>
+      </li>
+      <li class="campus-nav__item">
+        <a href="/aulas/index.html" class="campus-nav__link">
+          Aulas (Legacy)
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<!-- Layout Principal de la SPA -->
+<main class="campus-layout">
+  <router-outlet />
+</main>
+
+<!-- Pie de Página Institucional -->
+<footer class="campus-footer">
+  <div class="footer-content">
+    <p><strong>ClassCare Campus</strong> &copy; 2026 Universidad Tecnológica del Perú (UTP).</p>
+    <p>Fase 3: Frontend Reactivo con Angular — Desarrollo Web Integrado (Semana 11)</p>
+    <p class="footer-status">
+      <span class="status-dot" aria-hidden="true"></span>
+      Aplicación Angular Standalone Activa
+    </p>
+  </div>
+</footer>
