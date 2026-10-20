@@ -1,0 +1,102 @@
+<section class="reportes-container">
+
+  <!-- Encabezado de la Sección -->
+  <header class="section-intro">
+    <div class="intro-titles">
+      <h2 class="section-title">Historial de Incidencias Registradas</h2>
+      <p class="section-subtitle">
+        Monitoreo en tiempo real de averías e intervenciones técnicas en aulas y laboratorios universitarios.
+      </p>
+    </div>
+
+    <!-- Métricas Operativas Rápidas -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-value">{{ totalIncidencias() }}</span>
+        <span class="metric-label">Total Reportes</span>
+      </div>
+      <div class="metric-card metric-card--warning">
+        <span class="metric-value">{{ totalPendientes() }}</span>
+        <span class="metric-label">Pendientes</span>
+      </div>
+      <div class="metric-card metric-card--danger">
+        <span class="metric-value">{{ totalAltas() }}</span>
+        <span class="metric-label">Alta Prioridad</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Filtros Reactiva -->
+  <section class="filter-panel">
+    <div class="filter-group">
+      <label for="search-aula" class="filter-label">Buscar por Aula o Detalle</label>
+      <input
+        type="search"
+        id="search-aula"
+        class="filter-input"
+        placeholder="Ej: A-101, Proyector..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="filter-prioridad" class="filter-label">Filtrar por Prioridad</label>
+      <select
+        id="filter-prioridad"
+        class="filter-select"
+        [ngModel]="selectedPrioridad()"
+        (ngModelChange)="onPrioridadChange($event)"
+      >
+        <option value="">Todas las prioridades</option>
+        <option value="ALTA">Alta Prioridad</option>
+        <option value="MEDIA">Media Prioridad</option>
+        <option value="BAJA">Baja Prioridad</option>
+      </select>
+    </div>
+
+    <div class="filter-actions">
+      <button type="button" class="btn btn--outline" (click)="resetFilters()">
+        Restablecer
+      </button>
+    </div>
+  </section>
+
+  <!-- Cuadrícula de Incidencias -->
+  <section class="cards-grid" aria-live="polite">
+    @for (reporte of filteredReportes(); track reporte.id) {
+      <article class="report-card" [class.report-card--alta]="reporte.prioridad === 'ALTA'" [class.report-card--media]="reporte.prioridad === 'MEDIA'">
+        <header class="card-header">
+          <span class="badge" [ngClass]="getPrioridadBadgeClass(reporte.prioridad)">
+            Prioridad {{ reporte.prioridad }}
+          </span>
+          <span class="badge" [ngClass]="getEstadoBadgeClass(reporte.estado)">
+            {{ reporte.estado }}
+          </span>
+        </header>
+
+        <div class="card-body">
+          <h3 class="card-title">Aula {{ reporte.aulaId }}</h3>
+          <p class="card-meta">
+            <strong>Categoría:</strong> {{ reporte.tipoProblema }}
+          </p>
+          <p class="card-desc">{{ reporte.descripcion }}</p>
+        </div>
+
+        <footer class="card-footer">
+          <time [attr.datetime]="reporte.fechaRegistro">
+            {{ reporte.fechaRegistro | date:'mediumDate' }}
+          </time>
+          <span class="card-id">Ticket #{{ reporte.id }}</span>
+        </footer>
+      </article>
+    } @empty {
+      <div class="empty-state">
+        <p class="empty-title">No se encontraron incidencias</p>
+        <p class="empty-desc">No existen reportes que coincidan con los criterios de búsqueda seleccionados.</p>
+        <button type="button" class="btn btn--secondary" (click)="resetFilters()">Ver todos los reportes</button>
+      </div>
+    }
+  </section>
+
+</section>
