@@ -25,4 +25,7 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
 
     @Query("SELECT COUNT(a) FROM Aula a WHERE LOWER(a.estado) = LOWER(:estado)")
     long contarPorEstado(@Param("estado") String estado);
+
+    @Query("SELECT a FROM Aula a WHERE LOWER(a.estado) = LOWER('Disponible') ORDER BY a.codigo")
+    List<Aula> listarAulasDisponibles();
 }

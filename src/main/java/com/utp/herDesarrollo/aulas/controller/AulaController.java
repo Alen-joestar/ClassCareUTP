@@ -73,4 +73,9 @@ public class AulaController {
     public long contarPorEstado(@RequestParam String estado) {
         return aulaService.contarPorEstado(estado);
     }
+
+    @GetMapping("/disponibles")
+    public List<Aula> listarAulasDisponibles() {
+        return aulaService.listarAulasDisponibles();
+}
 }

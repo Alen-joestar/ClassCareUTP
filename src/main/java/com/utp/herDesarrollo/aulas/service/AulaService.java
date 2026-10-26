@@ -104,4 +104,9 @@ public class AulaService {
     public long contarPorEstado(String estado) {
         return aulaRepository.contarPorEstado(estado);
     }
+
+    @Transactional(readOnly = true)
+    public List<Aula> listarAulasDisponibles() {
+        return aulaRepository.listarAulasDisponibles();
+}
 }
