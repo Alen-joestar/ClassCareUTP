@@ -1,47 +1,49 @@
-<!-- Encabezado Institucional ClassCare Campus (Angular SPA) -->
-<header class="campus-header">
-  <div class="campus-brand">
-    <div class="campus-brand__logo" aria-hidden="true">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-      </svg>
-    </div>
-    <div class="campus-brand__titles">
-      <h1 class="campus-brand__name">ClassCare Campus</h1>
-      <p class="campus-brand__desc">Plataforma Angular SPA — Gestión y Mantenimiento</p>
-    </div>
+<!-- Material Design 3 Top App Bar -->
+<mat-toolbar class="m3-top-app-bar" role="banner">
+  <div class="m3-toolbar-inner">
+    <a routerLink="/reportes" class="campus-brand">
+      <div class="campus-brand__logo" aria-hidden="true">
+        <mat-icon>school</mat-icon>
+      </div>
+      <div class="campus-brand__titles">
+        <h1 class="campus-brand__name">ClassCare Campus</h1>
+        <p class="campus-brand__desc">Plataforma de Gestión Universitaria &bull; Material 3</p>
+      </div>
+    </a>
+
+    <nav class="m3-nav" aria-label="Navegación principal">
+      <a
+        mat-button
+        routerLink="/reportes"
+        routerLinkActive="m3-nav__pill--active"
+        class="m3-nav__pill">
+        <mat-icon>assignment_late</mat-icon>
+        <span>Reportes</span>
+      </a>
+      <a
+        mat-button
+        href="/aulas/index.html"
+        class="m3-nav__pill">
+        <mat-icon>meeting_room</mat-icon>
+        <span>Aulas</span>
+      </a>
+    </nav>
   </div>
+</mat-toolbar>
 
-  <nav class="campus-nav" aria-label="Navegación principal">
-    <ul class="campus-nav__list">
-      <li class="campus-nav__item">
-        <a routerLink="/reportes" routerLinkActive="campus-nav__link--active" class="campus-nav__link">
-          Reportes
-        </a>
-      </li>
-      <li class="campus-nav__item">
-        <a href="/aulas/index.html" class="campus-nav__link">
-          Aulas (Legacy)
-        </a>
-      </li>
-    </ul>
-  </nav>
-</header>
-
-<!-- Layout Principal de la SPA -->
-<main class="campus-layout">
+<!-- Contenedor Principal M3 -->
+<main class="m3-main-container">
   <router-outlet />
 </main>
 
-<!-- Pie de Página Institucional -->
-<footer class="campus-footer">
-  <div class="footer-content">
+<!-- Pie de Página Material 3 Surface Container -->
+<footer class="m3-footer">
+  <div class="m3-footer__content">
     <p><strong>ClassCare Campus</strong> &copy; 2026 Universidad Tecnológica del Perú (UTP).</p>
-    <p>Fase 3: Frontend Reactivo con Angular — Desarrollo Web Integrado (Semana 11)</p>
-    <p class="footer-status">
+    <p>Fase 3: Frontend Reactivo con Angular y Material Design 3 (Semanas 11 y 12)</p>
+    <p class="m3-footer__status">
       <span class="status-dot" aria-hidden="true"></span>
-      Aplicación Angular Standalone Activa
+      Sistema Angular Material 3 Activo
     </p>
   </div>
 </footer>

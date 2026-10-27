@@ -2,13 +2,31 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Prioridad } from '../../models/reporte.model';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { Prioridad, TipoProblema } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
 
 @Component({
   selector: 'app-reporte-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule
+  ],
   templateUrl: './reporte-list.component.html',
   styleUrl: './reporte-list.component.scss'
 })
@@ -34,7 +52,7 @@ export class ReporteListComponent {
     });
   });
 
-  // Métricas reactivas para el dashboard
+  // Métricas reactivas para el dashboard M3
   readonly totalIncidencias = computed(() => this.reportes().length);
   readonly totalAltas = computed(() => this.reportes().filter(r => r.prioridad === 'ALTA').length);
   readonly totalPendientes = computed(() => this.reportes().filter(r => r.estado === 'PENDIENTE').length);
@@ -54,18 +72,28 @@ export class ReporteListComponent {
 
   getPrioridadBadgeClass(prioridad: Prioridad): string {
     switch (prioridad) {
-      case 'ALTA': return 'badge--alta';
-      case 'MEDIA': return 'badge--media';
-      case 'BAJA': return 'badge--baja';
+      case 'ALTA': return 'm3-chip--alta';
+      case 'MEDIA': return 'm3-chip--media';
+      case 'BAJA': return 'm3-chip--baja';
     }
   }
 
   getEstadoBadgeClass(estado: string): string {
     switch (estado) {
-      case 'PENDIENTE': return 'badge--pendiente';
-      case 'EN_ATENCION': return 'badge--atencion';
-      case 'RESUELTO': return 'badge--resuelto';
+      case 'PENDIENTE': return 'm3-chip--pendiente';
+      case 'EN_ATENCION': return 'm3-chip--atencion';
+      case 'RESUELTO': return 'm3-chip--resuelto';
       default: return '';
+    }
+  }
+
+  getCategoriaIcon(tipo: TipoProblema): string {
+    switch (tipo) {
+      case 'TECNOLOGICO': return 'devices';
+      case 'ELECTRICO': return 'bolt';
+      case 'MOBILIARIO': return 'chair';
+      case 'INFRAESTRUCTURA': return 'domain';
+      case 'OTRO': return 'build';
     }
   }
 }

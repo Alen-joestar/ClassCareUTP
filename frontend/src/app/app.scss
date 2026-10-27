@@ -1,12 +1,6 @@
-$campus-navy-deep: #0f2038;
-$campus-navy-dark: #162c4b;
-$campus-accent: #1d4ed8;
-$campus-border: #e2e8f0;
-$campus-surface: #ffffff;
-$campus-text-inverted: #ffffff;
-$campus-text-light: #94a3b8;
-$campus-text-strong: #0f172a;
-$campus-text-muted: #64748b;
+// ==========================================================================
+// App Shell SCSS - Material Design 3 Top App Bar & Layout
+// ==========================================================================
 
 :host {
   display: flex;
@@ -14,20 +8,30 @@ $campus-text-muted: #64748b;
   min-height: 100vh;
 }
 
-.campus-header {
-  background-color: $campus-navy-deep;
-  color: $campus-text-inverted;
-  padding: 1rem 1.25rem;
-  border-bottom: 2px solid #1e3a5f;
+.m3-top-app-bar {
+  background-color: var(--m3-surface-low);
+  color: var(--m3-on-surface);
+  border-bottom: 1px solid var(--m3-outline-variant);
+  height: auto;
+  min-height: 68px;
+  padding: 0.5rem 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.m3-toolbar-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 
   @media (min-width: 640px) {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 2rem;
   }
 }
 
@@ -35,17 +39,17 @@ $campus-text-muted: #64748b;
   display: flex;
   align-items: center;
   gap: 0.875rem;
+  text-decoration: none;
 
   &__logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #60a5fa;
+    width: 44px;
+    height: 44px;
+    background-color: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
+    border-radius: var(--m3-shape-md);
     flex-shrink: 0;
   }
 
@@ -56,52 +60,42 @@ $campus-text-muted: #64748b;
 
   &__name {
     font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: $campus-text-inverted;
-    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--m3-on-surface);
+    line-height: 1.25;
+    margin: 0;
   }
 
   &__desc {
-    font-size: 0.8125rem;
-    color: $campus-text-light;
+    font-size: 0.75rem;
+    color: var(--m3-on-surface-variant);
     font-weight: 400;
+    margin: 0;
   }
 }
 
-.campus-nav {
-  &__list {
-    display: flex;
-    list-style: none;
-    gap: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 0.25rem;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
+.m3-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 
-  &__link {
-    display: inline-block;
-    padding: 0.45rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #cbd5e1;
-    border-radius: 4px;
-    transition: background-color 150ms ease, color 150ms ease;
-
-    &:hover {
-      color: $campus-text-inverted;
-      background-color: rgba(255, 255, 255, 0.1);
-    }
+  &__pill {
+    border-radius: var(--m3-shape-full);
+    padding: 0 1.15rem;
+    height: 40px;
+    font-weight: 500;
+    color: var(--m3-on-surface-variant);
 
     &--active {
-      background-color: $campus-surface;
-      color: $campus-navy-deep;
+      background-color: var(--m3-secondary-container);
+      color: var(--m3-on-secondary-container);
+      font-weight: 600;
     }
   }
 }
 
-.campus-layout {
+.m3-main-container {
   flex: 1;
   width: 100%;
   max-width: 1200px;
@@ -109,28 +103,29 @@ $campus-text-muted: #64748b;
   padding: 1.75rem 1.25rem;
 }
 
-.campus-footer {
-  background-color: $campus-surface;
-  border-top: 1px solid $campus-border;
+.m3-footer {
+  background-color: var(--m3-surface-low);
+  border-top: 1px solid var(--m3-outline-variant);
   padding: 1.5rem 1.25rem;
   margin-top: auto;
 
-  .footer-content {
+  &__content {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.3rem;
     font-size: 0.8125rem;
-    color: $campus-text-muted;
+    color: var(--m3-on-surface-variant);
 
     strong {
-      color: $campus-text-strong;
+      color: var(--m3-on-surface);
+      font-weight: 500;
     }
   }
 
-  .footer-status {
+  &__status {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -141,10 +136,10 @@ $campus-text-muted: #64748b;
     .status-dot {
       width: 8px;
       height: 8px;
-      background-color: #10b981;
-      border-radius: 9999px;
+      background-color: #146c2e;
+      border-radius: var(--m3-shape-full);
       display: inline-block;
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+      box-shadow: 0 0 0 3px #c4eed0;
     }
   }
 }

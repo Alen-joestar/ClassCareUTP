@@ -1,22 +1,35 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { EstadoReporte, Prioridad } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
 
 @Component({
   selector: 'app-reporte-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule,
+    MatSnackBarModule
+  ],
   templateUrl: './reporte-detail.component.html',
   styleUrl: './reporte-detail.component.scss'
 })
 export class ReporteDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly reporteService = inject(ReporteService);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly reporteId = signal<number | null>(null);
-  readonly mensajeActualizacion = signal<string>('');
 
   // Reporte reactivo calculado a partir del parámetro de ruta :id y del servicio
   readonly reporte = computed(() => {
@@ -31,7 +44,6 @@ export class ReporteDetailComponent {
     this.route.paramMap.subscribe(params => {
       const rawId = params.get('id');
       this.reporteId.set(rawId ? Number(rawId) : null);
-      this.mensajeActualizacion.set('');
     });
   }
 
@@ -41,22 +53,26 @@ export class ReporteDetailComponent {
       return;
     }
     this.reporteService.actualizarEstado(actual.id, nuevoEstado);
-    this.mensajeActualizacion.set(`Estado del ticket #${actual.id} actualizado a ${nuevoEstado}.`);
+    this.snackBar.open(
+      `Ticket #${actual.id} actualizado a estado: ${nuevoEstado}`,
+      'Cerrar',
+      { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+    );
   }
 
   getPrioridadBadgeClass(prioridad: Prioridad): string {
     switch (prioridad) {
-      case 'ALTA': return 'badge--alta';
-      case 'MEDIA': return 'badge--media';
-      case 'BAJA': return 'badge--baja';
+      case 'ALTA': return 'm3-chip--alta';
+      case 'MEDIA': return 'm3-chip--media';
+      case 'BAJA': return 'm3-chip--baja';
     }
   }
 
   getEstadoBadgeClass(estado: EstadoReporte): string {
     switch (estado) {
-      case 'PENDIENTE': return 'badge--pendiente';
-      case 'EN_ATENCION': return 'badge--atencion';
-      case 'RESUELTO': return 'badge--resuelto';
+      case 'PENDIENTE': return 'm3-chip--pendiente';
+      case 'EN_ATENCION': return 'm3-chip--atencion';
+      case 'RESUELTO': return 'm3-chip--resuelto';
     }
   }
 

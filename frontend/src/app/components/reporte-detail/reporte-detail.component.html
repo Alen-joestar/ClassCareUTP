@@ -1,139 +1,193 @@
-<section class="detail-container">
+<section class="m3-detail-page">
 
-  <!-- Barra de Navegación Secundaria / Breadcrumb -->
-  <nav class="detail-breadcrumb" aria-label="Ruta de navegación">
-    <a routerLink="/reportes" class="btn-back">
-      &larr; Volver al historial de incidencias
+  <!-- Barra de Navegación Superior M3 -->
+  <nav class="m3-detail-nav" aria-label="Navegación de retorno">
+    <a mat-stroked-button routerLink="/reportes" class="m3-back-btn">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Volver al tablero de incidencias</span>
     </a>
+
     @if (reporte(); as item) {
-      <span class="breadcrumb-current">Detalle del Ticket #{{ item.id }}</span>
+      <span class="m3-breadcrumb-tag">
+        <mat-icon>confirmation_number</mat-icon>
+        <span>Ficha Técnica &bull; Ticket #{{ item.id }}</span>
+      </span>
     }
   </nav>
 
   @if (reporte(); as item) {
-    <!-- Cabecera Principal del Ticket -->
-    <article class="detail-card" [class.detail-card--alta]="item.prioridad === 'ALTA'" [class.detail-card--media]="item.prioridad === 'MEDIA'">
-      <header class="detail-header">
-        <div class="detail-header__titles">
-          <span class="ticket-tag">Ticket #{{ item.id }}</span>
-          <h2 class="detail-title">Incidencia en Aula {{ item.aulaId }}</h2>
-          <p class="detail-date">
-            Registrado el <time [attr.datetime]="item.fechaRegistro">{{ item.fechaRegistro | date:'medium' }}</time>
-          </p>
+    <mat-card
+      appearance="outlined"
+      class="m3-detail-card"
+      [class.m3-detail-card--alta]="item.prioridad === 'ALTA'"
+      [class.m3-detail-card--media]="item.prioridad === 'MEDIA'">
+
+      <!-- Cabecera de la Ficha M3 -->
+      <div class="m3-detail-header">
+        <div class="m3-header-main">
+          <div class="m3-header-avatar">
+            <mat-icon>meeting_room</mat-icon>
+          </div>
+          <div>
+            <span class="m3-ticket-overline">INCIDENCIA REGISTRADA #{{ item.id }}</span>
+            <h2 class="m3-detail-title">Aula {{ item.aulaId }}</h2>
+            <p class="m3-detail-timestamp">
+              <mat-icon>schedule</mat-icon>
+              <span>Fecha de reporte: {{ item.fechaRegistro | date:'medium' }}</span>
+            </p>
+          </div>
         </div>
 
-        <div class="detail-header__badges">
-          <span class="badge" [ngClass]="getPrioridadBadgeClass(item.prioridad)">
+        <div class="m3-header-chips">
+          <span class="m3-chip" [ngClass]="getPrioridadBadgeClass(item.prioridad)">
             Prioridad {{ item.prioridad }}
           </span>
-          <span class="badge" [ngClass]="getEstadoBadgeClass(item.estado)">
+          <span class="m3-chip" [ngClass]="getEstadoBadgeClass(item.estado)">
             {{ item.estado }}
           </span>
         </div>
-      </header>
+      </div>
 
-      @if (mensajeActualizacion()) {
-        <div class="status-feedback" role="status">
-          {{ mensajeActualizacion() }}
-        </div>
-      }
+      <mat-divider></mat-divider>
 
-      <!-- Cuerpo de dos columnas: Ficha Técnica y Flujo de Estado -->
-      <div class="detail-grid">
-        <!-- Columna Principal: Descripción y Ubicación -->
-        <section class="detail-section">
-          <h3 class="subsection-title">Descripción Técnica del Problema</h3>
-          <p class="detail-description">{{ item.descripcion }}</p>
+      <!-- Cuerpo de 2 Columnas M3 -->
+      <div class="m3-detail-grid">
+        <!-- Columna Izquierda: Detalles Técnicos -->
+        <section class="m3-info-column">
+          <h3 class="m3-section-label">
+            <mat-icon>description</mat-icon>
+            <span>Descripción del Problema</span>
+          </h3>
 
-          <dl class="specs-list">
-            <div class="spec-item">
-              <dt>Código de Aula</dt>
-              <dd>{{ item.aulaId }}</dd>
+          <div class="m3-description-surface">
+            <p>{{ item.descripcion }}</p>
+          </div>
+
+          <h3 class="m3-section-label">
+            <mat-icon>analytics</mat-icon>
+            <span>Especificaciones del Espacio Académico</span>
+          </h3>
+
+          <div class="m3-specs-grid">
+            <div class="m3-spec-tile">
+              <mat-icon class="m3-spec-icon">door_front</mat-icon>
+              <div>
+                <span class="m3-spec-label">Código del Aula</span>
+                <strong class="m3-spec-value">{{ item.aulaId }}</strong>
+              </div>
             </div>
-            <div class="spec-item">
-              <dt>Ubicación Física</dt>
-              <dd>{{ item.aulaUbicacion || 'Pabellón Central - Campus UTP' }}</dd>
+
+            <div class="m3-spec-tile">
+              <mat-icon class="m3-spec-icon">location_on</mat-icon>
+              <div>
+                <span class="m3-spec-label">Ubicación Física</span>
+                <strong class="m3-spec-value">{{ item.aulaUbicacion || 'Pabellón Central - Campus UTP' }}</strong>
+              </div>
             </div>
-            <div class="spec-item">
-              <dt>Categoría Técnica</dt>
-              <dd>{{ item.tipoProblema }}</dd>
+
+            <div class="m3-spec-tile">
+              <mat-icon class="m3-spec-icon">category</mat-icon>
+              <div>
+                <span class="m3-spec-label">Categoría Técnica</span>
+                <strong class="m3-spec-value">{{ item.tipoProblema }}</strong>
+              </div>
             </div>
-            <div class="spec-item">
-              <dt>Impacto en el Aula</dt>
-              <dd>{{ getImpactoAula(item.prioridad, item.estado) }}</dd>
+
+            <div class="m3-spec-tile">
+              <mat-icon class="m3-spec-icon">engineering</mat-icon>
+              <div>
+                <span class="m3-spec-label">Condición del Aula</span>
+                <strong class="m3-spec-value">{{ getImpactoAula(item.prioridad, item.estado) }}</strong>
+              </div>
             </div>
-          </dl>
+          </div>
         </section>
 
-        <!-- Columna Lateral: Seguimiento y Control de Estado -->
-        <aside class="detail-sidebar">
-          <h3 class="subsection-title">Progreso de Atención</h3>
+        <!-- Columna Derecha: Línea de Tiempo y Acciones M3 -->
+        <aside class="m3-timeline-column">
+          <h3 class="m3-section-label">
+            <mat-icon>timeline</mat-icon>
+            <span>Flujo de Atención Técnica</span>
+          </h3>
 
-          <ol class="status-timeline">
-            <li class="timeline-step" [class.timeline-step--active]="true">
-              <span class="step-dot"></span>
-              <div class="step-info">
+          <ol class="m3-stepper">
+            <li class="m3-step m3-step--done">
+              <div class="m3-step-indicator">
+                <mat-icon>check</mat-icon>
+              </div>
+              <div class="m3-step-body">
                 <strong>1. Pendiente de Revisión</strong>
-                <small>Reporte registrado en plataforma</small>
+                <small>Incidencia registrada en el sistema</small>
               </div>
             </li>
-            <li class="timeline-step" [class.timeline-step--active]="item.estado === 'EN_ATENCION' || item.estado === 'RESUELTO'">
-              <span class="step-dot"></span>
-              <div class="step-info">
+
+            <li class="m3-step" [class.m3-step--done]="item.estado === 'EN_ATENCION' || item.estado === 'RESUELTO'">
+              <div class="m3-step-indicator">
+                <mat-icon>{{ (item.estado === 'EN_ATENCION' || item.estado === 'RESUELTO') ? 'handyman' : 'hourglass_empty' }}</mat-icon>
+              </div>
+              <div class="m3-step-body">
                 <strong>2. En Atención Técnica</strong>
-                <small>Personal de soporte asignado al aula</small>
+                <small>Soporte técnico interviniendo el aula</small>
               </div>
             </li>
-            <li class="timeline-step" [class.timeline-step--active]="item.estado === 'RESUELTO'">
-              <span class="step-dot"></span>
-              <div class="step-info">
+
+            <li class="m3-step" [class.m3-step--done]="item.estado === 'RESUELTO'">
+              <div class="m3-step-indicator">
+                <mat-icon>{{ item.estado === 'RESUELTO' ? 'verified' : 'radio_button_unchecked' }}</mat-icon>
+              </div>
+              <div class="m3-step-body">
                 <strong>3. Incidencia Resuelta</strong>
-                <small>Verificación operativa completada</small>
+                <small>Operatividad verificada y aula liberada</small>
               </div>
             </li>
           </ol>
 
-          <div class="state-actions">
-            <span class="actions-label">Actualizar estado operativo:</span>
-            <div class="actions-buttons">
+          <mat-divider></mat-divider>
+
+          <div class="m3-action-box">
+            <span class="m3-action-caption">Simular cambio de estado operativo:</span>
+            <div class="m3-action-buttons">
               <button
+                mat-stroked-button
                 type="button"
-                class="btn-state"
-                [class.btn-state--selected]="item.estado === 'PENDIENTE'"
+                [class.m3-state-btn--active]="item.estado === 'PENDIENTE'"
                 (click)="cambiarEstado('PENDIENTE')">
                 Pendiente
               </button>
               <button
+                mat-stroked-button
                 type="button"
-                class="btn-state"
-                [class.btn-state--selected]="item.estado === 'EN_ATENCION'"
+                [class.m3-state-btn--active]="item.estado === 'EN_ATENCION'"
                 (click)="cambiarEstado('EN_ATENCION')">
                 En Atención
               </button>
               <button
+                mat-flat-button
+                color="primary"
                 type="button"
-                class="btn-state btn-state--resolve"
-                [class.btn-state--selected]="item.estado === 'RESUELTO'"
                 (click)="cambiarEstado('RESUELTO')">
-                Marcar Resuelto
+                <mat-icon>check_circle</mat-icon>
+                <span>Resolver</span>
               </button>
             </div>
           </div>
         </aside>
       </div>
-    </article>
+    </mat-card>
   } @else {
-    <!-- Estado de Ticket No Encontrado -->
-    <section class="not-found-card" role="alert">
-      <h2 class="not-found-title">Incidencia no encontrada</h2>
-      <p class="not-found-desc">
-        No existe ningún reporte registrado con el identificador solicitado (<strong>#{{ reporteId() }}</strong>).
-        Verifique el número de ticket o regrese al tablero general.
+    <!-- Tarjeta de Ticket No Encontrado M3 -->
+    <mat-card appearance="outlined" class="m3-not-found-card" role="alert">
+      <mat-icon class="m3-not-found-icon">error_outline</mat-icon>
+      <h2 class="m3-not-found-title">Incidencia no encontrada</h2>
+      <p class="m3-not-found-desc">
+        No existe ningún reporte asociado al identificador <strong>#{{ reporteId() }}</strong>.
+        Es posible que el ticket haya sido retirado o que el enlace sea incorrecto.
       </p>
-      <a routerLink="/reportes" class="btn-primary">
-        Ir al listado de incidencias
+      <a mat-flat-button color="primary" routerLink="/reportes">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Regresar al listado general</span>
       </a>
-    </section>
+    </mat-card>
   }
 
 </section>

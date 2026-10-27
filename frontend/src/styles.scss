@@ -1,45 +1,43 @@
 // ==========================================================================
-// ClassCare Campus - Global SCSS Design Tokens (Semana 11 Setup)
+// ClassCare Campus - Sistema de Diseño Material Design 3 (M3)
+// Paleta Institucional Azure & Blue | Tipografía Roboto | Tokens M3
 // ==========================================================================
+@import '@angular/material/prebuilt-themes/azure-blue.css';
 
-$campus-navy-deep: #0f2038;
-$campus-navy-dark: #162c4b;
-$campus-accent: #1d4ed8;
-$campus-accent-hover: #1e40af;
-$campus-bg: #f8fafc;
-$campus-surface: #ffffff;
-$campus-surface-subtle: #f1f5f9;
+:root {
+  // Tokens de Superficie y Color M3 Institucional
+  --m3-primary: #005cbb;
+  --m3-on-primary: #ffffff;
+  --m3-primary-container: #d7e3ff;
+  --m3-on-primary-container: #001b3f;
 
-$campus-text-strong: #0f172a;
-$campus-text: #1e293b;
-$campus-text-muted: #64748b;
-$campus-text-light: #94a3b8;
-$campus-text-inverted: #ffffff;
+  --m3-secondary: #565e71;
+  --m3-secondary-container: #dae2f9;
+  --m3-on-secondary-container: #131c2b;
 
-$campus-border: #e2e8f0;
-$campus-border-strong: #cbd5e1;
+  --m3-surface: #f9f9ff;
+  --m3-surface-low: #f3f3fa;
+  --m3-surface-container: #ededf4;
+  --m3-surface-high: #e7e8ee;
+  --m3-surface-card: #ffffff;
 
-// Estados Operativos (WCAG AAA)
-$status-critical-bg: #fee2e2;
-$status-critical-text: #991b1b;
-$status-critical-border: #fca5a5;
+  --m3-on-surface: #191c20;
+  --m3-on-surface-variant: #44474e;
+  --m3-outline: #74777f;
+  --m3-outline-variant: #c4c6d0;
 
-$status-warning-bg: #fef3c7;
-$status-warning-text: #92400e;
-$status-warning-border: #fcd34d;
+  // Geometría M3 (Shape Scale)
+  --m3-shape-xs: 4px;
+  --m3-shape-sm: 8px;
+  --m3-shape-md: 12px;
+  --m3-shape-lg: 16px;
+  --m3-shape-xl: 28px;
+  --m3-shape-full: 9999px;
 
-$status-success-bg: #dcfce7;
-$status-success-text: #166534;
-$status-success-border: #86efac;
-
-$status-neutral-bg: #f1f5f9;
-$status-neutral-text: #334155;
-$status-neutral-border: #cbd5e1;
-
-$radius-sm: 4px;
-$radius-md: 6px;
-$radius-lg: 8px;
-$radius-pill: 9999px;
+  // Elevación tonal M3
+  --m3-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px 1px rgba(0, 0, 0, 0.05);
+  --m3-elevation-2: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 6px 2px rgba(0, 0, 0, 0.08);
+}
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -47,18 +45,17 @@ $radius-pill: 9999px;
   padding: 0;
 }
 
-html {
-  font-size: 16px;
+html, body {
+  height: 100%;
   scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: $campus-bg;
-  color: $campus-text;
-  line-height: 1.55;
-  min-height: 100vh;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--m3-surface);
+  color: var(--m3-on-surface);
+  line-height: 1.5;
+  margin: 0;
 }
 
 a {
