@@ -1,50 +1,26 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Reporte, Prioridad } from '../../models/reporte.model';
+import { RouterLink } from '@angular/router';
+import { Prioridad } from '../../models/reporte.model';
+import { ReporteService } from '../../services/reporte.service';
 
 @Component({
   selector: 'app-reporte-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './reporte-list.component.html',
   styleUrl: './reporte-list.component.scss'
 })
 export class ReporteListComponent {
+  private readonly reporteService = inject(ReporteService);
+
   // Estado reactivo con Signals
   readonly searchQuery = signal<string>('');
   readonly selectedPrioridad = signal<string>('');
 
-  // Datos iniciales de la Semana 11 (Preparados para Semana 14 con HttpClient)
-  readonly reportes = signal<Reporte[]>([
-    {
-      id: 1,
-      aulaId: 'A-101',
-      tipoProblema: 'TECNOLOGICO',
-      prioridad: 'ALTA',
-      estado: 'PENDIENTE',
-      descripcion: 'El proyector multimedia no emite señal HDMI ni enciende con el control remoto.',
-      fechaRegistro: '2026-09-10T08:30:00'
-    },
-    {
-      id: 2,
-      aulaId: 'B-202',
-      tipoProblema: 'ELECTRICO',
-      prioridad: 'MEDIA',
-      estado: 'EN_ATENCION',
-      descripcion: 'Foco fluorescente parpadea constantemente en la fila delantera del aula.',
-      fechaRegistro: '2026-09-09T14:15:00'
-    },
-    {
-      id: 3,
-      aulaId: 'C-305',
-      tipoProblema: 'MOBILIARIO',
-      prioridad: 'BAJA',
-      estado: 'RESUELTO',
-      descripcion: 'Silla ergonómica del docente con tornillo flojo en el soporte del respaldo.',
-      fechaRegistro: '2026-09-08T11:00:00'
-    }
-  ]);
+  // Fuente de datos compartida desde ReporteService
+  readonly reportes = this.reporteService.reportes;
 
   // Lista filtrada reactiva calculada automáticamente
   readonly filteredReportes = computed(() => {

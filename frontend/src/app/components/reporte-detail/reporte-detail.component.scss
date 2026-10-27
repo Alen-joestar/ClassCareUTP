@@ -1,0 +1,381 @@
+// ==========================================================================
+// ReporteDetailComponent SCSS - Semana 12 (Enrutamiento y Detalle)
+// ==========================================================================
+
+$campus-navy: #0f2038;
+$campus-accent: #1d4ed8;
+$campus-accent-hover: #1e40af;
+$campus-border: #e2e8f0;
+$campus-border-strong: #cbd5e1;
+$campus-surface: #ffffff;
+$campus-surface-subtle: #f8fafc;
+$campus-text-strong: #0f172a;
+$campus-text: #1e293b;
+$campus-text-muted: #64748b;
+
+.detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// Barra superior y botón de retorno
+.detail-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.95rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $campus-accent;
+    background: $campus-surface;
+    border: 1px solid $campus-border-strong;
+    border-radius: 6px;
+    transition: background-color 150ms ease, border-color 150ms ease;
+
+    &:hover {
+      background: #eff6ff;
+      border-color: $campus-accent;
+    }
+  }
+
+  .breadcrumb-current {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: $campus-text-muted;
+  }
+}
+
+// Tarjeta de Detalle Principal
+.detail-card {
+  background: $campus-surface;
+  border: 1px solid $campus-border;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &--alta {
+    border-top: 4px solid #b91c1c;
+  }
+
+  &--media {
+    border-top: 4px solid #b45309;
+  }
+}
+
+.detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid $campus-border;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .ticket-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: $campus-accent;
+    }
+
+    .detail-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $campus-text-strong;
+      letter-spacing: -0.01em;
+    }
+
+    .detail-date {
+      font-size: 0.8125rem;
+      color: $campus-text-muted;
+    }
+  }
+
+  &__badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+.status-feedback {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+// Layout de 2 Columnas (Ficha Técnica + Seguimiento)
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1.6fr 1fr;
+  }
+}
+
+.subsection-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $campus-text-strong;
+  margin-bottom: 0.75rem;
+}
+
+.detail-description {
+  background: $campus-surface-subtle;
+  border: 1px solid $campus-border;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 0.9375rem;
+  color: $campus-text;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.specs-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .spec-item {
+    border: 1px solid $campus-border;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+
+    dt {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $campus-text-muted;
+      margin-bottom: 0.2rem;
+    }
+
+    dd {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: $campus-text-strong;
+    }
+  }
+}
+
+// Barra lateral de seguimiento
+.detail-sidebar {
+  background: $campus-surface-subtle;
+  border: 1px solid $campus-border;
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.status-timeline {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .timeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    opacity: 0.45;
+
+    .step-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 9999px;
+      background: $campus-border-strong;
+      margin-top: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .step-info {
+      display: flex;
+      flex-direction: column;
+
+      strong {
+        font-size: 0.875rem;
+        color: $campus-text-strong;
+      }
+
+      small {
+        font-size: 0.75rem;
+        color: $campus-text-muted;
+      }
+    }
+
+    &--active {
+      opacity: 1;
+
+      .step-dot {
+        background: $campus-accent;
+        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+      }
+    }
+  }
+}
+
+.state-actions {
+  border-top: 1px solid $campus-border;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .actions-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $campus-text-muted;
+  }
+
+  .actions-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .btn-state {
+    flex: 1;
+    min-width: 90px;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: inherit;
+    background: $campus-surface;
+    color: $campus-text;
+    border: 1px solid $campus-border-strong;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+
+    &:hover {
+      border-color: $campus-accent;
+    }
+
+    &--selected {
+      background: $campus-navy;
+      color: #ffffff;
+      border-color: $campus-navy;
+    }
+
+    &--resolve.btn-state--selected {
+      background: #166534;
+      border-color: #166534;
+    }
+  }
+}
+
+// Badges de estado
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+
+  &--alta {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+  }
+
+  &--media {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+  }
+
+  &--baja {
+    background-color: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+  }
+
+  &--pendiente {
+    background-color: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+
+  &--atencion {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border-color: #93c5fd;
+  }
+
+  &--resuelto {
+    background-color: #ecfdf5;
+    color: #047857;
+    border-color: #6ee7b7;
+  }
+}
+
+// Estado No Encontrado
+.not-found-card {
+  background: $campus-surface;
+  border: 1px dashed $campus-border-strong;
+  border-radius: 8px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+
+  .not-found-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $campus-text-strong;
+  }
+
+  .not-found-desc {
+    font-size: 0.9375rem;
+    color: $campus-text-muted;
+    max-width: 480px;
+  }
+
+  .btn-primary {
+    margin-top: 0.5rem;
+    display: inline-flex;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: $campus-accent;
+    color: #ffffff;
+    border-radius: 6px;
+
+    &:hover {
+      background: $campus-accent-hover;
+    }
+  }
+}

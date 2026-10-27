@@ -1,0 +1,139 @@
+<section class="detail-container">
+
+  <!-- Barra de Navegación Secundaria / Breadcrumb -->
+  <nav class="detail-breadcrumb" aria-label="Ruta de navegación">
+    <a routerLink="/reportes" class="btn-back">
+      &larr; Volver al historial de incidencias
+    </a>
+    @if (reporte(); as item) {
+      <span class="breadcrumb-current">Detalle del Ticket #{{ item.id }}</span>
+    }
+  </nav>
+
+  @if (reporte(); as item) {
+    <!-- Cabecera Principal del Ticket -->
+    <article class="detail-card" [class.detail-card--alta]="item.prioridad === 'ALTA'" [class.detail-card--media]="item.prioridad === 'MEDIA'">
+      <header class="detail-header">
+        <div class="detail-header__titles">
+          <span class="ticket-tag">Ticket #{{ item.id }}</span>
+          <h2 class="detail-title">Incidencia en Aula {{ item.aulaId }}</h2>
+          <p class="detail-date">
+            Registrado el <time [attr.datetime]="item.fechaRegistro">{{ item.fechaRegistro | date:'medium' }}</time>
+          </p>
+        </div>
+
+        <div class="detail-header__badges">
+          <span class="badge" [ngClass]="getPrioridadBadgeClass(item.prioridad)">
+            Prioridad {{ item.prioridad }}
+          </span>
+          <span class="badge" [ngClass]="getEstadoBadgeClass(item.estado)">
+            {{ item.estado }}
+          </span>
+        </div>
+      </header>
+
+      @if (mensajeActualizacion()) {
+        <div class="status-feedback" role="status">
+          {{ mensajeActualizacion() }}
+        </div>
+      }
+
+      <!-- Cuerpo de dos columnas: Ficha Técnica y Flujo de Estado -->
+      <div class="detail-grid">
+        <!-- Columna Principal: Descripción y Ubicación -->
+        <section class="detail-section">
+          <h3 class="subsection-title">Descripción Técnica del Problema</h3>
+          <p class="detail-description">{{ item.descripcion }}</p>
+
+          <dl class="specs-list">
+            <div class="spec-item">
+              <dt>Código de Aula</dt>
+              <dd>{{ item.aulaId }}</dd>
+            </div>
+            <div class="spec-item">
+              <dt>Ubicación Física</dt>
+              <dd>{{ item.aulaUbicacion || 'Pabellón Central - Campus UTP' }}</dd>
+            </div>
+            <div class="spec-item">
+              <dt>Categoría Técnica</dt>
+              <dd>{{ item.tipoProblema }}</dd>
+            </div>
+            <div class="spec-item">
+              <dt>Impacto en el Aula</dt>
+              <dd>{{ getImpactoAula(item.prioridad, item.estado) }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Columna Lateral: Seguimiento y Control de Estado -->
+        <aside class="detail-sidebar">
+          <h3 class="subsection-title">Progreso de Atención</h3>
+
+          <ol class="status-timeline">
+            <li class="timeline-step" [class.timeline-step--active]="true">
+              <span class="step-dot"></span>
+              <div class="step-info">
+                <strong>1. Pendiente de Revisión</strong>
+                <small>Reporte registrado en plataforma</small>
+              </div>
+            </li>
+            <li class="timeline-step" [class.timeline-step--active]="item.estado === 'EN_ATENCION' || item.estado === 'RESUELTO'">
+              <span class="step-dot"></span>
+              <div class="step-info">
+                <strong>2. En Atención Técnica</strong>
+                <small>Personal de soporte asignado al aula</small>
+              </div>
+            </li>
+            <li class="timeline-step" [class.timeline-step--active]="item.estado === 'RESUELTO'">
+              <span class="step-dot"></span>
+              <div class="step-info">
+                <strong>3. Incidencia Resuelta</strong>
+                <small>Verificación operativa completada</small>
+              </div>
+            </li>
+          </ol>
+
+          <div class="state-actions">
+            <span class="actions-label">Actualizar estado operativo:</span>
+            <div class="actions-buttons">
+              <button
+                type="button"
+                class="btn-state"
+                [class.btn-state--selected]="item.estado === 'PENDIENTE'"
+                (click)="cambiarEstado('PENDIENTE')">
+                Pendiente
+              </button>
+              <button
+                type="button"
+                class="btn-state"
+                [class.btn-state--selected]="item.estado === 'EN_ATENCION'"
+                (click)="cambiarEstado('EN_ATENCION')">
+                En Atención
+              </button>
+              <button
+                type="button"
+                class="btn-state btn-state--resolve"
+                [class.btn-state--selected]="item.estado === 'RESUELTO'"
+                (click)="cambiarEstado('RESUELTO')">
+                Marcar Resuelto
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </article>
+  } @else {
+    <!-- Estado de Ticket No Encontrado -->
+    <section class="not-found-card" role="alert">
+      <h2 class="not-found-title">Incidencia no encontrada</h2>
+      <p class="not-found-desc">
+        No existe ningún reporte registrado con el identificador solicitado (<strong>#{{ reporteId() }}</strong>).
+        Verifique el número de ticket o regrese al tablero general.
+      </p>
+      <a routerLink="/reportes" class="btn-primary">
+        Ir al listado de incidencias
+      </a>
+    </section>
+  }
+
+</section>

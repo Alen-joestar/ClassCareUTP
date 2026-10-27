@@ -5,6 +5,8 @@ export type EstadoReporte = 'PENDIENTE' | 'EN_ATENCION' | 'RESUELTO';
 export interface Reporte {
   id: number;
   aulaId: string;
+  aulaInternoId?: number;
+  aulaUbicacion?: string;
   tipoProblema: TipoProblema;
   prioridad: Prioridad;
   estado: EstadoReporte;

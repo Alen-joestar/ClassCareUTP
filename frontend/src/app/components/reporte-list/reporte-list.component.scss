@@ -1,5 +1,5 @@
 // ==========================================================================
-// ReporteListComponent SCSS - Semana 11
+// ReporteListComponent SCSS - Semana 11 y 12
 // ==========================================================================
 
 $campus-navy: #0f2038;
@@ -262,6 +262,13 @@ $campus-text-muted: #64748b;
   border-top: 1px solid $campus-border;
   font-size: 0.75rem;
   color: $campus-text-muted;
+  margin-top: auto;
+
+  .footer-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
 
   .card-id {
     font-weight: 700;
@@ -326,6 +333,20 @@ $campus-text-muted: #64748b;
 
     &:hover {
       background: #e2e8f0;
+    }
+  }
+
+  &--detail {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8125rem;
+    background: #eff6ff;
+    color: $campus-accent;
+    border-color: #bfdbfe;
+
+    &:hover {
+      background: $campus-accent;
+      color: #ffffff;
+      border-color: $campus-accent;
     }
   }
 }

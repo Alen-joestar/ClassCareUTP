@@ -79,15 +79,23 @@
           <h3 class="card-title">Aula {{ reporte.aulaId }}</h3>
           <p class="card-meta">
             <strong>Categoría:</strong> {{ reporte.tipoProblema }}
+            @if (reporte.aulaUbicacion) {
+              <span> &bull; {{ reporte.aulaUbicacion }}</span>
+            }
           </p>
           <p class="card-desc">{{ reporte.descripcion }}</p>
         </div>
 
         <footer class="card-footer">
-          <time [attr.datetime]="reporte.fechaRegistro">
-            {{ reporte.fechaRegistro | date:'mediumDate' }}
-          </time>
-          <span class="card-id">Ticket #{{ reporte.id }}</span>
+          <div class="footer-meta">
+            <span class="card-id">Ticket #{{ reporte.id }}</span>
+            <time [attr.datetime]="reporte.fechaRegistro">
+              {{ reporte.fechaRegistro | date:'mediumDate' }}
+            </time>
+          </div>
+          <a [routerLink]="['/reportes', reporte.id]" class="btn btn--detail">
+            Ver detalle
+          </a>
         </footer>
       </article>
     } @empty {
