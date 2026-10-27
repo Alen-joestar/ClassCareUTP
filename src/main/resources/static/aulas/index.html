@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -64,7 +65,7 @@
                 Consultar Disponibilidad de Espacios
             </h2>
             <p class="campus-card__instruction">
-                Filtre por código de aula o aforo mínimo para verificar condiciones de uso.
+                Filtre por código, capacidad mínima o estado para consultar las aulas.
             </p>
 
             <form id="form-consulta-aula" class="campus-form">
@@ -85,10 +86,23 @@
                     <p class="form-group">
                         <label for="capacidad" class="form-label">Capacidad Mínima</label>
                         <input type="number" id="capacidad" name="capacidad"
-                               min="1" max="200" class="form-input"
+                               min="1" max="200" step="1" class="form-input"
                                placeholder="Ej: 30">
                         <small class="form-help">
                             Aforo mínimo requerido para la actividad académica.
+                        </small>
+                    </p>
+
+                    <p class="form-group">
+                        <label for="estado-aula" class="form-label">Estado del Aula</label>
+                        <select id="estado-aula" name="estado-aula" class="form-input">
+                            <option value="">Todos los estados</option>
+                            <option value="DISPONIBLE">Disponible</option>
+                            <option value="OCUPADA">Ocupada</option>
+                            <option value="MANTENIMIENTO">En mantenimiento</option>
+                        </select>
+                        <small class="form-help">
+                            Seleccione un estado para limitar los resultados.
                         </small>
                     </p>
 
@@ -141,6 +155,7 @@
             const form = document.getElementById("form-consulta-aula");
             const inputCodigo = document.getElementById("codigo-aula");
             const inputCapacidad = document.getElementById("capacidad");
+            const inputEstado = document.getElementById("estado-aula");
             const btnConsultar = document.getElementById("btn-consultar");
             const btnLimpiar = document.getElementById("btn-limpiar");
             const estadoApi = document.getElementById("estado-api");
@@ -185,6 +200,7 @@
 
                 tarjeta.dataset.codigo = codigo;
                 tarjeta.dataset.capacidad = String(capacidad);
+                tarjeta.dataset.estado = estado;
 
                 const encabezado = document.createElement("header");
                 encabezado.className = "item-card__header";
@@ -250,30 +266,50 @@
                 return tarjeta;
             }
 
-            function aplicarFiltroCodigo() {
-                const consulta = normalizar(inputCodigo.value);
+            function aplicarFiltros() {
+                const codigoBuscado = normalizar(inputCodigo.value);
+                const capacidadTexto = inputCapacidad.value.trim();
+                const capacidadMinima = capacidadTexto === ""
+                    ? null
+                    : Number(capacidadTexto);
+                const estadoBuscado = normalizar(inputEstado.value);
+
                 const tarjetas = grid.querySelectorAll(".item-card");
                 let visibles = 0;
 
                 tarjetas.forEach(tarjeta => {
-                    const coincide = normalizar(tarjeta.dataset.codigo)
-                        .includes(consulta);
+                    const coincideCodigo = normalizar(tarjeta.dataset.codigo)
+                        .includes(codigoBuscado);
 
-                    tarjeta.style.display = coincide ? "" : "none";
-                    if (coincide) visibles++;
+                    const capacidadAula = Number(tarjeta.dataset.capacidad);
+                    const coincideCapacidad = capacidadMinima === null ||
+                        capacidadAula >= capacidadMinima;
+
+                    const coincideEstado = estadoBuscado === "" ||
+                        normalizar(tarjeta.dataset.estado) === estadoBuscado;
+
+                    const mostrar = coincideCodigo &&
+                        coincideCapacidad && coincideEstado;
+
+                    tarjeta.style.display = mostrar ? "" : "none";
+
+                    if (mostrar) visibles++;
                 });
 
                 const mensajeAnterior = grid.querySelector(".aulas-mensaje");
 
                 if (tarjetas.length > 0 && visibles === 0) {
                     if (!mensajeAnterior) {
-                        const mensaje = crearElemento(
-                            "p", "aulas-mensaje",
-                            "No se encontraron aulas con ese código."
-                        );
-                        grid.appendChild(mensaje);
+                        grid.appendChild(crearElemento(
+                            "p",
+                            "aulas-mensaje",
+                            "No se encontraron aulas con los filtros indicados."
+                        ));
+                    } else {
+                        mensajeAnterior.textContent =
+                            "No se encontraron aulas con los filtros indicados.";
                     }
-                } else if (mensajeAnterior) {
+                } else if (mensajeAnterior && tarjetas.length > 0) {
                     mensajeAnterior.remove();
                 }
             }
@@ -293,7 +329,7 @@
                 });
 
                 grid.appendChild(fragmento);
-                aplicarFiltroCodigo();
+                aplicarFiltros();
             }
 
             async function cargarAulas(url = "/api/aulas") {
@@ -301,7 +337,7 @@
                 btnLimpiar.disabled = true;
                 mostrarMensaje("Cargando aulas desde el servidor...");
                 estadoApi.textContent = "Consultando la API...";
-                
+
                 try {
                     const respuesta = await fetch(url);
 
@@ -337,31 +373,30 @@
                 evento.preventDefault();
 
                 const capacidadTexto = inputCapacidad.value.trim();
-                const codigo = inputCodigo.value.trim();
 
                 if (capacidadTexto !== "") {
                     const capacidad = Number(capacidadTexto);
 
-                    if (!Number.isInteger(capacidad) || capacidad < 1 || capacidad > 200) {
+                    if (!Number.isInteger(capacidad) ||
+                        capacidad < 1 || capacidad > 200) {
                         inputCapacidad.reportValidity();
                         return;
                     }
 
-                    const url = "/api/aulas/buscar/capacidad?minima=" +
-                        encodeURIComponent(capacidad);
-
-                    await cargarAulas(url);
+                    await cargarAulas(
+                        "/api/aulas/buscar/capacidad?minima=" +
+                        encodeURIComponent(capacidad)
+                    );
                 } else {
                     await cargarAulas();
                 }
 
-                // El código se filtra sobre los resultados devueltos por la API.
-                aplicarFiltroCodigo();
+                aplicarFiltros();
             });
 
-            inputCodigo.addEventListener("input", () => {
-                aplicarFiltroCodigo();
-            });
+            inputCodigo.addEventListener("input", aplicarFiltros);
+            inputCapacidad.addEventListener("input", aplicarFiltros);
+            inputEstado.addEventListener("change", aplicarFiltros);
 
             btnLimpiar.addEventListener("click", async () => {
                 form.reset();
