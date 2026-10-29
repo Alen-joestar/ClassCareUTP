@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,9 +11,8 @@ import { ReporteService } from '../../services/reporte.service';
 
 @Component({
   selector: 'app-reporte-detail',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     RouterLink,
     MatCardModule,
     MatButtonModule,

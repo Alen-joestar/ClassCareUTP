@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -14,9 +14,8 @@ import { ReporteService } from '../../services/reporte.service';
 
 @Component({
   selector: 'app-reporte-list',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     FormsModule,
     RouterLink,
     MatCardModule,

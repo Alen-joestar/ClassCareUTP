@@ -2,7 +2,19 @@
 // ClassCare Campus - Sistema de Diseño Material Design 3 (M3)
 // Paleta Institucional Azure & Blue | Tipografía Roboto | Tokens M3
 // ==========================================================================
-@import '@angular/material/prebuilt-themes/azure-blue.css';
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
 
 :root {
   // Tokens de Superficie y Color M3 Institucional

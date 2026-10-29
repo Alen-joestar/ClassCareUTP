@@ -101,10 +101,10 @@
 
         <mat-card-content class="m3-card-content">
           <div class="m3-chips-row">
-            <span class="m3-chip" [ngClass]="getPrioridadBadgeClass(reporte.prioridad)">
+            <span class="m3-chip" [class]="getPrioridadBadgeClass(reporte.prioridad)">
               Prioridad {{ reporte.prioridad }}
             </span>
-            <span class="m3-chip" [ngClass]="getEstadoBadgeClass(reporte.estado)">
+            <span class="m3-chip" [class]="getEstadoBadgeClass(reporte.estado)">
               {{ reporte.estado }}
             </span>
           </div>
