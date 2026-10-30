@@ -1,143 +1,175 @@
 <section class="m3-reportes-page">
 
-  <!-- Encabezado y Tarjetas KPI Material 3 -->
-  <header class="m3-page-header">
-    <div class="m3-header-copy">
-      <h2 class="m3-headline">Tablero de Incidencias del Campus</h2>
-      <p class="m3-subhead">
-        Supervisión operativa en tiempo real de averías y mantenimiento en aulas y laboratorios.
+  <!-- Bloque Hero Marino Institucional con KPIs Interactivos -->
+  <header class="hero-banner">
+    <div class="hero-copy">
+      <h2 class="hero-title">Expedientes de Inspección de Aulas</h2>
+      <p class="hero-subtitle">
+        Supervisión operativa en tiempo real de averías y mantenimiento en aulas y laboratorios. Haz clic en cualquier indicador para filtrar por estado.
       </p>
     </div>
 
-    <div class="m3-kpi-grid">
-      <mat-card appearance="outlined" class="m3-kpi-card">
-        <div class="m3-kpi-icon m3-kpi-icon--primary">
-          <mat-icon>assignment</mat-icon>
+    <div class="kpi-strip">
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === ''"
+        (click)="filterByEstado('')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalIncidencias()) }}</span>
+          <span class="kpi-lbl">Total Órdenes</span>
         </div>
-        <div class="m3-kpi-data">
-          <span class="m3-kpi-value">{{ totalIncidencias() }}</span>
-          <span class="m3-kpi-label">Total Reportes</span>
-        </div>
-      </mat-card>
+        <span class="kpi-dot" style="background: #94A3B8"></span>
+      </button>
 
-      <mat-card appearance="outlined" class="m3-kpi-card">
-        <div class="m3-kpi-icon m3-kpi-icon--warning">
-          <mat-icon>pending_actions</mat-icon>
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'PENDIENTE'"
+        (click)="filterByEstado('PENDIENTE')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalPendientes()) }}</span>
+          <span class="kpi-lbl">Pendientes</span>
         </div>
-        <div class="m3-kpi-data">
-          <span class="m3-kpi-value">{{ totalPendientes() }}</span>
-          <span class="m3-kpi-label">Pendientes</span>
-        </div>
-      </mat-card>
+        <span class="kpi-dot" style="background: var(--st-pendiente-main)"></span>
+      </button>
 
-      <mat-card appearance="outlined" class="m3-kpi-card">
-        <div class="m3-kpi-icon m3-kpi-icon--danger">
-          <mat-icon>priority_high</mat-icon>
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'EN_ATENCION'"
+        (click)="filterByEstado('EN_ATENCION')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalEnAtencion()) }}</span>
+          <span class="kpi-lbl">En Atención</span>
         </div>
-        <div class="m3-kpi-data">
-          <span class="m3-kpi-value">{{ totalAltas() }}</span>
-          <span class="m3-kpi-label">Urgencia Alta</span>
+        <span class="kpi-dot" style="background: var(--st-atencion-main)"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'RESUELTO'"
+        (click)="filterByEstado('RESUELTO')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalResueltos()) }}</span>
+          <span class="kpi-lbl">Liberadas</span>
         </div>
-      </mat-card>
+        <span class="kpi-dot" style="background: var(--st-resuelto-main)"></span>
+      </button>
     </div>
   </header>
 
-  <!-- Panel de Filtros Material 3 (Outlined Text Field + Select) -->
-  <mat-card appearance="outlined" class="m3-filter-card">
-    <div class="m3-filter-row">
-      <mat-form-field appearance="outline" class="m3-filter-field" subscriptSizing="dynamic">
-        <mat-label>Buscar por aula o descripción</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input
-          matInput
-          type="search"
-          placeholder="Ej: A-101, Proyector..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-        />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="m3-filter-field m3-filter-field--select" subscriptSizing="dynamic">
-        <mat-label>Filtrar por prioridad</mat-label>
-        <mat-icon matPrefix>filter_list</mat-icon>
-        <mat-select
-          [ngModel]="selectedPrioridad()"
-          (ngModelChange)="onPrioridadChange($event)">
-          <mat-option value="">Todas las prioridades</mat-option>
-          <mat-option value="ALTA">Alta Prioridad</mat-option>
-          <mat-option value="MEDIA">Media Prioridad</mat-option>
-          <mat-option value="BAJA">Baja Prioridad</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <button mat-stroked-button type="button" class="m3-reset-btn" (click)="resetFilters()">
-        <mat-icon>restart_alt</mat-icon>
-        <span>Restablecer</span>
-      </button>
+  <!-- Barra de Filtros Tonal M3 -->
+  <div class="filter-bar">
+    <div class="m3-input-box">
+      <mat-icon class="filter-icon">search</mat-icon>
+      <input
+        type="search"
+        placeholder="Buscar por código de aula (A-101, LAB-302) o avería..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+        aria-label="Buscar por código de aula o descripción"
+      />
     </div>
-  </mat-card>
 
-  <!-- Cuadrícula de Tarjetas Material Design 3 -->
-  <section class="m3-cards-grid" aria-live="polite">
+    <div class="m3-select-box">
+      <mat-icon class="filter-icon">filter_list</mat-icon>
+      <select
+        [ngModel]="selectedPrioridad()"
+        (ngModelChange)="onPrioridadChange($event)"
+        aria-label="Filtrar por prioridad">
+        <option value="">Todas las prioridades</option>
+        <option value="ALTA">Prioridad Alta</option>
+        <option value="MEDIA">Prioridad Media</option>
+        <option value="BAJA">Prioridad Baja</option>
+      </select>
+    </div>
+
+    <button type="button" class="m3-btn-reset" (click)="resetFilters()">
+      <mat-icon>restart_alt</mat-icon>
+      <span>Restablecer</span>
+    </button>
+  </div>
+
+  <!-- Cuadrícula de Expedientes (Folder Tab + Solapa Sólida Semántica) -->
+  <section class="cards-grid" aria-live="polite">
     @for (reporte of filteredReportes(); track reporte.id) {
-      <mat-card
-        appearance="outlined"
-        class="m3-incident-card"
-        [class.m3-incident-card--alta]="reporte.prioridad === 'ALTA'"
-        [class.m3-incident-card--media]="reporte.prioridad === 'MEDIA'">
+      <article class="inspection-card" [attr.data-estado]="reporte.estado">
 
-        <mat-card-header class="m3-card-header">
-          <div mat-card-avatar class="m3-category-avatar">
-            <mat-icon>{{ getCategoriaIcon(reporte.tipoProblema) }}</mat-icon>
-          </div>
-          <mat-card-title class="m3-card-title">Aula {{ reporte.aulaId }}</mat-card-title>
-          <mat-card-subtitle class="m3-card-subtitle">
-            {{ reporte.tipoProblema }}
-            @if (reporte.aulaUbicacion) {
-              <span> &bull; {{ reporte.aulaUbicacion }}</span>
-            }
-          </mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content class="m3-card-content">
-          <div class="m3-chips-row">
-            <span class="m3-chip" [class]="getPrioridadBadgeClass(reporte.prioridad)">
-              Prioridad {{ reporte.prioridad }}
+        <!-- Solapa Superior Sólida Semántica (Folder Tab) -->
+        <div class="folder-tab-row">
+          <span class="folder-tab">
+            <span>{{ getEstadoLabel(reporte.estado) }}</span>
+            <span class="step-dots" aria-hidden="true">
+              <span class="step-pip on"></span>
+              <span class="step-pip" [class.on]="getPasoEstado(reporte.estado) >= 2"></span>
+              <span class="step-pip" [class.on]="getPasoEstado(reporte.estado) >= 3"></span>
             </span>
-            <span class="m3-chip" [class]="getEstadoBadgeClass(reporte.estado)">
-              {{ reporte.estado }}
-            </span>
+          </span>
+          <span class="folder-stage-tag">ETAPA {{ getPasoEstado(reporte.estado) }}/3</span>
+        </div>
+
+        <!-- Cuerpo del Expediente -->
+        <div class="card-surface">
+          <div>
+            <!-- Cabecera Tonal con Placa de Aula -->
+            <div class="card-header">
+              <div class="room-identity">
+                <span class="room-plaque">{{ reporte.aulaId }}</span>
+                <div>
+                  <span class="room-category-title">
+                    <mat-icon>{{ getCategoriaIcon(reporte.tipoProblema) }}</mat-icon>
+                    <span>{{ getCategoriaLabel(reporte.tipoProblema) }}</span>
+                  </span>
+                  <span class="room-location">{{ reporte.aulaUbicacion || 'Pabellón Central • Campus UTP' }}</span>
+                </div>
+              </div>
+
+              <span class="ticket-id-tag">#{{ formatCount(reporte.id) }}</span>
+            </div>
+
+            <!-- Cuerpo y Franja Unificada Condición + Prioridad -->
+            <div class="card-body">
+              <p class="card-desc">{{ reporte.descripcion }}</p>
+
+              <div class="c2-unified-condition">
+                <span class="condition-left">
+                  <mat-icon>engineering</mat-icon>
+                  <span>{{ getImpactoAula(reporte.prioridad, reporte.estado) }}</span>
+                </span>
+                <span class="condition-prio" [attr.data-prio]="reporte.prioridad">
+                  {{ getPrioridadLabel(reporte.prioridad) }}
+                </span>
+              </div>
+            </div>
           </div>
 
-          <p class="m3-card-desc">{{ reporte.descripcion }}</p>
-        </mat-card-content>
-
-        <mat-card-actions class="m3-card-actions">
-          <div class="m3-ticket-meta">
-            <span class="m3-ticket-id">Ticket #{{ reporte.id }}</span>
-            <time [attr.datetime]="reporte.fechaRegistro">
-              {{ reporte.fechaRegistro | date:'mediumDate' }}
+          <!-- Pie Tonal -->
+          <div class="card-footer">
+            <time class="ticket-date" [attr.datetime]="reporte.fechaRegistro">
+              REGISTRO: {{ reporte.fechaRegistro | date:'dd MMM yyyy' }}
             </time>
-          </div>
 
-          <a mat-flat-button color="primary" [routerLink]="['/reportes', reporte.id]" class="m3-detail-btn">
-            <span>Ver detalle</span>
-            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
-          </a>
-        </mat-card-actions>
-      </mat-card>
+            <a [routerLink]="['/reportes', reporte.id]" class="m3-btn-inspect">
+              <span>Abrir expediente</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </a>
+          </div>
+        </div>
+      </article>
     } @empty {
-      <mat-card appearance="outlined" class="m3-empty-card">
-        <mat-icon class="m3-empty-icon">search_off</mat-icon>
-        <h3 class="m3-empty-title">No se encontraron incidencias</h3>
-        <p class="m3-empty-desc">
-          No existen reportes registrados que coincidan con los criterios de búsqueda actuales.
+      <div class="empty-state-box">
+        <mat-icon class="empty-icon">search_off</mat-icon>
+        <h3 class="empty-title">No se encontraron expedientes</h3>
+        <p class="empty-desc">
+          No existen reportes registrados que coincidan con los filtros seleccionados.
         </p>
-        <button mat-flat-button color="primary" type="button" (click)="resetFilters()">
+        <button type="button" class="m3-btn-inspect" (click)="resetFilters()">
           <mat-icon>refresh</mat-icon>
-          <span>Mostrar todos los reportes</span>
+          <span>Mostrar todos los expedientes</span>
         </button>
-      </mat-card>
+      </div>
     }
   </section>
 

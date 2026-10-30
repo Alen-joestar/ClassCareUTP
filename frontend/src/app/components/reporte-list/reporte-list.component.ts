@@ -2,14 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { Prioridad, TipoProblema } from '../../models/reporte.model';
+import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
 
 @Component({
@@ -18,13 +12,7 @@ import { ReporteService } from '../../services/reporte.service';
     DatePipe,
     FormsModule,
     RouterLink,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule
+    MatIconModule
   ],
   templateUrl: './reporte-list.component.html',
   styleUrl: './reporte-list.component.scss'
@@ -32,9 +20,10 @@ import { ReporteService } from '../../services/reporte.service';
 export class ReporteListComponent {
   private readonly reporteService = inject(ReporteService);
 
-  // Estado reactivo con Signals
+  // Estado reactivo de filtros con Signals
   readonly searchQuery = signal<string>('');
   readonly selectedPrioridad = signal<string>('');
+  readonly selectedEstado = signal<string>('');
 
   // Fuente de datos compartida desde ReporteService
   readonly reportes = this.reporteService.reportes;
@@ -43,18 +32,25 @@ export class ReporteListComponent {
   readonly filteredReportes = computed(() => {
     const query = this.searchQuery().trim().toUpperCase();
     const prioridad = this.selectedPrioridad();
+    const estado = this.selectedEstado();
 
     return this.reportes().filter(reporte => {
       const matchesQuery = !query || reporte.aulaId.toUpperCase().includes(query) || reporte.descripcion.toUpperCase().includes(query);
       const matchesPrioridad = !prioridad || reporte.prioridad === prioridad;
-      return matchesQuery && matchesPrioridad;
+      const matchesEstado = !estado || reporte.estado === estado;
+      return matchesQuery && matchesPrioridad && matchesEstado;
     });
   });
 
-  // Métricas reactivas para el dashboard M3
+  // Métricas reactivas para el Hero Banner Marino Institucional
   readonly totalIncidencias = computed(() => this.reportes().length);
-  readonly totalAltas = computed(() => this.reportes().filter(r => r.prioridad === 'ALTA').length);
   readonly totalPendientes = computed(() => this.reportes().filter(r => r.estado === 'PENDIENTE').length);
+  readonly totalEnAtencion = computed(() => this.reportes().filter(r => r.estado === 'EN_ATENCION').length);
+  readonly totalResueltos = computed(() => this.reportes().filter(r => r.estado === 'RESUELTO').length);
+
+  formatCount(count: number): string {
+    return String(count).padStart(2, '0');
+  }
 
   onSearchChange(value: string): void {
     this.searchQuery.set(value);
@@ -64,34 +60,66 @@ export class ReporteListComponent {
     this.selectedPrioridad.set(value);
   }
 
+  filterByEstado(estado: string): void {
+    this.selectedEstado.set(estado);
+  }
+
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedPrioridad.set('');
+    this.selectedEstado.set('');
   }
 
-  getPrioridadBadgeClass(prioridad: Prioridad): string {
-    switch (prioridad) {
-      case 'ALTA': return 'm3-chip--alta';
-      case 'MEDIA': return 'm3-chip--media';
-      case 'BAJA': return 'm3-chip--baja';
+  getPasoEstado(estado: EstadoReporte): number {
+    switch (estado) {
+      case 'PENDIENTE': return 1;
+      case 'EN_ATENCION': return 2;
+      case 'RESUELTO': return 3;
     }
   }
 
-  getEstadoBadgeClass(estado: string): string {
+  getEstadoLabel(estado: EstadoReporte): string {
     switch (estado) {
-      case 'PENDIENTE': return 'm3-chip--pendiente';
-      case 'EN_ATENCION': return 'm3-chip--atencion';
-      case 'RESUELTO': return 'm3-chip--resuelto';
-      default: return '';
+      case 'PENDIENTE': return 'PENDIENTE';
+      case 'EN_ATENCION': return 'EN ATENCIÓN';
+      case 'RESUELTO': return 'RESUELTO';
+    }
+  }
+
+  getPrioridadLabel(prioridad: Prioridad): string {
+    switch (prioridad) {
+      case 'ALTA': return 'Prioridad Alta';
+      case 'MEDIA': return 'Prioridad Media';
+      case 'BAJA': return 'Prioridad Baja';
+    }
+  }
+
+  getImpactoAula(prioridad: Prioridad, estado: EstadoReporte): string {
+    if (estado === 'RESUELTO') {
+      return 'Aula 100% operativa';
+    }
+    if (prioridad === 'ALTA') {
+      return 'Inhabilita uso en clase';
+    }
+    return 'Aula operativa con obs.';
+  }
+
+  getCategoriaLabel(tipo: TipoProblema): string {
+    switch (tipo) {
+      case 'TECNOLOGICO': return 'Tecnológico';
+      case 'ELECTRICO': return 'Eléctrico';
+      case 'MOBILIARIO': return 'Mobiliario';
+      case 'INFRAESTRUCTURA': return 'Infraestructura';
+      case 'OTRO': return 'Otro';
     }
   }
 
   getCategoriaIcon(tipo: TipoProblema): string {
     switch (tipo) {
-      case 'TECNOLOGICO': return 'devices';
+      case 'TECNOLOGICO': return 'videocam_off';
       case 'ELECTRICO': return 'bolt';
       case 'MOBILIARIO': return 'chair';
-      case 'INFRAESTRUCTURA': return 'domain';
+      case 'INFRAESTRUCTURA': return 'ac_unit';
       case 'OTRO': return 'build';
     }
   }

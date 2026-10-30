@@ -1,32 +1,39 @@
-<!-- Material Design 3 Top App Bar -->
-<mat-toolbar class="m3-top-app-bar" role="banner">
-  <div class="m3-toolbar-inner">
+<!-- Material Design 3 Top App Bar — Marino Institucional -->
+<mat-toolbar class="m3-appbar" role="banner">
+  <div class="m3-appbar__inner">
     <a routerLink="/reportes" class="campus-brand">
       <div class="campus-brand__logo" aria-hidden="true">
         <mat-icon>school</mat-icon>
       </div>
       <div class="campus-brand__titles">
         <h1 class="campus-brand__name">ClassCare Campus</h1>
-        <p class="campus-brand__desc">Plataforma de Gestión Universitaria &bull; Material 3</p>
+        <p class="campus-brand__desc">Inspección y Mantenimiento de Aulas &bull; UTP</p>
       </div>
     </a>
 
     <nav class="m3-nav" aria-label="Navegación principal">
       <a
-        mat-button
         routerLink="/reportes"
         routerLinkActive="m3-nav__pill--active"
         class="m3-nav__pill">
-        <mat-icon>assignment_late</mat-icon>
-        <span>Reportes</span>
+        <mat-icon>folder_copy</mat-icon>
+        <span>Expedientes</span>
       </a>
       <a
-        mat-button
         href="/aulas/index.html"
         class="m3-nav__pill">
         <mat-icon>meeting_room</mat-icon>
         <span>Aulas</span>
       </a>
+
+      <button
+        type="button"
+        class="m3-theme-btn"
+        (click)="toggleDarkMode()"
+        [attr.aria-label]="isDarkMode() ? 'Cambiar a Modo Día' : 'Cambiar a Modo Nocturno'">
+        <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        <span>{{ isDarkMode() ? 'Modo Día' : 'Modo Nocturno' }}</span>
+      </button>
     </nav>
   </div>
 </mat-toolbar>
@@ -36,14 +43,10 @@
   <router-outlet />
 </main>
 
-<!-- Pie de Página Material 3 Surface Container -->
+<!-- Pie de Página Institucional -->
 <footer class="m3-footer">
-  <div class="m3-footer__content">
-    <p><strong>ClassCare Campus</strong> &copy; 2026 Universidad Tecnológica del Perú (UTP).</p>
-    <p>Fase 3: Frontend Reactivo con Angular y Material Design 3 (Semanas 11 y 12)</p>
-    <p class="m3-footer__status">
-      <span class="status-dot" aria-hidden="true"></span>
-      Sistema Angular Material 3 Activo
-    </p>
+  <div class="m3-footer__inner">
+    <span><strong>ClassCare Campus</strong> &mdash; Plataforma de Gestión de Mantenimiento de Aulas</span>
+    <span class="m3-footer__uni">UNIVERSIDAD TECNOLÓGICA DEL PERÚ (UTP)</span>
   </div>
 </footer>

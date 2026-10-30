@@ -1,369 +1,347 @@
 // ==========================================================================
-// ReporteDetailComponent SCSS - Material Design 3
+// ReporteDetailComponent SCSS — Folder Tab + Solapa Sólida Semántica
 // ==========================================================================
 
 .m3-detail-page {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
 }
 
-.m3-detail-nav {
+.detail-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.15rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.m3-btn-back {
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+
+  &:hover {
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
+  }
+}
+
+.detail-hint {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+// Variables dinámicas por estado en el contenedor del detalle
+.detail-folder-wrap[data-estado="PENDIENTE"] {
+  --st-color: var(--st-pendiente-main);
+}
+.detail-folder-wrap[data-estado="EN_ATENCION"] {
+  --st-color: var(--st-atencion-main);
+}
+.detail-folder-wrap[data-estado="RESUELTO"] {
+  --st-color: var(--st-resuelto-main);
+}
+
+.folder-tab-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-right: 0.375rem;
+}
+
+.folder-tab {
+  background-color: var(--st-color);
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 1.35rem 0.4rem 0.95rem;
+  clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 100%, 0 100%);
+  border-radius: 8px 0 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.step-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.step-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background-color: #FFFFFF;
+  opacity: 0.32;
+
+  &.on {
+    opacity: 1;
+  }
+}
+
+.folder-stage-tag {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding-bottom: 0.35rem;
+  letter-spacing: 0.04em;
+}
+
+.detail-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-top: 3px solid var(--st-color);
+  border-radius: 0 20px 6px 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(8, 15, 26, 0.12);
+}
+
+.detail-top {
+  background-color: var(--card-header-bg);
+  padding: 1.375rem 1.75rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.room-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.room-plaque {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  background-color: var(--plaque-bg);
+  color: var(--plaque-text);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+}
+
+.room-location {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  display: block;
+}
+
+.detail-title {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 2px 0 0;
+}
+
+.ticket-id-tag {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background-color: var(--impact-bg);
+  border: 1px solid var(--impact-border);
+  padding: 0.35rem 0.65rem;
+  border-radius: 0 8px 2px 8px;
+  text-transform: uppercase;
+}
+
+// Stepper Interactivo de 3 Etapas
+.stepper-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem;
+  padding: 1.375rem 1.75rem;
+  background-color: var(--impact-bg);
+  border-bottom: 1px solid var(--card-border);
+
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.step-box {
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  border-radius: 0 12px 4px 12px;
+  padding: 0.875rem 1.125rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  transition: all 0.15s ease;
+
+  mat-icon {
+    color: var(--text-secondary);
+  }
+
+  &:hover {
+    border-color: var(--st-color);
+  }
+
+  &.active {
+    border-left: 4px solid var(--st-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+    mat-icon {
+      color: var(--st-color);
+    }
+  }
+}
+
+.step-copy {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: var(--text-main);
+  }
+
+  span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+}
+
+// Cuerpo de 2 Columnas
+.detail-body {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1.75rem;
+  padding: 1.75rem;
+
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-heading {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 0.65rem;
+}
+
+.diagnostic-box {
+  line-height: 1.65;
+  color: var(--text-secondary);
+  background-color: var(--impact-bg);
+  padding: 1.125rem;
+  border-radius: 0 12px 4px 12px;
+  border: 1px solid var(--impact-border);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.c2-unified-condition {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-
-  .m3-back-btn {
-    border-radius: var(--m3-shape-full);
-  }
-
-  .m3-breadcrumb-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--m3-on-surface-variant);
-    background-color: var(--m3-surface-container);
-    padding: 0.35rem 0.85rem;
-    border-radius: var(--m3-shape-full);
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-  }
+  gap: 0.625rem;
+  background-color: var(--impact-bg);
+  border: 1px solid var(--impact-border);
+  padding: 0.875rem 1rem;
+  border-radius: 0 10px 4px 10px;
+  font-size: 0.82rem;
 }
 
-.m3-detail-card {
-  border-radius: var(--m3-shape-lg);
-  background-color: var(--m3-surface-card);
-  border-color: var(--m3-outline-variant);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  &--alta {
-    border-top: 5px solid #ba1a1a;
-  }
-
-  &--media {
-    border-top: 5px solid #b45309;
-  }
+.condition-box-spaced {
+  margin-bottom: 0.75rem;
 }
 
-.m3-detail-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 680px) {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-}
-
-.m3-header-main {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-
-  .m3-header-avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--m3-shape-md);
-    background-color: var(--m3-primary-container);
-    color: var(--m3-on-primary-container);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .m3-ticket-overline {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--m3-primary);
-  }
-
-  .m3-detail-title {
-    font-size: 1.65rem;
-    font-weight: 500;
-    color: var(--m3-on-surface);
-    margin: 0.1rem 0 0.25rem;
-  }
-
-  .m3-detail-timestamp {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8125rem;
-    color: var(--m3-on-surface-variant);
-    margin: 0;
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-  }
-}
-
-.m3-header-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.m3-chip {
+.condition-left {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: var(--m3-shape-sm);
-
-  &--alta {
-    background-color: #ffdad6;
-    color: #93000a;
-  }
-
-  &--media {
-    background-color: #ffdf9e;
-    color: #5b4300;
-  }
-
-  &--baja {
-    background-color: #c4eed0;
-    color: #075223;
-  }
-
-  &--pendiente {
-    background-color: #e1e2ec;
-    color: #44474f;
-  }
-
-  &--atencion {
-    background-color: var(--m3-primary-container);
-    color: var(--m3-on-primary-container);
-  }
-
-  &--resuelto {
-    background-color: #c4eed0;
-    color: #075223;
-  }
-}
-
-// Cuadrícula de 2 Columnas
-.m3-detail-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.75rem;
-
-  @media (min-width: 820px) {
-    grid-template-columns: 1.55fr 1fr;
-  }
-}
-
-.m3-section-label {
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
   font-weight: 500;
-  color: var(--m3-on-surface);
-  margin: 0 0 0.85rem;
 
   mat-icon {
-    color: var(--m3-primary);
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
   }
 }
 
-.m3-description-surface {
-  background-color: var(--m3-surface-low);
-  border: 1px solid var(--m3-outline-variant);
-  border-radius: var(--m3-shape-md);
-  padding: 1.15rem;
-  margin-bottom: 1.5rem;
+.condition-prio {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--text-main);
+  padding-left: 0.625rem;
+  border-left: 1px solid var(--card-border);
+  white-space: nowrap;
 
-  p {
-    margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: var(--m3-on-surface);
+  &[data-prio="ALTA"] {
+    color: #EF4444;
   }
 }
 
-.m3-specs-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-
-  @media (min-width: 520px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.m3-spec-tile {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-radius: var(--m3-shape-md);
-  background-color: var(--m3-surface-low);
-  border: 1px solid var(--m3-outline-variant);
-
-  .m3-spec-icon {
-    color: var(--m3-secondary);
-    margin-top: 0.1rem;
-  }
-
-  div {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .m3-spec-label {
-    font-size: 0.75rem;
-    color: var(--m3-on-surface-variant);
-  }
-
-  .m3-spec-value {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--m3-on-surface);
-  }
-}
-
-// Columna de Línea de Tiempo M3
-.m3-timeline-column {
-  background-color: var(--m3-surface-low);
-  border: 1px solid var(--m3-outline-variant);
-  border-radius: var(--m3-shape-md);
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.m3-stepper {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-}
-
-.m3-step {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  opacity: 0.5;
-
-  .m3-step-indicator {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--m3-shape-full);
-    background-color: var(--m3-surface-high);
-    color: var(--m3-on-surface-variant);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-  }
-
-  .m3-step-body {
-    display: flex;
-    flex-direction: column;
-
-    strong {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--m3-on-surface);
-    }
-
-    small {
-      font-size: 0.75rem;
-      color: var(--m3-on-surface-variant);
-    }
-  }
-
-  &--done {
-    opacity: 1;
-
-    .m3-step-indicator {
-      background-color: var(--m3-primary-container);
-      color: var(--m3-on-primary-container);
-    }
-  }
-}
-
-.m3-action-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-
-  .m3-action-caption {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--m3-on-surface-variant);
-  }
-
-  .m3-action-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .m3-state-btn--active {
-    background-color: var(--m3-secondary-container);
-    color: var(--m3-on-secondary-container);
-  }
-}
-
-// Tarjeta de No Encontrado
-.m3-not-found-card {
+.not-found-box {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0 18px 6px 18px;
   padding: 3rem 1.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  border-radius: var(--m3-shape-lg);
 
-  .m3-not-found-icon {
-    font-size: 52px;
-    width: 52px;
-    height: 52px;
-    color: #ba1a1a;
+  .not-found-icon {
+    font-size: 44px;
+    width: 44px;
+    height: 44px;
+    color: #EF4444;
   }
 
-  .m3-not-found-title {
+  .not-found-title {
+    font-family: var(--font-display);
     font-size: 1.35rem;
-    font-weight: 500;
+    color: var(--text-main);
     margin: 0;
   }
 
-  .m3-not-found-desc {
-    font-size: 0.9375rem;
-    color: var(--m3-on-surface-variant);
-    max-width: 460px;
+  .not-found-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
     margin: 0 0 0.5rem;
   }
 }

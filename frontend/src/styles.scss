@@ -1,6 +1,7 @@
 // ==========================================================================
-// ClassCare Campus - Sistema de Diseño Material Design 3 (M3)
-// Paleta Institucional Azure & Blue | Tipografía Roboto | Tokens M3
+// ClassCare Campus - Sistema de Diseño Material Design 3 Personalizado
+// Marino Institucional & Acero (Día) + Pizarra Técnica (Noche)
+// Geometría Folder-Tab con Solapa Sólida Semántica | Chakra Petch + Inter
 // ==========================================================================
 @use '@angular/material' as mat;
 
@@ -11,44 +12,90 @@ html {
       primary: mat.$azure-palette,
       tertiary: mat.$blue-palette,
     ),
-    typography: Roboto,
-    density: 0,
+    typography: Inter,
+    density: -1,
   ));
 }
 
 :root {
-  // Tokens de Superficie y Color M3 Institucional
-  --m3-primary: #005cbb;
-  --m3-on-primary: #ffffff;
-  --m3-primary-container: #d7e3ff;
-  --m3-on-primary-container: #001b3f;
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Inter', sans-serif;
 
-  --m3-secondary: #565e71;
-  --m3-secondary-container: #dae2f9;
-  --m3-on-secondary-container: #131c2b;
+  // Modo Día: Marino Institucional & Acero
+  --page-bg: #E2E9F2;
+  --appbar-bg: #0A1626;
+  --appbar-border: rgba(255, 255, 255, 0.08);
+  --hero-bg: #10223A;
+  --hero-sub: #CBD5E1;
 
-  --m3-surface: #f9f9ff;
-  --m3-surface-low: #f3f3fa;
-  --m3-surface-container: #ededf4;
-  --m3-surface-high: #e7e8ee;
-  --m3-surface-card: #ffffff;
+  --filter-bg: #D4E0EE;
+  --input-bg: #F5F8FC;
 
-  --m3-on-surface: #191c20;
-  --m3-on-surface-variant: #44474e;
-  --m3-outline: #74777f;
-  --m3-outline-variant: #c4c6d0;
+  --card-bg: #F8FAFD;
+  --card-header-bg: #ECF2F9;
+  --card-footer-bg: #EDF3FA;
+  --card-border: #C3D0E2;
 
-  // Geometría M3 (Shape Scale)
-  --m3-shape-xs: 4px;
-  --m3-shape-sm: 8px;
-  --m3-shape-md: 12px;
-  --m3-shape-lg: 16px;
-  --m3-shape-xl: 28px;
-  --m3-shape-full: 9999px;
+  --plaque-bg: #10223A;
+  --plaque-text: #FFFFFF;
 
-  // Elevación tonal M3
-  --m3-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px 1px rgba(0, 0, 0, 0.05);
-  --m3-elevation-2: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 6px 2px rgba(0, 0, 0, 0.08);
+  --impact-bg: #EBF1F8;
+  --impact-border: #CFDCEB;
+
+  --text-main: #0C192C;
+  --text-secondary: #334155;
+  --text-muted: #5B6B82;
+
+  --btn-bg: #10223A;
+  --btn-text: #FFFFFF;
+
+  // Colores de Solapa Sólida Semántica
+  --st-pendiente-main: #D97706;
+  --st-atencion-main: #2563EB;
+  --st-resuelto-main: #059669;
+}
+
+// Modo Nocturno: Pizarra Técnica de Alto Contraste
+body[data-mode="dark"] {
+  color-scheme: dark;
+
+  --page-bg: #080F1A;
+  --appbar-bg: #050A12;
+  --appbar-border: #1E293B;
+  --hero-bg: #0F1D32;
+  --hero-sub: #94A3B8;
+
+  --filter-bg: #111F35;
+  --input-bg: #091322;
+
+  --card-bg: #111E32;
+  --card-header-bg: #16263F;
+  --card-footer-bg: #0D1829;
+  --card-border: #233554;
+
+  --plaque-bg: #38BDF8;
+  --plaque-text: #062238;
+
+  --impact-bg: #0B1524;
+  --impact-border: #1E304C;
+
+  --text-main: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #8696AD;
+
+  --btn-bg: #38BDF8;
+  --btn-text: #062238;
+
+  --st-pendiente-main: #D97706;
+  --st-atencion-main: #2563EB;
+  --st-resuelto-main: #059669;
+
+  // Adaptación de variables internas de Angular Material M3 en modo oscuro
+  --mat-sys-surface: #111E32;
+  --mat-sys-on-surface: #F1F5F9;
+  --mat-sys-on-surface-variant: #94A3B8;
+  --mat-sys-outline: #334155;
+  --mat-sys-outline-variant: #233554;
 }
 
 *, *::before, *::after {
@@ -63,14 +110,25 @@ html, body {
 }
 
 body {
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  background-color: var(--m3-surface);
-  color: var(--m3-on-surface);
+  font-family: var(--font-body);
+  background-color: var(--page-bg);
+  color: var(--text-main);
   line-height: 1.5;
   margin: 0;
+  transition: background-color 0.22s ease, color 0.22s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+// Ajustes globales para MatSnackBar con estética técnica
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-left: 4px solid #38BDF8;
+  border-radius: 0 12px 4px 12px !important;
+  font-family: var(--font-display);
 }

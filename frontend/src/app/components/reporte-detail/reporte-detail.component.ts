@@ -1,12 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { EstadoReporte, Prioridad } from '../../models/reporte.model';
+import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
 
 @Component({
@@ -14,10 +11,7 @@ import { ReporteService } from '../../services/reporte.service';
   imports: [
     DatePipe,
     RouterLink,
-    MatCardModule,
-    MatButtonModule,
     MatIconModule,
-    MatDividerModule,
     MatSnackBarModule
   ],
   templateUrl: './reporte-detail.component.html',
@@ -46,6 +40,10 @@ export class ReporteDetailComponent {
     });
   }
 
+  formatCount(count: number): string {
+    return String(count).padStart(2, '0');
+  }
+
   cambiarEstado(nuevoEstado: EstadoReporte): void {
     const actual = this.reporte();
     if (!actual || actual.estado === nuevoEstado) {
@@ -53,35 +51,53 @@ export class ReporteDetailComponent {
     }
     this.reporteService.actualizarEstado(actual.id, nuevoEstado);
     this.snackBar.open(
-      `Ticket #${actual.id} actualizado a estado: ${nuevoEstado}`,
+      `Expediente #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)}`,
       'Cerrar',
       { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
     );
   }
 
-  getPrioridadBadgeClass(prioridad: Prioridad): string {
-    switch (prioridad) {
-      case 'ALTA': return 'm3-chip--alta';
-      case 'MEDIA': return 'm3-chip--media';
-      case 'BAJA': return 'm3-chip--baja';
+  getPasoEstado(estado: EstadoReporte): number {
+    switch (estado) {
+      case 'PENDIENTE': return 1;
+      case 'EN_ATENCION': return 2;
+      case 'RESUELTO': return 3;
     }
   }
 
-  getEstadoBadgeClass(estado: EstadoReporte): string {
+  getEstadoLabel(estado: EstadoReporte): string {
     switch (estado) {
-      case 'PENDIENTE': return 'm3-chip--pendiente';
-      case 'EN_ATENCION': return 'm3-chip--atencion';
-      case 'RESUELTO': return 'm3-chip--resuelto';
+      case 'PENDIENTE': return 'PENDIENTE';
+      case 'EN_ATENCION': return 'EN ATENCIÓN';
+      case 'RESUELTO': return 'RESUELTO';
+    }
+  }
+
+  getPrioridadLabel(prioridad: Prioridad): string {
+    switch (prioridad) {
+      case 'ALTA': return 'Prioridad Alta';
+      case 'MEDIA': return 'Prioridad Media';
+      case 'BAJA': return 'Prioridad Baja';
+    }
+  }
+
+  getCategoriaLabel(tipo: TipoProblema): string {
+    switch (tipo) {
+      case 'TECNOLOGICO': return 'Tecnológico';
+      case 'ELECTRICO': return 'Eléctrico';
+      case 'MOBILIARIO': return 'Mobiliario';
+      case 'INFRAESTRUCTURA': return 'Infraestructura';
+      case 'OTRO': return 'Otro';
     }
   }
 
   getImpactoAula(prioridad: Prioridad, estado: EstadoReporte): string {
     if (estado === 'RESUELTO') {
-      return 'Disponible (Incidencia subsanada)';
+      return 'Aula 100% operativa';
     }
     if (prioridad === 'ALTA') {
-      return 'En Mantenimiento (Bloqueo preventivo por urgencia alta)';
+      return 'Inhabilita uso en clase';
     }
-    return 'Operativa con observación técnica';
+    return 'Aula operativa con obs.';
   }
 }

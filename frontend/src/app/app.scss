@@ -1,5 +1,5 @@
 // ==========================================================================
-// App Shell SCSS - Material Design 3 Top App Bar & Layout
+// App Shell SCSS — Marino Institucional Top App Bar & Layout
 // ==========================================================================
 
 :host {
@@ -8,31 +8,28 @@
   min-height: 100vh;
 }
 
-.m3-top-app-bar {
-  background-color: var(--m3-surface-low);
-  color: var(--m3-on-surface);
-  border-bottom: 1px solid var(--m3-outline-variant);
-  height: auto;
-  min-height: 68px;
-  padding: 0.5rem 1.25rem;
+.m3-appbar {
   position: sticky;
   top: 0;
   z-index: 100;
+  background-color: var(--appbar-bg);
+  color: #F8FAFC;
+  border-bottom: 1px solid var(--appbar-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  height: auto;
+  min-height: 68px;
+  padding: 0.5rem 1.75rem;
 }
 
-.m3-toolbar-inner {
+.m3-appbar__inner {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
-
-  @media (min-width: 640px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
 }
 
 .campus-brand {
@@ -42,14 +39,13 @@
   text-decoration: none;
 
   &__logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    background-color: var(--m3-primary-container);
-    color: var(--m3-on-primary-container);
-    border-radius: var(--m3-shape-md);
+    width: 42px;
+    height: 42px;
+    background-color: #1B3556;
+    color: #38BDF8;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
   }
 
@@ -59,17 +55,18 @@
   }
 
   &__name {
-    font-size: 1.25rem;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: var(--m3-on-surface);
-    line-height: 1.25;
+    font-family: var(--font-display);
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #F8FAFC;
+    line-height: 1.2;
     margin: 0;
   }
 
   &__desc {
-    font-size: 0.75rem;
-    color: var(--m3-on-surface-variant);
+    font-size: 0.72rem;
+    color: #94A3B8;
     font-weight: 400;
     margin: 0;
   }
@@ -78,68 +75,102 @@
 .m3-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.625rem;
 
   &__pill {
-    border-radius: var(--m3-shape-full);
-    padding: 0 1.15rem;
-    height: 40px;
-    font-weight: 500;
-    color: var(--m3-on-surface-variant);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0 12px 4px 12px;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94A3B8;
+    text-decoration: none;
+    transition: all 0.15s ease;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.06);
+    }
 
     &--active {
-      background-color: var(--m3-secondary-container);
-      color: var(--m3-on-secondary-container);
-      font-weight: 600;
+      background-color: #1B3556;
+      color: #FFFFFF;
+      border-left: 3px solid #38BDF8;
     }
+  }
+}
+
+.m3-theme-btn {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #E2E8F0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+
+  &:hover {
+    background-color: rgba(56, 189, 248, 0.16);
+    border-color: #38BDF8;
   }
 }
 
 .m3-main-container {
   flex: 1;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 1.75rem 1.25rem;
+  padding: 1.75rem 1.5rem 4rem;
 }
 
 .m3-footer {
-  background-color: var(--m3-surface-low);
-  border-top: 1px solid var(--m3-outline-variant);
-  padding: 1.5rem 1.25rem;
+  background-color: var(--appbar-bg);
+  color: #94A3B8;
+  border-top: 1px solid var(--appbar-border);
+  padding: 1.15rem 2rem;
   margin-top: auto;
 
-  &__content {
-    max-width: 1200px;
+  &__inner {
+    max-width: 1240px;
     margin: 0 auto;
-    text-align: center;
     display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    font-size: 0.8125rem;
-    color: var(--m3-on-surface-variant);
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
 
     strong {
-      color: var(--m3-on-surface);
-      font-weight: 500;
+      color: #F8FAFC;
     }
   }
 
-  &__status {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background-color: #146c2e;
-      border-radius: var(--m3-shape-full);
-      display: inline-block;
-      box-shadow: 0 0 0 3px #c4eed0;
-    }
+  &__uni {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.03em;
   }
 }
