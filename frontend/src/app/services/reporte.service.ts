@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { EstadoReporte, Reporte } from '../models/reporte.model';
+import { CrearReportePayload, EstadoReporte, Reporte } from '../models/reporte.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,34 +11,67 @@ export class ReporteService {
       id: 1,
       aulaId: 'A-101',
       aulaInternoId: 1,
-      aulaUbicacion: 'Pabellón A - Primer piso',
+      aulaUbicacion: 'Pabellón A • Piso 1',
       tipoProblema: 'TECNOLOGICO',
       prioridad: 'ALTA',
       estado: 'PENDIENTE',
-      descripcion: 'El proyector multimedia no emite señal HDMI ni enciende con el control remoto.',
-      fechaRegistro: '2026-09-10T08:30:00'
+      descripcion: 'El proyector multimedia enciende pero no detecta señal HDMI desde el escritorio del docente.',
+      fechaRegistro: '2026-10-29T08:30:00'
     },
     {
       id: 2,
-      aulaId: 'B-202',
+      aulaId: 'LAB-302',
       aulaInternoId: 2,
-      aulaUbicacion: 'Pabellón B - Segundo piso',
+      aulaUbicacion: 'Pabellón C • Piso 3',
       tipoProblema: 'ELECTRICO',
-      prioridad: 'MEDIA',
+      prioridad: 'ALTA',
       estado: 'EN_ATENCION',
-      descripcion: 'Foco fluorescente parpadea constantemente en la fila delantera del aula.',
-      fechaRegistro: '2026-09-09T14:15:00'
+      descripcion: 'Diferencial eléctrico de la bancada norte salta al encender los equipos de cómputo del laboratorio.',
+      fechaRegistro: '2026-10-29T09:15:00'
     },
     {
       id: 3,
-      aulaId: 'C-305',
+      aulaId: 'B-204',
       aulaInternoId: 3,
-      aulaUbicacion: 'Pabellón C - Tercer piso',
+      aulaUbicacion: 'Pabellón B • Piso 2',
       tipoProblema: 'MOBILIARIO',
+      prioridad: 'MEDIA',
+      estado: 'PENDIENTE',
+      descripcion: 'Cuatro carpetas unipersonales presentan respaldar suelto cerca de la puerta posterior del salón.',
+      fechaRegistro: '2026-10-28T14:20:00'
+    },
+    {
+      id: 4,
+      aulaId: 'A-305',
+      aulaInternoId: 4,
+      aulaUbicacion: 'Pabellón A • Piso 3',
+      tipoProblema: 'INFRAESTRUCTURA',
+      prioridad: 'MEDIA',
+      estado: 'EN_ATENCION',
+      descripcion: 'Equipo de aire acondicionado presenta goteo leve sobre la esquina delantera derecha.',
+      fechaRegistro: '2026-10-28T16:40:00'
+    },
+    {
+      id: 5,
+      aulaId: 'LAB-104',
+      aulaInternoId: 5,
+      aulaUbicacion: 'Pabellón C • Piso 1',
+      tipoProblema: 'TECNOLOGICO',
       prioridad: 'BAJA',
       estado: 'RESUELTO',
-      descripcion: 'Silla ergonómica del docente con tornillo flojo en el soporte del respaldo.',
-      fechaRegistro: '2026-09-08T11:00:00'
+      descripcion: 'Access Point Wi-Fi reiniciado y actualizado; cobertura restablecida al 100% en el laboratorio.',
+      fechaRegistro: '2026-10-27T11:15:00'
+    },
+    {
+      id: 6,
+      aulaId: 'D-401',
+      aulaInternoId: 6,
+      aulaUbicacion: 'Pabellón D • Piso 4',
+      tipoProblema: 'ELECTRICO',
+      prioridad: 'BAJA',
+      estado: 'RESUELTO',
+      descripcion: 'Reemplazo de dos paneles LED sobre la pizarra acrílica completado sin observaciones.',
+      fechaRegistro: '2026-10-26T10:00:00'
     }
   ]);
 
@@ -46,6 +79,25 @@ export class ReporteService {
 
   obtenerPorId(id: number): Reporte | undefined {
     return this.reportesState().find(r => r.id === id);
+  }
+
+  crearReporte(payload: CrearReportePayload): Reporte {
+    const listaActual = this.reportesState();
+    const nextId = listaActual.length > 0 ? Math.max(...listaActual.map(r => r.id)) + 1 : 1;
+
+    const nuevoReporte: Reporte = {
+      id: nextId,
+      aulaId: payload.aulaId.trim().toUpperCase(),
+      aulaUbicacion: payload.aulaUbicacion.trim() || 'Pabellón Central • Campus UTP',
+      tipoProblema: payload.tipoProblema,
+      prioridad: payload.prioridad,
+      estado: 'PENDIENTE',
+      descripcion: payload.descripcion.trim(),
+      fechaRegistro: new Date().toISOString()
+    };
+
+    this.reportesState.update(lista => [nuevoReporte, ...lista]);
+    return nuevoReporte;
   }
 
   actualizarEstado(id: number, nuevoEstado: EstadoReporte): void {

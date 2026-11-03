@@ -15,9 +15,17 @@
       <a
         routerLink="/reportes"
         routerLinkActive="m3-nav__pill--active"
+        [routerLinkActiveOptions]="{ exact: true }"
         class="m3-nav__pill">
         <mat-icon>folder_copy</mat-icon>
         <span>Expedientes</span>
+      </a>
+      <a
+        routerLink="/reportes/nuevo"
+        routerLinkActive="m3-nav__pill--active"
+        class="m3-nav__pill">
+        <mat-icon>note_add</mat-icon>
+        <span>Nuevo Expediente</span>
       </a>
       <a
         href="/aulas/index.html"

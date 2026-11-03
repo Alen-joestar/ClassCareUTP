@@ -13,3 +13,11 @@ export interface Reporte {
   descripcion: string;
   fechaRegistro: string;
 }
+
+export interface CrearReportePayload {
+  aulaId: string;
+  aulaUbicacion: string;
+  tipoProblema: TipoProblema;
+  prioridad: Prioridad;
+  descripcion: string;
+}
