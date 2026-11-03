@@ -1,5 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -9,6 +16,49 @@ import { ReporteService } from '../../services/reporte.service';
 interface AulaSugerida {
   codigo: string;
   ubicacion: string;
+}
+
+/**
+ * Validador Nivel 1: Exige formato real de código de aula universitaria:
+ * Prefijo de Pabellón (A, B, C, D, E) o LAB seguido de guion, piso (1-9) y número de 2 dígitos (ej. A-101, LAB-302).
+ */
+function codigoAulaCampusValidator(): ValidatorFn {
+  const regex = /^(?:[A-Ea-e]|LAB|lab)-[1-9]\d{2}$/;
+  return (control: AbstractControl): ValidationErrors | null => {
+    const raw = (control.value ?? '').trim();
+    if (!raw) {
+      return null; // Lo maneja Validators.required
+    }
+    return regex.test(raw) ? null : { formatoAulaCampus: true };
+  };
+}
+
+/**
+ * Validador Nivel 1: Evita bypass por espacios en blanco y exige al menos
+ * 10 caracteres reales, mínimo 2 palabras con letras y sin caracteres repetidos sin sentido.
+ */
+function diagnosticoRealValidator(): ValidatorFn {
+  const minDosPalabrasConLetras = /[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}/;
+  const caracteresRepetidos = /(.)\1{5,}/;
+
+  return (control: AbstractControl): ValidationErrors | null => {
+    const raw = (control.value ?? '');
+    const trimmed = raw.trim();
+
+    if (!raw) {
+      return null; // Lo maneja Validators.required
+    }
+    if (trimmed.length === 0) {
+      return { soloEspacios: true };
+    }
+    if (trimmed.length < 10) {
+      return { minlengthReal: { requiredLength: 10, actualLength: trimmed.length } };
+    }
+    if (!minDosPalabrasConLetras.test(trimmed) || caracteresRepetidos.test(trimmed)) {
+      return { diagnosticoIncoherente: true };
+    }
+    return null;
+  };
 }
 
 @Component({
@@ -33,7 +83,8 @@ export class ReporteFormComponent {
     { codigo: 'LAB-302', ubicacion: 'Pabellón C • Piso 3' },
     { codigo: 'B-204', ubicacion: 'Pabellón B • Piso 2' },
     { codigo: 'A-305', ubicacion: 'Pabellón A • Piso 3' },
-    { codigo: 'D-401', ubicacion: 'Pabellón D • Piso 4' }
+    { codigo: 'D-401', ubicacion: 'Pabellón D • Piso 4' },
+    { codigo: 'C-201', ubicacion: 'Pabellón C • Piso 2' }
   ];
 
   readonly categorias: { valor: TipoProblema; label: string; icono: string }[] = [
@@ -50,38 +101,94 @@ export class ReporteFormComponent {
     { valor: 'BAJA', label: 'Prioridad Baja', impacto: 'Mantenimiento preventivo' }
   ];
 
-  // Formulario Reactivo tipado y con validaciones en tiempo real (Semana 13)
-  readonly reporteForm = this.fb.nonNullable.group({
-    aulaId: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(12),
-        Validators.pattern(/^[A-Za-z0-9-]+$/)
+  // Formulario Reactivo con Validaciones Nivel 1 y Nivel 2
+  readonly reporteForm = this.fb.nonNullable.group(
+    {
+      aulaId: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(12),
+          codigoAulaCampusValidator()
+        ]
+      ],
+      aulaUbicacion: [
+        'Se asigna automáticamente según el código de aula',
+        [Validators.required]
+      ],
+      tipoProblema: ['TECNOLOGICO' as TipoProblema, [Validators.required]],
+      prioridad: ['ALTA' as Prioridad, [Validators.required]],
+      descripcion: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(255),
+          diagnosticoRealValidator()
+        ]
       ]
-    ],
-    aulaUbicacion: [
-      'Pabellón A • Piso 1',
-      [Validators.required, Validators.minLength(5), Validators.maxLength(60)]
-    ],
-    tipoProblema: ['TECNOLOGICO' as TipoProblema, [Validators.required]],
-    prioridad: ['ALTA' as Prioridad, [Validators.required]],
-    descripcion: [
-      '',
-      [Validators.required, Validators.minLength(10), Validators.maxLength(255)]
-    ]
-  });
+    },
+    {
+      validators: [this.reporteDuplicadoValidator()]
+    }
+  );
+
+  constructor() {
+    // Nivel 2: Autocompletado automático de Pabellón y Piso según el código del aula
+    this.f.aulaId.valueChanges.subscribe(valor => {
+      const ubicacionCalculada = this.deducirUbicacionDesdeCodigo(valor);
+      this.f.aulaUbicacion.setValue(ubicacionCalculada, { emitEvent: false });
+    });
+  }
 
   get f() {
     return this.reporteForm.controls;
   }
 
+  /**
+   * Validador Nivel 2 (a nivel de FormGroup):
+   * Impide registrar un reporte si ya existe uno PENDIENTE o EN_ATENCION
+   * para la misma aula y la misma categoría técnica.
+   */
+  private reporteDuplicadoValidator(): ValidatorFn {
+    return (group: AbstractControl): ValidationErrors | null => {
+      const aulaId = group.get('aulaId')?.value ?? '';
+      const tipo = group.get('tipoProblema')?.value as TipoProblema;
+      if (!aulaId || !tipo) {
+        return null;
+      }
+
+      const duplicado = this.reporteService.buscarDuplicadoActivo(aulaId, tipo);
+      if (duplicado) {
+        return {
+          reporteDuplicado: {
+            id: duplicado.id,
+            aulaId: duplicado.aulaId,
+            estado: duplicado.estado
+          }
+        };
+      }
+      return null;
+    };
+  }
+
+  /**
+   * Deduce automáticamente el Pabellón y Piso a partir del código (ej. B-204 -> Pabellón B • Piso 2)
+   * garantizando cero incoherencias entre código de aula y ubicación física.
+   */
+  deducirUbicacionDesdeCodigo(codigoRaw: string): string {
+    const limpio = codigoRaw.trim().toUpperCase();
+    const match = limpio.match(/^([A-E]|LAB)-([1-9])\d{2}$/);
+    if (!match) {
+      return 'Ingresa un código válido (ej. A-101, LAB-302)';
+    }
+    const prefijo = match[1];
+    const piso = match[2];
+    const pabellon = prefijo === 'LAB' ? 'Pabellón C (Laboratorios)' : `Pabellón ${prefijo}`;
+    return `${pabellon} • Piso ${piso}`;
+  }
+
   seleccionarAulaRapida(aula: AulaSugerida): void {
-    this.reporteForm.patchValue({
-      aulaId: aula.codigo,
-      aulaUbicacion: aula.ubicacion
-    });
+    this.f.aulaId.setValue(aula.codigo);
     this.f.aulaId.markAsDirty();
     this.f.aulaId.markAsTouched();
   }
@@ -99,7 +206,7 @@ export class ReporteFormComponent {
   limpiarFormulario(): void {
     this.reporteForm.reset({
       aulaId: '',
-      aulaUbicacion: 'Pabellón A • Piso 1',
+      aulaUbicacion: 'Ingresa un código válido (ej. A-101, LAB-302)',
       tipoProblema: 'TECNOLOGICO',
       prioridad: 'ALTA',
       descripcion: ''
@@ -124,6 +231,14 @@ export class ReporteFormComponent {
     });
 
     this.router.navigate(['/reportes']);
+  }
+
+  getCaracteresReales(): number {
+    return this.f.descripcion.value.trim().length;
+  }
+
+  formatCount(count: number): string {
+    return String(count).padStart(2, '0');
   }
 
   getCategoriaActual() {

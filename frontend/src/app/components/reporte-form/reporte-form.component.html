@@ -8,7 +8,7 @@
     </a>
 
     <span class="form-hint">
-      FORMULARIO REACTIVO CON VALIDACIÓN EN TIEMPO REAL
+      VALIDACIÓN EN TIEMPO REAL Y COHERENCIA DE CAMPUS ACTIVA
     </span>
   </nav>
 
@@ -29,18 +29,18 @@
           <div>
             <h2 class="form-title">Registrar Incidencia de Aula</h2>
             <p class="form-subtitle">
-              Completa los datos técnicos del ambiente afectado para programar su inspección.
+              El sistema verifica automáticamente el formato de aula, su ubicación física y evita reportes duplicados activos.
             </p>
           </div>
         </header>
 
         <form [formGroup]="reporteForm" (ngSubmit)="onSubmit()" novalidate class="reactive-form">
 
-          <!-- Selección rápida de aula + Input de Código y Ubicación -->
+          <!-- Selección rápida de aula + Input de Código y Ubicación Autocompletada -->
           <div class="field-group">
             <div class="label-row">
               <label for="aulaIdInput" class="field-label">1. Identificación del Aula o Laboratorio *</label>
-              <span class="quick-pick-caption">Selección rápida:</span>
+              <span class="quick-pick-caption">Aulas frecuentes del campus:</span>
             </div>
 
             <div class="quick-rooms-row">
@@ -48,7 +48,7 @@
                 <button
                   type="button"
                   class="room-chip"
-                  [class.active]="f.aulaId.value.toUpperCase() === aula.codigo"
+                  [class.active]="f.aulaId.value.trim().toUpperCase() === aula.codigo"
                   (click)="seleccionarAulaRapida(aula)">
                   {{ aula.codigo }}
                 </button>
@@ -57,7 +57,7 @@
 
             <div class="two-cols-inputs">
               <div class="input-wrapper">
-                <label for="aulaIdInput" class="sub-label">Código de Ambiente *</label>
+                <label for="aulaIdInput" class="sub-label">Código de Ambiente (Ej: A-101, LAB-302) *</label>
                 <div
                   class="m3-field-box"
                   [class.field-invalid]="f.aulaId.invalid && (f.aulaId.touched || f.aulaId.dirty)"
@@ -67,7 +67,7 @@
                     id="aulaIdInput"
                     type="text"
                     formControlName="aulaId"
-                    placeholder="Ej: A-101, LAB-302"
+                    placeholder="Pabellón (A-E o LAB) + Piso + Aula"
                     autocomplete="off"
                   />
                 </div>
@@ -76,34 +76,31 @@
                   <div class="error-msg" role="alert">
                     @if (f.aulaId.errors?.['required']) {
                       <span>El código del aula es obligatorio.</span>
-                    } @else if (f.aulaId.errors?.['pattern']) {
-                      <span>Usa solo letras, números y guiones (ej. A-101).</span>
-                    } @else if (f.aulaId.errors?.['minlength'] || f.aulaId.errors?.['maxlength']) {
-                      <span>Debe tener entre 3 y 12 caracteres.</span>
+                    } @else if (f.aulaId.errors?.['formatoAulaCampus']) {
+                      <span>Formato inválido. Usa Pabellón (A–E o LAB) + guion + 3 dígitos de piso/aula (ej. A-101, B-204, LAB-302).</span>
                     }
                   </div>
                 }
               </div>
 
               <div class="input-wrapper">
-                <label for="ubicacionInput" class="sub-label">Pabellón y Piso *</label>
-                <div
-                  class="m3-field-box"
-                  [class.field-invalid]="f.aulaUbicacion.invalid && (f.aulaUbicacion.touched || f.aulaUbicacion.dirty)">
+                <div class="label-row">
+                  <label for="ubicacionInput" class="sub-label">Pabellón y Piso (Auto-sincronizado)</label>
+                  <span class="auto-sync-tag">
+                    <mat-icon>verified</mat-icon>
+                    <span>AUTO</span>
+                  </span>
+                </div>
+                <div class="m3-field-box m3-field-box--readonly" [class.field-valid]="f.aulaId.valid">
                   <mat-icon>place</mat-icon>
                   <input
                     id="ubicacionInput"
                     type="text"
                     formControlName="aulaUbicacion"
-                    placeholder="Ej: Pabellón A • Piso 1"
+                    readonly
+                    aria-readonly="true"
                   />
                 </div>
-
-                @if (f.aulaUbicacion.invalid && (f.aulaUbicacion.touched || f.aulaUbicacion.dirty)) {
-                  <div class="error-msg" role="alert">
-                    <span>Indica el pabellón y piso (mínimo 5 caracteres).</span>
-                  </div>
-                }
               </div>
             </div>
           </div>
@@ -123,6 +120,25 @@
                 </button>
               }
             </div>
+
+            <!-- Alerta de Validación Nivel 2: Reporte Duplicado Activo -->
+            @if (reporteForm.errors?.['reporteDuplicado']; as dup) {
+              <div class="duplicate-alert-box" role="alert">
+                <div class="duplicate-alert-copy">
+                  <mat-icon>warning_amber</mat-icon>
+                  <div>
+                    <strong>Incidencia duplicada detectada en {{ dup.aulaId }}</strong>
+                    <span>
+                      Ya existe el Reporte #{{ formatCount(dup.id) }} activo ({{ dup.estado }}) para la categoría {{ getCategoriaActual().label }}. Cambia de categoría/aula o consulta el reporte existente.
+                    </span>
+                  </div>
+                </div>
+                <a [routerLink]="['/reportes', dup.id]" class="duplicate-link-btn">
+                  <span>Ver reporte #{{ formatCount(dup.id) }}</span>
+                  <mat-icon>open_in_new</mat-icon>
+                </a>
+              </div>
+            }
           </div>
 
           <!-- Nivel de Prioridad e Impacto -->
@@ -143,14 +159,14 @@
             </div>
           </div>
 
-          <!-- Descripción Técnica con Contador en Tiempo Real -->
+          <!-- Descripción Técnica con Contador de Caracteres Reales (sin espacios extremos) -->
           <div class="field-group">
             <div class="label-row">
               <label for="descripcionInput" class="field-label">4. Diagnóstico o Descripción del Problema *</label>
               <span
                 class="char-counter"
-                [class.counter-warn]="f.descripcion.value.length > 230">
-                {{ f.descripcion.value.length }} / 255 caracteres
+                [class.counter-warn]="getCaracteresReales() > 230">
+                {{ getCaracteresReales() }} / 255 caracteres útiles
               </span>
             </div>
 
@@ -162,15 +178,17 @@
                 id="descripcionInput"
                 rows="4"
                 formControlName="descripcion"
-                placeholder="Describe con detalle el fallo observado en el aula o laboratorio (mínimo 10 caracteres)..."></textarea>
+                placeholder="Describe el problema con al menos 2 palabras descriptivas y 10 caracteres útiles (ej: Proyector sin señal HDMI en el aula)..."></textarea>
             </div>
 
             @if (f.descripcion.invalid && (f.descripcion.touched || f.descripcion.dirty)) {
               <div class="error-msg" role="alert">
-                @if (f.descripcion.errors?.['required']) {
-                  <span>La descripción técnica del problema es obligatoria.</span>
-                } @else if (f.descripcion.errors?.['minlength']) {
-                  <span>Detalla mejor la incidencia (mínimo 10 caracteres, actual: {{ f.descripcion.value.length }}).</span>
+                @if (f.descripcion.errors?.['required'] || f.descripcion.errors?.['soloEspacios']) {
+                  <span>La descripción no puede estar vacía ni contener solo espacios en blanco.</span>
+                } @else if (f.descripcion.errors?.['minlengthReal']) {
+                  <span>Escribe al menos 10 caracteres reales sin contar espacios vacíos (actual: {{ getCaracteresReales() }}).</span>
+                } @else if (f.descripcion.errors?.['diagnosticoIncoherente']) {
+                  <span>Ingresa una descripción real con al menos 2 palabras con sentido técnico (sin caracteres repetidos).</span>
                 } @else if (f.descripcion.errors?.['maxlength']) {
                   <span>Has superado el máximo permitido de 255 caracteres.</span>
                 }
@@ -227,7 +245,7 @@
                     <span>{{ getCategoriaActual().label }}</span>
                   </span>
                   <span class="room-location">
-                    {{ f.aulaUbicacion.value.trim() || 'Pabellón Central • Campus UTP' }}
+                    {{ f.aulaUbicacion.value }}
                   </span>
                 </div>
               </div>
@@ -253,12 +271,12 @@
           </div>
 
           <div class="card-footer">
-            <span class="ticket-date">ESTADO DEL FORMULARIO:</span>
+            <span class="ticket-date">ESTADO DE VALIDACIÓN:</span>
             <span
               class="validation-status-tag"
               [class.valid]="reporteForm.valid">
               <mat-icon>{{ reporteForm.valid ? 'check_circle' : 'pending' }}</mat-icon>
-              <span>{{ reporteForm.valid ? 'Listo para registrar' : 'Completa los campos' }}</span>
+              <span>{{ reporteForm.valid ? 'Listo para registrar' : 'Pendiente de validación' }}</span>
             </span>
           </div>
         </div>

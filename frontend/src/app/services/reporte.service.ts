@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { CrearReportePayload, EstadoReporte, Reporte } from '../models/reporte.model';
+import { CrearReportePayload, EstadoReporte, Reporte, TipoProblema } from '../models/reporte.model';
 
 @Injectable({
   providedIn: 'root'
@@ -79,6 +79,23 @@ export class ReporteService {
 
   obtenerPorId(id: number): Reporte | undefined {
     return this.reportesState().find(r => r.id === id);
+  }
+
+  /**
+   * Verifica si ya existe un reporte activo (PENDIENTE o EN_ATENCION)
+   * para la misma aula y la misma categoría técnica.
+   */
+  buscarDuplicadoActivo(aulaId: string, tipoProblema: TipoProblema): Reporte | undefined {
+    const codigoNormalizado = aulaId.trim().toUpperCase();
+    if (!codigoNormalizado) {
+      return undefined;
+    }
+    return this.reportesState().find(
+      r =>
+        r.aulaId.toUpperCase() === codigoNormalizado &&
+        r.tipoProblema === tipoProblema &&
+        r.estado !== 'RESUELTO'
+    );
   }
 
   crearReporte(payload: CrearReportePayload): Reporte {
