@@ -58,12 +58,25 @@
                 Directorio centralizado de infraestructura educativa del campus universitario.
                 Verifique la disponibilidad operativa, aforo asignado y estado de mantenimiento.
             </p>
+            <div class="aulas-access">
+                <button type="button" class="btn btn--primary"
+                        id="btn-abrir-acceso"
+                        aria-haspopup="dialog" aria-controls="modal-acceso">
+                    Acceso administrativo
+                </button>
+                <p id="estado-sesion" class="aulas-access__status"
+                   aria-live="polite">
+                    El catálogo está disponible para consulta.
+                </p>
+            </div>
         </section>
 
+        <!-- CONSULTA Y FILTROS -->
         <section class="campus-card" aria-labelledby="consulta-title">
             <h2 id="consulta-title" class="campus-card__title">
                 Consultar Disponibilidad de Espacios
             </h2>
+
             <p class="campus-card__instruction">
                 Filtre por código, capacidad mínima o estado para consultar las aulas.
             </p>
@@ -73,9 +86,11 @@
                     <legend class="campus-legend">Criterios de Búsqueda</legend>
 
                     <p class="form-group">
-                        <label for="codigo-aula" class="form-label">Código del Aula</label>
-                        <input type="text" id="codigo-aula" name="codigo-aula"
-                               class="form-input"
+                        <label for="codigo-aula" class="form-label">
+                            Código del Aula
+                        </label>
+                        <input type="text" id="codigo-aula"
+                               name="codigo-aula" class="form-input"
                                placeholder="Ej: AULA-102"
                                autocomplete="off">
                         <small class="form-help">
@@ -84,9 +99,12 @@
                     </p>
 
                     <p class="form-group">
-                        <label for="capacidad" class="form-label">Capacidad Mínima</label>
-                        <input type="number" id="capacidad" name="capacidad"
-                               min="1" max="200" step="1" class="form-input"
+                        <label for="capacidad" class="form-label">
+                            Capacidad Mínima
+                        </label>
+                        <input type="number" id="capacidad"
+                               name="capacidad" min="1" max="200"
+                               step="1" class="form-input"
                                placeholder="Ej: 30">
                         <small class="form-help">
                             Aforo mínimo requerido para la actividad académica.
@@ -94,8 +112,11 @@
                     </p>
 
                     <p class="form-group">
-                        <label for="estado-aula" class="form-label">Estado del Aula</label>
-                        <select id="estado-aula" name="estado-aula" class="form-input">
+                        <label for="estado-aula" class="form-label">
+                            Estado del Aula
+                        </label>
+                        <select id="estado-aula" name="estado-aula"
+                                class="form-input">
                             <option value="">Todos los estados</option>
                             <option value="DISPONIBLE">Disponible</option>
                             <option value="OCUPADA">Ocupada</option>
@@ -111,6 +132,7 @@
                                 id="btn-consultar">
                             Buscar Espacios
                         </button>
+
                         <button type="button" class="btn btn--secondary"
                                 id="btn-limpiar">
                             Restablecer Filtros
@@ -120,10 +142,97 @@
             </form>
         </section>
 
+        <!-- FORMULARIO DE ADMINISTRACIÓN -->
+        <section class="campus-card" id="panel-administracion"
+                 aria-labelledby="administracion-title" hidden>
+
+            <h2 id="administracion-title" class="campus-card__title">
+                Gestión de Aulas
+            </h2>
+
+            <p class="campus-card__instruction">
+                Registre nuevas aulas o actualice la información de espacios existentes.
+            </p>
+
+            <form id="form-aula" class="campus-form">
+                <fieldset class="campus-fieldset">
+                    <legend class="campus-legend" id="titulo-form-aula">
+                        Registrar nueva aula
+                    </legend>
+
+                    <input type="hidden" id="aula-id">
+
+                    <p class="form-group">
+                        <label for="aula-codigo" class="form-label">
+                            Código del aula
+                        </label>
+                        <input type="text" id="aula-codigo"
+                               class="form-input"
+                               placeholder="Ej: AULA-105"
+                               maxlength="50" required>
+                        <small class="form-help">
+                            No deje el campo vacío. Máximo 50 caracteres.
+                        </small>
+                    </p>
+
+                    <p class="form-group">
+                        <label for="aula-ubicacion" class="form-label">
+                            Ubicación
+                        </label>
+                        <input type="text" id="aula-ubicacion"
+                               class="form-input"
+                               placeholder="Ej: Pabellón B - Segundo piso"
+                               maxlength="150" required>
+                        <small class="form-help">
+                            Indique una ubicación y evite dejar el campo vacío.
+                            Máximo 150 caracteres.
+                        </small>
+                    </p>
+
+                    <p class="form-group">
+                        <label for="aula-capacidad" class="form-label">
+                            Capacidad
+                        </label>
+                        <input type="number" id="aula-capacidad"
+                               class="form-input" min="1" max="200"
+                               step="1" placeholder="Ej: 40" required>
+                    </p>
+
+                    <p class="form-group">
+                        <label for="aula-estado" class="form-label">
+                            Estado
+                        </label>
+                        <select id="aula-estado" class="form-input" required>
+                            <option value="DISPONIBLE">Disponible</option>
+                            <option value="OCUPADA">Ocupada</option>
+                            <option value="MANTENIMIENTO">Mantenimiento</option>
+                        </select>
+                    </p>
+
+                    <p class="form-actions form-group--full">
+                        <button type="submit" class="btn btn--primary"
+                                id="btn-guardar-aula">
+                            Registrar aula
+                        </button>
+
+                        <button type="button" class="btn btn--secondary"
+                                id="btn-cancelar-edicion">
+                            Cancelar
+                        </button>
+                    </p>
+                </fieldset>
+            </form>
+
+            <p id="mensaje-aula" class="aulas-mensaje"
+               role="status" aria-live="polite"></p>
+        </section>
+
+        <!-- LISTADO DE AULAS -->
         <section class="campus-card" aria-labelledby="listado-title">
             <h2 id="listado-title" class="campus-card__title">
                 Aulas y Laboratorios Registrados
             </h2>
+
             <p class="campus-card__instruction">
                 Relación de espacios físicos con indicador de disponibilidad operativa.
             </p>
@@ -135,13 +244,115 @@
 
     </main>
 
+    <dialog id="modal-acceso" class="aulas-modal"
+            aria-labelledby="acceso-title">
+        <section class="campus-card aulas-modal__card" id="panel-acceso">
+            <button type="button" class="aulas-modal__close"
+                    id="btn-cerrar-acceso"
+                    aria-label="Cerrar acceso administrativo">
+                &times;
+            </button>
+
+            <h2 id="acceso-title" class="campus-card__title">
+                Acceso Administrativo
+            </h2>
+
+            <p class="campus-card__instruction">
+                Inicie sesión para añadir, editar o actualizar el estado de las aulas.
+            </p>
+
+            <div id="formulario-login-container">
+                <form id="form-login" class="campus-form">
+                    <fieldset class="campus-fieldset">
+                        <legend class="campus-legend">Iniciar sesión</legend>
+
+                        <p class="form-group">
+                            <label for="login-usuario" class="form-label">
+                                Usuario
+                            </label>
+                            <input type="text" id="login-usuario"
+                                   class="form-input"
+                                   placeholder="Ingrese su usuario"
+                                   autocomplete="username" required>
+                        </p>
+
+                        <p class="form-group">
+                            <label for="login-password" class="form-label">
+                                Contraseña
+                            </label>
+                            <input type="password" id="login-password"
+                                   class="form-input"
+                                   placeholder="Ingrese su contraseña"
+                                   autocomplete="current-password" required>
+                        </p>
+
+                        <p class="form-actions form-group--full">
+                            <button type="submit" class="btn btn--primary"
+                                    id="btn-login">
+                                Iniciar sesión
+                            </button>
+                        </p>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div id="sesion-activa" hidden>
+                <p>
+                    Sesión iniciada como:
+                    <strong id="usuario-activo"></strong>
+                </p>
+
+                <p>
+                    Rol:
+                    <strong id="rol-activo"></strong>
+                </p>
+
+                <button type="button" class="btn btn--secondary"
+                        id="btn-logout">
+                    Cerrar sesión
+                </button>
+            </div>
+
+            <p id="mensaje-login" class="aulas-mensaje"
+               role="status" aria-live="polite"></p>
+        </section>
+    </dialog>
+
+    <dialog id="modal-eliminar-aula" class="aulas-modal aulas-confirmation"
+            aria-labelledby="titulo-confirmar-eliminacion">
+        <section class="campus-card aulas-modal__card">
+            <h2 id="titulo-confirmar-eliminacion"
+                class="campus-card__title">
+                ¿Está seguro de eliminar esta aula?
+            </h2>
+            <p class="campus-card__instruction">
+                Esta acción no se puede deshacer. Aula seleccionada:
+                <strong id="codigo-aula-eliminar"></strong>
+            </p>
+            <p id="mensaje-eliminacion" class="aulas-mensaje"
+               role="status" aria-live="polite"></p>
+            <div class="aulas-confirmation__actions">
+                <button type="button" class="btn btn--secondary"
+                        id="btn-cancelar-eliminacion">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn--danger"
+                        id="btn-confirmar-eliminacion">
+                    Sí, eliminar aula
+                </button>
+            </div>
+        </section>
+    </dialog>
+
     <footer class="campus-footer">
         <div class="footer-content">
             <p>
                 <strong>ClassCare Campus</strong> &copy; 2026
                 Universidad Tecnológica del Perú (UTP).
             </p>
-            <p>Plataforma Integrada de Mantenimiento y Aulas Universitarias | APF2</p>
+            <p>
+                Plataforma Integrada de Mantenimiento y Aulas Universitarias | APF2
+            </p>
             <p class="footer-status">
                 <span class="status-dot" aria-hidden="true"></span>
                 <span id="estado-api">Conectando con el servidor...</span>
@@ -151,26 +362,146 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
+            // ==========================================
+            // ELEMENTOS DEL DOM
+            // ==========================================
+
             const grid = document.getElementById("grid-aulas");
-            const form = document.getElementById("form-consulta-aula");
-            const inputCodigo = document.getElementById("codigo-aula");
-            const inputCapacidad = document.getElementById("capacidad");
-            const inputEstado = document.getElementById("estado-aula");
-            const btnConsultar = document.getElementById("btn-consultar");
-            const btnLimpiar = document.getElementById("btn-limpiar");
-            const estadoApi = document.getElementById("estado-api");
+
+            const formConsulta =
+                document.getElementById("form-consulta-aula");
+
+            const inputCodigo =
+                document.getElementById("codigo-aula");
+
+            const inputCapacidad =
+                document.getElementById("capacidad");
+
+            const inputEstado =
+                document.getElementById("estado-aula");
+
+            const btnConsultar =
+                document.getElementById("btn-consultar");
+
+            const btnLimpiar =
+                document.getElementById("btn-limpiar");
+
+            const estadoApi =
+                document.getElementById("estado-api");
+
+            const formLogin =
+                document.getElementById("form-login");
+
+            const inputUsuario =
+                document.getElementById("login-usuario");
+
+            const inputPassword =
+                document.getElementById("login-password");
+
+            const btnLogin =
+                document.getElementById("btn-login");
+
+            const formularioLoginContainer =
+                document.getElementById("formulario-login-container");
+
+            const sesionActiva =
+                document.getElementById("sesion-activa");
+
+            const usuarioActivo =
+                document.getElementById("usuario-activo");
+
+            const rolActivo =
+                document.getElementById("rol-activo");
+
+            const btnLogout =
+                document.getElementById("btn-logout");
+
+            const mensajeLogin =
+                document.getElementById("mensaje-login");
+
+            const modalAcceso =
+                document.getElementById("modal-acceso");
+
+            const btnAbrirAcceso =
+                document.getElementById("btn-abrir-acceso");
+
+            const btnCerrarAcceso =
+                document.getElementById("btn-cerrar-acceso");
+
+            const estadoSesion =
+                document.getElementById("estado-sesion");
+
+            const panelAdministracion =
+                document.getElementById("panel-administracion");
+
+            const formAula =
+                document.getElementById("form-aula");
+
+            const aulaId =
+                document.getElementById("aula-id");
+
+            const aulaCodigo =
+                document.getElementById("aula-codigo");
+
+            const aulaUbicacion =
+                document.getElementById("aula-ubicacion");
+
+            const aulaCapacidad =
+                document.getElementById("aula-capacidad");
+
+            const aulaEstado =
+                document.getElementById("aula-estado");
+
+            const tituloFormAula =
+                document.getElementById("titulo-form-aula");
+
+            const btnGuardarAula =
+                document.getElementById("btn-guardar-aula");
+
+            const btnCancelarEdicion =
+                document.getElementById("btn-cancelar-edicion");
+
+            const mensajeAula =
+                document.getElementById("mensaje-aula");
+
+            const modalEliminarAula =
+                document.getElementById("modal-eliminar-aula");
+
+            const codigoAulaEliminar =
+                document.getElementById("codigo-aula-eliminar");
+
+            const mensajeEliminacion =
+                document.getElementById("mensaje-eliminacion");
+
+            const btnCancelarEliminacion =
+                document.getElementById("btn-cancelar-eliminacion");
+
+            const btnConfirmarEliminacion =
+                document.getElementById("btn-confirmar-eliminacion");
+
+
+            // ==========================================
+            // VARIABLES Y SESIÓN
+            // ==========================================
 
             let aulasCargadas = [];
+            let aulaPendienteEliminar = null;
 
-            function mostrarMensaje(mensaje) {
-                grid.replaceChildren();
+            function recuperarSesion() {
+                try {
+                    const datos = sessionStorage.getItem("classcareSesion");
 
-                const texto = document.createElement("p");
-                texto.className = "aulas-mensaje";
-                texto.textContent = mensaje;
+                    return datos ? JSON.parse(datos) : null;
 
-                grid.appendChild(texto);
+                } catch (error) {
+                    console.error("Error al recuperar la sesión:", error);
+                    sessionStorage.removeItem("classcareSesion");
+                    return null;
+                }
             }
+
+            let sesion = recuperarSesion();
 
             function normalizar(valor) {
                 return String(valor ?? "").trim().toLowerCase();
@@ -178,25 +509,261 @@
 
             function crearElemento(etiqueta, clase, texto) {
                 const elemento = document.createElement(etiqueta);
-                if (clase) elemento.className = clase;
+
+                if (clase) {
+                    elemento.className = clase;
+                }
+
                 elemento.textContent = texto ?? "";
+
                 return elemento;
             }
 
+            function mostrarMensajeLogin(mensaje) {
+                mensajeLogin.textContent = mensaje;
+            }
+
+            function mostrarMensaje(mensaje) {
+                grid.replaceChildren(
+                    crearElemento("p", "aulas-mensaje", mensaje)
+                );
+            }
+
+            function mostrarMensajeAula(mensaje) {
+                mensajeAula.textContent = mensaje;
+            }
+
+            async function obtenerMensajeError(respuesta) {
+                try {
+                    const datos = await respuesta.json();
+
+                    return datos.message ||
+                           datos.mensaje ||
+                           datos.error ||
+                           "Error en la operación. Código: " + respuesta.status;
+
+                } catch (error) {
+                    return "Error en la operación. Código: " + respuesta.status;
+                }
+            }
+
+            function tienePermisoGestion() {
+                if (!sesion || !Array.isArray(sesion.roles)) {
+                    return false;
+                }
+
+                return sesion.roles.includes("ROLE_ADMIN") ||
+                       sesion.roles.includes("ROLE_TECNICO");
+            }
+
+
+            // ==========================================
+            // CONTROL DE INTERFAZ Y SESIÓN
+            // ==========================================
+
+            function actualizarInterfazSesion() {
+
+                if (!sesion) {
+                    formularioLoginContainer.hidden = false;
+                    sesionActiva.hidden = true;
+                    panelAdministracion.hidden = true;
+
+                    usuarioActivo.textContent = "";
+                    rolActivo.textContent = "";
+
+                    btnAbrirAcceso.textContent = "Acceso administrativo";
+                    estadoSesion.textContent =
+                        "El catálogo está disponible para consulta.";
+
+                } else {
+                    formularioLoginContainer.hidden = true;
+                    sesionActiva.hidden = false;
+
+                    usuarioActivo.textContent = sesion.username;
+                    btnAbrirAcceso.textContent =
+                        "Cuenta: " + sesion.username;
+                    estadoSesion.textContent = tienePermisoGestion()
+                        ? "Sesión activa con permisos para gestionar aulas."
+                        : "Sesión activa sin permisos para gestionar aulas.";
+
+                    rolActivo.textContent = Array.isArray(sesion.roles)
+                        ? sesion.roles.map(rol =>
+                            rol.replace("ROLE_", "")
+                        ).join(", ")
+                        : "Sin rol asignado";
+
+                    panelAdministracion.hidden = !tienePermisoGestion();
+                }
+
+                renderizarAulas(aulasCargadas);
+            }
+
+            function guardarSesion(datos) {
+
+                sesion = {
+                    token: datos.token,
+                    tipo: datos.tipo || "Bearer",
+                    username: datos.username,
+                    roles: Array.isArray(datos.roles) ? datos.roles : []
+                };
+
+                sessionStorage.setItem(
+                    "classcareSesion",
+                    JSON.stringify(sesion)
+                );
+
+                actualizarInterfazSesion();
+            }
+
+            function cerrarSesion(mostrarAviso = true) {
+
+                sesion = null;
+
+                sessionStorage.removeItem("classcareSesion");
+
+                actualizarInterfazSesion();
+
+                if (mostrarAviso) {
+                    mostrarMensajeLogin("La sesión se ha cerrado correctamente.");
+                }
+            }
+
+
+            // ==========================================
+            // INICIO DE SESIÓN
+            // ==========================================
+
+            formLogin.addEventListener("submit", async (evento) => {
+
+                evento.preventDefault();
+
+                const username = inputUsuario.value.trim();
+                const password = inputPassword.value;
+
+                if (!username || !password) {
+                    mostrarMensajeLogin("Ingrese su usuario y contraseña.");
+                    return;
+                }
+
+                btnLogin.disabled = true;
+                btnLogin.textContent = "Verificando...";
+
+                mostrarMensajeLogin("Validando credenciales...");
+
+                try {
+
+                    const respuesta = await fetch("/api/auth/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    });
+
+                    if (!respuesta.ok) {
+                        throw new Error(
+                            await obtenerMensajeError(respuesta)
+                        );
+                    }
+
+                    const datos = await respuesta.json();
+
+                    if (!datos.token) {
+                        throw new Error(
+                            "El servidor no devolvió un token de autenticación."
+                        );
+                    }
+
+                    guardarSesion(datos);
+
+                    inputPassword.value = "";
+
+                    if (tienePermisoGestion()) {
+                        mostrarMensajeLogin(
+                            "Inicio de sesión correcto. Ya puede gestionar las aulas."
+                        );
+                        modalAcceso.close();
+                    } else {
+                        mostrarMensajeLogin(
+                            "Sesión iniciada. Su rol no tiene permisos para gestionar aulas."
+                        );
+                    }
+
+                } catch (error) {
+
+                    console.error("Error de inicio de sesión:", error);
+
+                    mostrarMensajeLogin(error.message);
+
+                } finally {
+
+                    btnLogin.disabled = false;
+                    btnLogin.textContent = "Iniciar sesión";
+                }
+            });
+
+
+            // ==========================================
+            // CERRAR SESIÓN
+            // ==========================================
+
+            btnLogout.addEventListener("click", () => {
+
+                cerrarSesion(true);
+
+                formLogin.reset();
+            });
+
+            btnAbrirAcceso.addEventListener("click", () => {
+                if (!modalAcceso.open) {
+                    modalAcceso.showModal();
+                }
+            });
+
+            btnCerrarAcceso.addEventListener("click", () => {
+                modalAcceso.close();
+            });
+
+            modalAcceso.addEventListener("click", (evento) => {
+                if (evento.target === modalAcceso) {
+                    modalAcceso.close();
+                }
+            });
+
+
+            // ==========================================
+            // CREACIÓN DE TARJETAS
+            // ==========================================
+
             function crearTarjeta(aula) {
+
                 const codigo = String(aula.codigo ?? "Sin código");
-                const ubicacion = String(aula.ubicacion ?? "Ubicación no registrada");
+                const ubicacion = String(
+                    aula.ubicacion ?? "Ubicación no registrada"
+                );
+
                 const estado = String(aula.estado ?? "Sin estado");
                 const capacidad = Number(aula.capacidad) || 0;
+
                 const estadoNormalizado = normalizar(estado);
 
-                const esMantenimiento = estadoNormalizado.includes("mantenimiento");
-                const esOcupada = estadoNormalizado === "ocupada";
+                const esMantenimiento =
+                    estadoNormalizado.includes("mantenimiento");
+
+                const esOcupada =
+                    estadoNormalizado === "ocupada";
 
                 const tarjeta = document.createElement("article");
+
                 tarjeta.className = "item-card " +
-                    (esMantenimiento ? "item-card--alta" :
-                    esOcupada ? "item-card--media" : "item-card--baja");
+                    (esMantenimiento
+                        ? "item-card--alta"
+                        : esOcupada
+                            ? "item-card--media"
+                            : "item-card--baja");
 
                 tarjeta.dataset.codigo = codigo;
                 tarjeta.dataset.capacidad = String(capacidad);
@@ -207,16 +774,20 @@
 
                 const insignia = crearElemento(
                     "span",
-                    "badge " + (esMantenimiento
-                        ? "badge--mantenimiento"
-                        : esOcupada
-                            ? "badge--ocupada"
-                            : "badge--disponible"),
+                    "badge " + (
+                        esMantenimiento
+                            ? "badge--mantenimiento"
+                            : esOcupada
+                                ? "badge--ocupada"
+                                : "badge--disponible"
+                    ),
                     estado
                 );
 
                 const identificador = crearElemento(
-                    "span", "item-card__id", codigo
+                    "span",
+                    "item-card__id",
+                    codigo
                 );
 
                 encabezado.append(insignia, identificador);
@@ -225,14 +796,25 @@
                 cuerpo.className = "item-card__body";
 
                 const titulo = crearElemento(
-                    "h3", "item-card__title", "Aula " + codigo
+                    "h3",
+                    "item-card__title",
+                    "Aula " + codigo
                 );
 
-                const parrafoUbicacion = crearElemento("p", "item-card__meta");
-                const etiquetaUbicacion = document.createElement("strong");
+                const parrafoUbicacion = crearElemento(
+                    "p",
+                    "item-card__meta"
+                );
+
+                const etiquetaUbicacion =
+                    document.createElement("strong");
+
                 etiquetaUbicacion.textContent = "Ubicación: ";
+
                 parrafoUbicacion.append(etiquetaUbicacion);
-                parrafoUbicacion.append(document.createTextNode(ubicacion));
+                parrafoUbicacion.append(
+                    document.createTextNode(ubicacion)
+                );
 
                 const descripcion = crearElemento(
                     "p",
@@ -241,13 +823,19 @@
                     " estudiantes. Estado: " + estado + "."
                 );
 
-                cuerpo.append(titulo, parrafoUbicacion, descripcion);
+                cuerpo.append(
+                    titulo,
+                    parrafoUbicacion,
+                    descripcion
+                );
 
                 const pie = document.createElement("footer");
                 pie.className = "item-card__footer";
 
                 const aforo = crearElemento(
-                    "span", "", "Aforo: " + capacidad + " personas"
+                    "span",
+                    "",
+                    "Aforo: " + capacidad + " personas"
                 );
 
                 const enlace = crearElemento(
@@ -261,64 +849,138 @@
                 enlace.style.fontSize = "0.8125rem";
 
                 pie.append(aforo, enlace);
+
+                // Botón de edición para usuarios autorizados.
+                if (tienePermisoGestion()) {
+
+                    const botonEditar = crearElemento(
+                        "button",
+                        "btn btn--secondary",
+                        "Editar"
+                    );
+
+                    botonEditar.type = "button";
+
+                    botonEditar.addEventListener("click", () => {
+                        prepararEdicion(aula);
+                    });
+
+                    pie.appendChild(botonEditar);
+
+                    const botonEliminar = crearElemento(
+                        "button",
+                        "btn btn--danger",
+                        "Eliminar"
+                    );
+
+                    botonEliminar.type = "button";
+                    botonEliminar.setAttribute(
+                        "aria-label",
+                        "Eliminar aula " + codigo
+                    );
+
+                    botonEliminar.addEventListener("click", () => {
+                        solicitarEliminacion(aula);
+                    });
+
+                    pie.appendChild(botonEliminar);
+                }
+
                 tarjeta.append(encabezado, cuerpo, pie);
 
                 return tarjeta;
             }
 
+
+            // ==========================================
+            // FILTROS
+            // ==========================================
+
             function aplicarFiltros() {
+
                 const codigoBuscado = normalizar(inputCodigo.value);
+
                 const capacidadTexto = inputCapacidad.value.trim();
+
                 const capacidadMinima = capacidadTexto === ""
                     ? null
                     : Number(capacidadTexto);
+
                 const estadoBuscado = normalizar(inputEstado.value);
 
                 const tarjetas = grid.querySelectorAll(".item-card");
+
                 let visibles = 0;
 
                 tarjetas.forEach(tarjeta => {
-                    const coincideCodigo = normalizar(tarjeta.dataset.codigo)
-                        .includes(codigoBuscado);
 
-                    const capacidadAula = Number(tarjeta.dataset.capacidad);
-                    const coincideCapacidad = capacidadMinima === null ||
+                    const coincideCodigo =
+                        normalizar(tarjeta.dataset.codigo)
+                            .includes(codigoBuscado);
+
+                    const capacidadAula =
+                        Number(tarjeta.dataset.capacidad);
+
+                    const coincideCapacidad =
+                        capacidadMinima === null ||
                         capacidadAula >= capacidadMinima;
 
-                    const coincideEstado = estadoBuscado === "" ||
+                    const coincideEstado =
+                        estadoBuscado === "" ||
                         normalizar(tarjeta.dataset.estado) === estadoBuscado;
 
-                    const mostrar = coincideCodigo &&
-                        coincideCapacidad && coincideEstado;
+                    const mostrar =
+                        coincideCodigo &&
+                        coincideCapacidad &&
+                        coincideEstado;
 
                     tarjeta.style.display = mostrar ? "" : "none";
 
-                    if (mostrar) visibles++;
+                    if (mostrar) {
+                        visibles++;
+                    }
                 });
 
-                const mensajeAnterior = grid.querySelector(".aulas-mensaje");
+                const mensajeAnterior =
+                    grid.querySelector(".aulas-mensaje");
 
                 if (tarjetas.length > 0 && visibles === 0) {
+
                     if (!mensajeAnterior) {
+
                         grid.appendChild(crearElemento(
                             "p",
                             "aulas-mensaje",
                             "No se encontraron aulas con los filtros indicados."
                         ));
+
                     } else {
+
                         mensajeAnterior.textContent =
                             "No se encontraron aulas con los filtros indicados.";
                     }
+
                 } else if (mensajeAnterior && tarjetas.length > 0) {
+
                     mensajeAnterior.remove();
                 }
             }
 
+
+            // ==========================================
+            // MOSTRAR AULAS
+            // ==========================================
+
             function renderizarAulas(aulas) {
+
                 grid.replaceChildren();
 
                 if (!Array.isArray(aulas) || aulas.length === 0) {
-                    mostrarMensaje("No se encontraron aulas para los criterios indicados.");
+
+                    mostrarMensaje(
+                        "No se encontraron aulas para los criterios indicados."
+                    );
+
                     return;
                 }
 
@@ -329,82 +991,480 @@
                 });
 
                 grid.appendChild(fragmento);
+
                 aplicarFiltros();
             }
 
-            async function cargarAulas(url = "/api/aulas") {
+
+            // ==========================================
+            // CARGAR AULAS DESDE LA API
+            // ==========================================
+
+            async function cargarAulas() {
+
                 btnConsultar.disabled = true;
                 btnLimpiar.disabled = true;
+
                 mostrarMensaje("Cargando aulas desde el servidor...");
+
                 estadoApi.textContent = "Consultando la API...";
 
                 try {
-                    const respuesta = await fetch(url);
+
+                    const respuesta = await fetch("/api/aulas");
 
                     if (!respuesta.ok) {
-                        throw new Error("El servidor respondió con código " +
-                            respuesta.status);
+                        throw new Error(
+                            "El servidor respondió con código " +
+                            respuesta.status
+                        );
                     }
 
                     const datos = await respuesta.json();
 
                     if (!Array.isArray(datos)) {
-                        throw new Error("La respuesta de la API no es una lista válida.");
+                        throw new Error(
+                            "La respuesta de la API no es una lista válida."
+                        );
                     }
 
                     aulasCargadas = datos;
+
                     renderizarAulas(aulasCargadas);
-                    estadoApi.textContent = "Conexión con la API establecida.";
+
+                    estadoApi.textContent =
+                        "Conexión con la API establecida.";
+
                 } catch (error) {
+
                     console.error("Error al cargar aulas:", error);
+
                     aulasCargadas = [];
+
                     mostrarMensaje(
                         "No se pudieron cargar las aulas. Verifique que el servidor " +
                         "Spring Boot esté activo e intente nuevamente."
                     );
-                    estadoApi.textContent = "No se pudo conectar con la API.";
+
+                    estadoApi.textContent =
+                        "No se pudo conectar con la API.";
+
                 } finally {
+
                     btnConsultar.disabled = false;
                     btnLimpiar.disabled = false;
                 }
             }
 
-            form.addEventListener("submit", async (evento) => {
+
+            // ==========================================
+            // PREPARAR EDICIÓN DE UN AULA
+            // ==========================================
+
+            function prepararEdicion(aula) {
+
+                if (!tienePermisoGestion()) {
+                    mostrarMensajeAula(
+                        "No tiene permisos para editar aulas."
+                    );
+                    return;
+                }
+
+                aulaId.value = aula.id ?? "";
+
+                aulaCodigo.value = aula.codigo ?? "";
+                aulaUbicacion.value = aula.ubicacion ?? "";
+                aulaCapacidad.value = aula.capacidad ?? "";
+
+                aulaEstado.value =
+                    String(aula.estado ?? "DISPONIBLE").toUpperCase();
+
+                tituloFormAula.textContent = "Editar aula";
+
+                btnGuardarAula.textContent = "Guardar cambios";
+
+                mostrarMensajeAula(
+                    "Está editando el aula " + aula.codigo + "."
+                );
+
+                panelAdministracion.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+
+            function solicitarEliminacion(aula) {
+                if (!tienePermisoGestion()) {
+                    mostrarMensajeAula(
+                        "No tiene permisos para eliminar aulas."
+                    );
+                    return;
+                }
+
+                if (aula.id === null || aula.id === undefined) {
+                    mostrarMensajeAula(
+                        "No se puede eliminar el aula porque no tiene un identificador válido."
+                    );
+                    return;
+                }
+
+                aulaPendienteEliminar = aula;
+                codigoAulaEliminar.textContent = aula.codigo ?? "Sin código";
+                mensajeEliminacion.textContent = "";
+                modalEliminarAula.showModal();
+            }
+
+            async function confirmarEliminacion() {
+                if (!aulaPendienteEliminar) {
+                    modalEliminarAula.close();
+                    return;
+                }
+
+                if (!tienePermisoGestion()) {
+                    mensajeEliminacion.textContent =
+                        "Su sesión no tiene permisos para eliminar aulas.";
+                    return;
+                }
+
+                const aula = aulaPendienteEliminar;
+                btnConfirmarEliminacion.disabled = true;
+                btnCancelarEliminacion.disabled = true;
+                btnConfirmarEliminacion.textContent = "Eliminando...";
+                mensajeEliminacion.textContent =
+                    "Eliminando el aula seleccionada...";
+
+                try {
+                    const respuesta = await fetch(
+                        "/api/aulas/" + encodeURIComponent(aula.id),
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization":
+                                    `${sesion.tipo} ${sesion.token}`
+                            }
+                        }
+                    );
+
+                    if (!respuesta.ok) {
+                        if (respuesta.status === 401) {
+                            cerrarSesion(false);
+                            throw new Error(
+                                "Tu sesión ha expirado. Inicia sesión nuevamente."
+                            );
+                        }
+
+                        if (respuesta.status === 403) {
+                            throw new Error(
+                                "No tienes permisos para eliminar aulas."
+                            );
+                        }
+
+                        throw new Error(
+                            await obtenerMensajeError(respuesta)
+                        );
+                    }
+
+                    modalEliminarAula.close();
+                    aulaPendienteEliminar = null;
+                    await cargarAulas();
+                    mostrarMensajeAula(
+                        "El aula " + aula.codigo +
+                        " se eliminó correctamente."
+                    );
+                } catch (error) {
+                    console.error("Error al eliminar el aula:", error);
+                    mensajeEliminacion.textContent = error.message;
+                } finally {
+                    btnConfirmarEliminacion.disabled = false;
+                    btnCancelarEliminacion.disabled = false;
+                    btnConfirmarEliminacion.textContent = "Sí, eliminar aula";
+                }
+            }
+
+
+            // ==========================================
+            // CANCELAR EDICIÓN
+            // ==========================================
+
+            function cancelarEdicion() {
+
+                formAula.reset();
+
+                aulaId.value = "";
+
+                tituloFormAula.textContent = "Registrar nueva aula";
+
+                btnGuardarAula.textContent = "Registrar aula";
+
+                mostrarMensajeAula("");
+            }
+
+            btnCancelarEdicion.addEventListener(
+                "click",
+                cancelarEdicion
+            );
+
+            btnCancelarEliminacion.addEventListener("click", () => {
+                modalEliminarAula.close();
+            });
+
+            btnConfirmarEliminacion.addEventListener(
+                "click",
+                confirmarEliminacion
+            );
+
+            modalEliminarAula.addEventListener("close", () => {
+                aulaPendienteEliminar = null;
+                mensajeEliminacion.textContent = "";
+            });
+
+
+            // ==========================================
+            // REGISTRAR Y ACTUALIZAR AULAS
+            // ==========================================
+
+            formAula.addEventListener("submit", async (evento) => {
+
+                evento.preventDefault();
+
+                if (!tienePermisoGestion()) {
+                    mostrarMensajeAula(
+                        "No tiene permisos para realizar esta operación."
+                    );
+                    return;
+                }
+
+                if (!formAula.reportValidity()) {
+                    return;
+                }
+
+                const codigo = aulaCodigo.value.trim();
+                const ubicacion = aulaUbicacion.value.trim();
+                const capacidad = Number(aulaCapacidad.value);
+                const estado = aulaEstado.value;
+
+                if (!codigo || !ubicacion) {
+                    mostrarMensajeAula(
+                        "Complete el código y la ubicación del aula."
+                    );
+                    return;
+                }
+
+                if (codigo.length > 50 || ubicacion.length > 150) {
+                    mostrarMensajeAula(
+                        "El código admite hasta 50 caracteres y la ubicación hasta 150."
+                    );
+                    return;
+                }
+
+                if (!Number.isInteger(capacidad) ||
+                    capacidad < 1 || capacidad > 200) {
+
+                    mostrarMensajeAula(
+                        "La capacidad debe ser un número entero entre 1 y 200."
+                    );
+
+                    aulaCapacidad.reportValidity();
+                    return;
+                }
+
+                if (!["DISPONIBLE", "OCUPADA", "MANTENIMIENTO"]
+                    .includes(estado)) {
+                    mostrarMensajeAula(
+                        "Seleccione un estado válido para el aula."
+                    );
+                    aulaEstado.focus();
+                    return;
+                }
+
+                aulaCodigo.value = codigo;
+                aulaUbicacion.value = ubicacion;
+
+                const editando = aulaId.value !== "";
+
+                const datosAula = {
+                    codigo: codigo,
+                    ubicacion: ubicacion,
+                    capacidad: capacidad,
+                    estado: estado
+                };
+
+                const url = editando
+                    ? "/api/aulas/" + encodeURIComponent(aulaId.value)
+                    : "/api/aulas";
+
+                const metodo = editando ? "PUT" : "POST";
+
+                btnGuardarAula.disabled = true;
+
+                btnGuardarAula.textContent = editando
+                    ? "Actualizando..."
+                    : "Registrando...";
+
+                mostrarMensajeAula(
+                    "Enviando información al servidor..."
+                );
+
+                try {
+
+                    const respuesta = await fetch(url, {
+                        method: metodo,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization":
+                                `${sesion.tipo} ${sesion.token}`
+                        },
+                        body: JSON.stringify(datosAula)
+                    });
+
+                    if (!respuesta.ok) {
+
+                        if (respuesta.status === 401) {
+
+                            cerrarSesion(false);
+
+                            throw new Error(
+                                "Tu sesión ha expirado. Inicia sesión nuevamente."
+                            );
+                        }
+
+                        if (respuesta.status === 403) {
+
+                            throw new Error(
+                                "No tienes permisos para realizar esta operación."
+                            );
+                        }
+
+                        throw new Error(
+                            await obtenerMensajeError(respuesta)
+                        );
+                    }
+
+                    const mensajeExito = editando
+                        ? "El aula se actualizó correctamente."
+                        : "El aula se registró correctamente.";
+
+                    cancelarEdicion();
+
+                    // Actualiza el catálogo después de guardar.
+                    await cargarAulas();
+
+                    mostrarMensajeAula(mensajeExito);
+
+                } catch (error) {
+
+                    console.error(
+                        "Error al guardar el aula:",
+                        error
+                    );
+
+                    mostrarMensajeAula(error.message);
+
+                } finally {
+
+                    btnGuardarAula.disabled = false;
+
+                    btnGuardarAula.textContent =
+                        aulaId.value !== ""
+                            ? "Guardar cambios"
+                            : "Registrar aula";
+                }
+            });
+
+
+            // ==========================================
+            // EVENTOS DE CONSULTA Y FILTROS
+            // ==========================================
+
+            formConsulta.addEventListener("submit", async (evento) => {
+
                 evento.preventDefault();
 
                 const capacidadTexto = inputCapacidad.value.trim();
 
                 if (capacidadTexto !== "") {
+
                     const capacidad = Number(capacidadTexto);
 
                     if (!Number.isInteger(capacidad) ||
                         capacidad < 1 || capacidad > 200) {
+
                         inputCapacidad.reportValidity();
                         return;
                     }
 
-                    await cargarAulas(
+                    const respuesta = await fetch(
                         "/api/aulas/buscar/capacidad?minima=" +
                         encodeURIComponent(capacidad)
                     );
+
+                    if (!respuesta.ok) {
+                        await cargarAulas();
+                        mostrarMensaje(
+                            "No se pudo aplicar el filtro de capacidad."
+                        );
+                        return;
+                    }
+
+                    try {
+
+                        const datos = await respuesta.json();
+
+                        aulasCargadas = datos;
+
+                        renderizarAulas(aulasCargadas);
+
+                    } catch (error) {
+
+                        console.error("Error al filtrar aulas:", error);
+
+                        mostrarMensaje(
+                            "No se pudo procesar la búsqueda."
+                        );
+                    }
+
                 } else {
+
                     await cargarAulas();
                 }
 
                 aplicarFiltros();
             });
 
-            inputCodigo.addEventListener("input", aplicarFiltros);
-            inputCapacidad.addEventListener("input", aplicarFiltros);
-            inputEstado.addEventListener("change", aplicarFiltros);
+
+            inputCodigo.addEventListener(
+                "input",
+                aplicarFiltros
+            );
+
+            inputCapacidad.addEventListener(
+                "input",
+                aplicarFiltros
+            );
+
+            inputEstado.addEventListener(
+                "change",
+                aplicarFiltros
+            );
 
             btnLimpiar.addEventListener("click", async () => {
-                form.reset();
+
+                formConsulta.reset();
+
                 await cargarAulas();
             });
 
+
+            // ==========================================
+            // INICIALIZACIÓN
+            // ==========================================
+
+            actualizarInterfazSesion();
+
             cargarAulas();
+
         });
     </script>
+
 </body>
 </html>
