@@ -4,12 +4,12 @@
   <nav class="detail-nav-bar" aria-label="Navegación de retorno">
     <a routerLink="/reportes" class="m3-btn-back">
       <mat-icon>arrow_back</mat-icon>
-      <span>Volver al tablero de expedientes</span>
+      <span>Volver al tablero de reportes</span>
     </a>
 
     @if (reporte()) {
       <span class="detail-hint">
-        HAZ CLIC EN CUALQUIER ETAPA PARA ACTUALIZAR EL ESTADO DEL EXPEDIENTE
+        HAZ CLIC EN CUALQUIER ETAPA PARA ACTUALIZAR EL ESTADO DEL REPORTE
       </span>
     }
   </nav>
@@ -19,7 +19,7 @@
       <!-- Solapa Superior Sólida Semántica (Folder Tab) -->
       <div class="folder-tab-row">
         <span class="folder-tab">
-          <span>EXPEDIENTE #{{ formatCount(item.id) }} &bull; {{ getEstadoLabel(item.estado) }}</span>
+          <span>REPORTE #{{ formatCount(item.id) }} &bull; {{ getEstadoLabel(item.estado) }}</span>
           <span class="step-dots" aria-hidden="true">
             <span class="step-pip on"></span>
             <span class="step-pip" [class.on]="getPasoEstado(item.estado) >= 2"></span>
@@ -120,10 +120,10 @@
       </article>
     </div>
   } @else {
-    <!-- Expediente No Encontrado -->
+    <!-- Reporte No Encontrado -->
     <div class="not-found-box" role="alert">
       <mat-icon class="not-found-icon">error_outline</mat-icon>
-      <h2 class="not-found-title">Expediente no encontrado</h2>
+      <h2 class="not-found-title">Reporte no encontrado</h2>
       <p class="not-found-desc">
         No existe ningún reporte asociado al identificador <strong>#{{ reporteId() }}</strong>.
       </p>

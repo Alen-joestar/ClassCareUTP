@@ -3,7 +3,7 @@
   <!-- Bloque Hero Marino Institucional con KPIs Interactivos -->
   <header class="hero-banner">
     <div class="hero-copy">
-      <h2 class="hero-title">Expedientes de Inspección de Aulas</h2>
+      <h2 class="hero-title">Reportes de Inspección de Aulas</h2>
       <p class="hero-subtitle">
         Supervisión operativa en tiempo real de averías y mantenimiento en aulas y laboratorios. Haz clic en cualquier indicador para filtrar por estado.
       </p>
@@ -17,7 +17,7 @@
         (click)="filterByEstado('')">
         <div class="kpi-data">
           <span class="kpi-num">{{ formatCount(totalIncidencias()) }}</span>
-          <span class="kpi-lbl">Total Órdenes</span>
+          <span class="kpi-lbl">Total Reportes</span>
         </div>
         <span class="kpi-dot" style="background: #94A3B8"></span>
       </button>
@@ -93,7 +93,7 @@
 
     <a routerLink="/reportes/nuevo" class="m3-btn-new">
       <mat-icon>note_add</mat-icon>
-      <span>Nuevo Expediente</span>
+      <span>Nuevo Reporte</span>
     </a>
   </div>
 
@@ -157,7 +157,7 @@
             </time>
 
             <a [routerLink]="['/reportes', reporte.id]" class="m3-btn-inspect">
-              <span>Abrir expediente</span>
+              <span>Abrir reporte</span>
               <mat-icon>arrow_forward</mat-icon>
             </a>
           </div>
@@ -166,13 +166,13 @@
     } @empty {
       <div class="empty-state-box">
         <mat-icon class="empty-icon">search_off</mat-icon>
-        <h3 class="empty-title">No se encontraron expedientes</h3>
+        <h3 class="empty-title">No se encontraron reportes</h3>
         <p class="empty-desc">
           No existen reportes registrados que coincidan con los filtros seleccionados.
         </p>
         <button type="button" class="m3-btn-inspect" (click)="resetFilters()">
           <mat-icon>refresh</mat-icon>
-          <span>Mostrar todos los expedientes</span>
+          <span>Mostrar todos los reportes</span>
         </button>
       </div>
     }

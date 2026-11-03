@@ -15,17 +15,9 @@
       <a
         routerLink="/reportes"
         routerLinkActive="m3-nav__pill--active"
-        [routerLinkActiveOptions]="{ exact: true }"
         class="m3-nav__pill">
         <mat-icon>folder_copy</mat-icon>
-        <span>Expedientes</span>
-      </a>
-      <a
-        routerLink="/reportes/nuevo"
-        routerLinkActive="m3-nav__pill--active"
-        class="m3-nav__pill">
-        <mat-icon>note_add</mat-icon>
-        <span>Nuevo Expediente</span>
+        <span>Reportes</span>
       </a>
       <a
         href="/aulas/index.html"
@@ -38,9 +30,9 @@
         type="button"
         class="m3-theme-btn"
         (click)="toggleDarkMode()"
+        [attr.title]="isDarkMode() ? 'Cambiar a Modo Día' : 'Cambiar a Modo Nocturno'"
         [attr.aria-label]="isDarkMode() ? 'Cambiar a Modo Día' : 'Cambiar a Modo Nocturno'">
         <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-        <span>{{ isDarkMode() ? 'Modo Día' : 'Modo Nocturno' }}</span>
       </button>
     </nav>
   </div>

@@ -116,7 +116,7 @@ export class ReporteFormComponent {
     const numOrden = String(creado.id).padStart(2, '0');
 
     this.snackBar.open(
-      `Expediente #${numOrden} (${creado.aulaId}) registrado exitosamente`,
+      `Reporte #${numOrden} (${creado.aulaId}) registrado exitosamente`,
       'Ver detalle',
       { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
     ).onAction().subscribe(() => {

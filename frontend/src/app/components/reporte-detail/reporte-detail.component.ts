@@ -51,7 +51,7 @@ export class ReporteDetailComponent {
     }
     this.reporteService.actualizarEstado(actual.id, nuevoEstado);
     this.snackBar.open(
-      `Expediente #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)}`,
+      `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)}`,
       'Cerrar',
       { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
     );
