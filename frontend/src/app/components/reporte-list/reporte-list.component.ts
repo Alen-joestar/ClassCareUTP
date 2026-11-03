@@ -1,67 +1,56 @@
-import { Component, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Reporte, Prioridad } from '../../models/reporte.model';
+import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
+import { ReporteService } from '../../services/reporte.service';
 
 @Component({
   selector: 'app-reporte-list',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    MatIconModule
+  ],
   templateUrl: './reporte-list.component.html',
   styleUrl: './reporte-list.component.scss'
 })
 export class ReporteListComponent {
-  // Estado reactivo con Signals
+  private readonly reporteService = inject(ReporteService);
+
+  // Estado reactivo de filtros con Signals
   readonly searchQuery = signal<string>('');
   readonly selectedPrioridad = signal<string>('');
+  readonly selectedEstado = signal<string>('');
 
-  // Datos iniciales de la Semana 11 (Preparados para Semana 14 con HttpClient)
-  readonly reportes = signal<Reporte[]>([
-    {
-      id: 1,
-      aulaId: 'A-101',
-      tipoProblema: 'TECNOLOGICO',
-      prioridad: 'ALTA',
-      estado: 'PENDIENTE',
-      descripcion: 'El proyector multimedia no emite señal HDMI ni enciende con el control remoto.',
-      fechaRegistro: '2026-09-10T08:30:00'
-    },
-    {
-      id: 2,
-      aulaId: 'B-202',
-      tipoProblema: 'ELECTRICO',
-      prioridad: 'MEDIA',
-      estado: 'EN_ATENCION',
-      descripcion: 'Foco fluorescente parpadea constantemente en la fila delantera del aula.',
-      fechaRegistro: '2026-09-09T14:15:00'
-    },
-    {
-      id: 3,
-      aulaId: 'C-305',
-      tipoProblema: 'MOBILIARIO',
-      prioridad: 'BAJA',
-      estado: 'RESUELTO',
-      descripcion: 'Silla ergonómica del docente con tornillo flojo en el soporte del respaldo.',
-      fechaRegistro: '2026-09-08T11:00:00'
-    }
-  ]);
+  // Fuente de datos compartida desde ReporteService
+  readonly reportes = this.reporteService.reportes;
 
   // Lista filtrada reactiva calculada automáticamente
   readonly filteredReportes = computed(() => {
     const query = this.searchQuery().trim().toUpperCase();
     const prioridad = this.selectedPrioridad();
+    const estado = this.selectedEstado();
 
     return this.reportes().filter(reporte => {
       const matchesQuery = !query || reporte.aulaId.toUpperCase().includes(query) || reporte.descripcion.toUpperCase().includes(query);
       const matchesPrioridad = !prioridad || reporte.prioridad === prioridad;
-      return matchesQuery && matchesPrioridad;
+      const matchesEstado = !estado || reporte.estado === estado;
+      return matchesQuery && matchesPrioridad && matchesEstado;
     });
   });
 
-  // Métricas reactivas para el dashboard
+  // Métricas reactivas para el Hero Banner Marino Institucional
   readonly totalIncidencias = computed(() => this.reportes().length);
-  readonly totalAltas = computed(() => this.reportes().filter(r => r.prioridad === 'ALTA').length);
   readonly totalPendientes = computed(() => this.reportes().filter(r => r.estado === 'PENDIENTE').length);
+  readonly totalEnAtencion = computed(() => this.reportes().filter(r => r.estado === 'EN_ATENCION').length);
+  readonly totalResueltos = computed(() => this.reportes().filter(r => r.estado === 'RESUELTO').length);
+
+  formatCount(count: number): string {
+    return String(count).padStart(2, '0');
+  }
 
   onSearchChange(value: string): void {
     this.searchQuery.set(value);
@@ -71,25 +60,67 @@ export class ReporteListComponent {
     this.selectedPrioridad.set(value);
   }
 
+  filterByEstado(estado: string): void {
+    this.selectedEstado.set(estado);
+  }
+
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedPrioridad.set('');
+    this.selectedEstado.set('');
   }
 
-  getPrioridadBadgeClass(prioridad: Prioridad): string {
-    switch (prioridad) {
-      case 'ALTA': return 'badge--alta';
-      case 'MEDIA': return 'badge--media';
-      case 'BAJA': return 'badge--baja';
+  getPasoEstado(estado: EstadoReporte): number {
+    switch (estado) {
+      case 'PENDIENTE': return 1;
+      case 'EN_ATENCION': return 2;
+      case 'RESUELTO': return 3;
     }
   }
 
-  getEstadoBadgeClass(estado: string): string {
+  getEstadoLabel(estado: EstadoReporte): string {
     switch (estado) {
-      case 'PENDIENTE': return 'badge--pendiente';
-      case 'EN_ATENCION': return 'badge--atencion';
-      case 'RESUELTO': return 'badge--resuelto';
-      default: return '';
+      case 'PENDIENTE': return 'PENDIENTE';
+      case 'EN_ATENCION': return 'EN ATENCIÓN';
+      case 'RESUELTO': return 'RESUELTO';
+    }
+  }
+
+  getPrioridadLabel(prioridad: Prioridad): string {
+    switch (prioridad) {
+      case 'ALTA': return 'Prioridad Alta';
+      case 'MEDIA': return 'Prioridad Media';
+      case 'BAJA': return 'Prioridad Baja';
+    }
+  }
+
+  getImpactoAula(prioridad: Prioridad, estado: EstadoReporte): string {
+    if (estado === 'RESUELTO') {
+      return 'Aula 100% operativa';
+    }
+    if (prioridad === 'ALTA') {
+      return 'Inhabilita uso en clase';
+    }
+    return 'Aula operativa con obs.';
+  }
+
+  getCategoriaLabel(tipo: TipoProblema): string {
+    switch (tipo) {
+      case 'TECNOLOGICO': return 'Tecnológico';
+      case 'ELECTRICO': return 'Eléctrico';
+      case 'MOBILIARIO': return 'Mobiliario';
+      case 'INFRAESTRUCTURA': return 'Infraestructura';
+      case 'OTRO': return 'Otro';
+    }
+  }
+
+  getCategoriaIcon(tipo: TipoProblema): string {
+    switch (tipo) {
+      case 'TECNOLOGICO': return 'videocam_off';
+      case 'ELECTRICO': return 'bolt';
+      case 'MOBILIARIO': return 'chair';
+      case 'INFRAESTRUCTURA': return 'ac_unit';
+      case 'OTRO': return 'build';
     }
   }
 }

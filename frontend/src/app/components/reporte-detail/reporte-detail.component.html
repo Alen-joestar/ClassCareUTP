@@ -1,0 +1,137 @@
+<section class="m3-detail-page">
+
+  <!-- Barra Superior de Retorno -->
+  <nav class="detail-nav-bar" aria-label="Navegación de retorno">
+    <a routerLink="/reportes" class="m3-btn-back">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Volver al tablero de expedientes</span>
+    </a>
+
+    @if (reporte()) {
+      <span class="detail-hint">
+        HAZ CLIC EN CUALQUIER ETAPA PARA ACTUALIZAR EL ESTADO DEL EXPEDIENTE
+      </span>
+    }
+  </nav>
+
+  @if (reporte(); as item) {
+    <div class="detail-folder-wrap" [attr.data-estado]="item.estado">
+      <!-- Solapa Superior Sólida Semántica (Folder Tab) -->
+      <div class="folder-tab-row">
+        <span class="folder-tab">
+          <span>EXPEDIENTE #{{ formatCount(item.id) }} &bull; {{ getEstadoLabel(item.estado) }}</span>
+          <span class="step-dots" aria-hidden="true">
+            <span class="step-pip on"></span>
+            <span class="step-pip" [class.on]="getPasoEstado(item.estado) >= 2"></span>
+            <span class="step-pip" [class.on]="getPasoEstado(item.estado) >= 3"></span>
+          </span>
+        </span>
+        <span class="folder-stage-tag">ETAPA {{ getPasoEstado(item.estado) }} DE 3</span>
+      </div>
+
+      <article class="detail-card">
+        <!-- Encabezado Tonal del Expediente -->
+        <div class="detail-top">
+          <div class="room-identity">
+            <span class="room-plaque">{{ item.aulaId }}</span>
+            <div>
+              <span class="room-location">{{ item.aulaUbicacion || 'PABELLÓN CENTRAL • CAMPUS UTP' }}</span>
+              <h2 class="detail-title">
+                Incidencia de tipo {{ getCategoriaLabel(item.tipoProblema) }}
+              </h2>
+            </div>
+          </div>
+
+          <time class="ticket-id-tag" [attr.datetime]="item.fechaRegistro">
+            REGISTRO: {{ item.fechaRegistro | date:'dd MMM yyyy, HH:mm' }}
+          </time>
+        </div>
+
+        <!-- Stepper Interactivo de 3 Etapas -->
+        <div class="stepper-row" role="group" aria-label="Etapas del flujo de atención">
+          <button
+            type="button"
+            class="step-box"
+            [class.active]="item.estado === 'PENDIENTE'"
+            (click)="cambiarEstado('PENDIENTE')">
+            <mat-icon>assignment_late</mat-icon>
+            <div class="step-copy">
+              <strong>1. Pendiente de Revisión</strong>
+              <span>Registrado en sistema</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="step-box"
+            [class.active]="item.estado === 'EN_ATENCION'"
+            (click)="cambiarEstado('EN_ATENCION')">
+            <mat-icon>handyman</mat-icon>
+            <div class="step-copy">
+              <strong>2. En Intervención Técnica</strong>
+              <span>Soporte técnico en el aula</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="step-box"
+            [class.active]="item.estado === 'RESUELTO'"
+            (click)="cambiarEstado('RESUELTO')">
+            <mat-icon>verified</mat-icon>
+            <div class="step-copy">
+              <strong>3. Aula Operativa y Liberada</strong>
+              <span>Incidencia subsanada</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Cuerpo de 2 Columnas -->
+        <div class="detail-body">
+          <section>
+            <h3 class="section-heading">Diagnóstico del Reporte</h3>
+            <p class="diagnostic-box">
+              {{ item.descripcion }}
+            </p>
+          </section>
+
+          <section>
+            <h3 class="section-heading">Condición Operativa y Prioridad</h3>
+
+            <div class="c2-unified-condition condition-box-spaced">
+              <span class="condition-left">
+                <mat-icon>engineering</mat-icon>
+                <span>{{ getImpactoAula(item.prioridad, item.estado) }}</span>
+              </span>
+              <span class="condition-prio" [attr.data-prio]="item.prioridad">
+                {{ getPrioridadLabel(item.prioridad) }}
+              </span>
+            </div>
+
+            <div class="c2-unified-condition">
+              <span class="condition-left">
+                <mat-icon>place</mat-icon>
+                <span>{{ item.aulaUbicacion || 'Pabellón Central • Campus UTP' }}</span>
+              </span>
+              <span class="condition-prio">Aula {{ item.aulaId }}</span>
+            </div>
+          </section>
+        </div>
+      </article>
+    </div>
+  } @else {
+    <!-- Expediente No Encontrado -->
+    <div class="not-found-box" role="alert">
+      <mat-icon class="not-found-icon">error_outline</mat-icon>
+      <h2 class="not-found-title">Expediente no encontrado</h2>
+      <p class="not-found-desc">
+        No existe ningún reporte asociado al identificador <strong>#{{ reporteId() }}</strong>.
+      </p>
+      <a routerLink="/reportes" class="m3-btn-back">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Regresar al tablero general</span>
+      </a>
+    </div>
+  }
+
+</section>
