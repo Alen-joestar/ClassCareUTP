@@ -1,2 +1,3 @@
 $env:DB_PASSWORD = Read-Host "Introduce tu contraseña "
 .\gradlew bootrun
+npx ng serve --open

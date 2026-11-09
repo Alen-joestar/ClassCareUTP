@@ -1,0 +1,187 @@
+<section class="aula-page" aria-labelledby="aula-title">
+  <header class="aula-hero">
+    <div class="hero-copy">
+      <span class="eyebrow"><mat-icon>meeting_room</mat-icon> Infraestructura académica</span>
+      <h2 id="aula-title">Catálogo de aulas</h2>
+      <p>Consulte la disponibilidad de los espacios, su ubicación y capacidad. El personal técnico puede administrar el catálogo.</p>
+    </div>
+    <div class="hero-actions">
+      @if (puedeGestionar()) {
+        <button type="button" class="button button--primary" (click)="nuevaAula()">
+          <mat-icon>add</mat-icon><span>Nueva aula</span>
+        </button>
+        <div class="session-chip">
+          <mat-icon>verified_user</mat-icon><span>{{ sesion()?.username }}</span>
+          <button type="button" class="icon-button" aria-label="Cerrar sesión" title="Cerrar sesión" (click)="cerrarSesion()">
+            <mat-icon>logout</mat-icon>
+          </button>
+        </div>
+      } @else {
+        <button type="button" class="button button--outline" (click)="abrirAcceso()">
+          <mat-icon>lock_open</mat-icon><span>Acceso técnico</span>
+        </button>
+      }
+    </div>
+
+    <div class="metrics" aria-label="Resumen de aulas">
+      <div class="metric"><span class="metric__value">{{ totalAulas() }}</span><span class="metric__label">Aulas registradas</span></div>
+      <div class="metric"><span class="metric__value">{{ aulasDisponibles() }}</span><span class="metric__label">Disponibles</span></div>
+      <div class="metric"><span class="metric__value">{{ aulasOcupadas() }}</span><span class="metric__label">Ocupadas</span></div>
+      <div class="metric"><span class="metric__value">{{ aulasMantenimiento() }}</span><span class="metric__label">Mantenimiento</span></div>
+    </div>
+  </header>
+
+  @if (mensaje()) {
+    <p class="notice notice--success" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje() }}</p>
+  }
+  @if (errorCarga()) {
+    <div class="notice notice--error" role="alert">
+      <mat-icon>error_outline</mat-icon><span>{{ errorCarga() }}</span>
+      <button type="button" class="text-button" (click)="cargarAulas()">Reintentar</button>
+    </div>
+  }
+
+  <section class="filter-panel" aria-label="Filtros de aulas">
+    <label class="filter-control filter-control--search">
+      <mat-icon>search</mat-icon>
+      <input type="search" placeholder="Buscar por código o ubicación" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar por código o ubicación">
+    </label>
+    <label class="filter-control">
+      <mat-icon>filter_list</mat-icon>
+      <select [ngModel]="estadoSeleccionado()" (ngModelChange)="estadoSeleccionado.set($event)" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        <option value="Disponible">Disponible</option>
+        <option value="Ocupada">Ocupada</option>
+        <option value="Mantenimiento">En mantenimiento</option>
+      </select>
+    </label>
+    <label class="filter-control filter-control--capacity">
+      <mat-icon>groups</mat-icon>
+      <input type="number" min="0" step="1" placeholder="Capacidad mínima" [ngModel]="capacidadMinima()" (ngModelChange)="capacidadMinima.set($event)" aria-label="Capacidad mínima">
+    </label>
+    <button type="button" class="button button--quiet" (click)="restablecerFiltros()">
+      <mat-icon>restart_alt</mat-icon><span>Limpiar</span>
+    </button>
+    <span class="results-count">{{ aulasFiltradas().length }} espacios</span>
+  </section>
+
+  @if (formularioVisible() && puedeGestionar()) {
+    <section class="form-panel" aria-labelledby="form-title">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow eyebrow--dark">Administración</span>
+          <h3 id="form-title">{{ aulaEnEdicion === null ? 'Registrar nueva aula' : 'Editar aula' }}</h3>
+        </div>
+        <button type="button" class="icon-button icon-button--light" aria-label="Cerrar formulario" (click)="cancelarFormulario()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <form #aulaForm="ngForm" (ngSubmit)="guardarAula()">
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Código del aula</span>
+            <input name="codigo" [(ngModel)]="datosFormulario.codigo" required maxlength="30" placeholder="Ej. A-101">
+          </label>
+          <label class="form-field">
+            <span>Ubicación</span>
+            <input name="ubicacion" [(ngModel)]="datosFormulario.ubicacion" required maxlength="120" placeholder="Pabellón y piso">
+          </label>
+          <label class="form-field">
+            <span>Capacidad</span>
+            <input name="capacidad" type="number" [(ngModel)]="datosFormulario.capacidad" required min="1" max="200">
+          </label>
+          <label class="form-field">
+            <span>Estado operativo</span>
+            <select name="estado" [(ngModel)]="datosFormulario.estado" required>
+              <option value="Disponible">Disponible</option>
+              <option value="Ocupada">Ocupada</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+            </select>
+          </label>
+        </div>
+        @if (errorFormulario) {
+          <p class="form-error" role="alert">{{ errorFormulario }}</p>
+        }
+        <div class="form-actions">
+          <button type="button" class="button button--quiet" (click)="cancelarFormulario()">Cancelar</button>
+          <button type="submit" class="button button--primary" [disabled]="aulaForm.invalid || guardando">
+            <mat-icon>{{ guardando ? 'hourglass_top' : 'save' }}</mat-icon>
+            <span>{{ guardando ? 'Guardando…' : (aulaEnEdicion === null ? 'Registrar aula' : 'Guardar cambios') }}</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (cargando() && aulas().length === 0) {
+    <div class="empty-state" role="status"><mat-icon>sync</mat-icon><h3>Cargando aulas</h3><p>Consultando el catálogo del campus…</p></div>
+  } @else if (aulasFiltradas().length > 0) {
+    <section class="aula-grid" aria-label="Aulas registradas" aria-live="polite">
+      @for (aula of aulasFiltradas(); track aula.id) {
+        <article class="aula-card" [attr.data-estado]="claveEstado(aula.estado)">
+          <div class="card-topline">
+            <span class="status-pill"><span class="status-dot"></span>{{ etiquetaEstado(aula.estado) }}</span>
+            <span class="room-mark"><mat-icon>meeting_room</mat-icon></span>
+          </div>
+          <h3 class="room-code">{{ aula.codigo }}</h3>
+          <p class="room-location"><mat-icon>location_on</mat-icon>{{ aula.ubicacion }}</p>
+          <div class="room-capacity"><mat-icon>groups</mat-icon><span><strong>{{ aula.capacidad }}</strong> personas</span></div>
+          @if (puedeGestionar()) {
+            <div class="card-actions">
+              <button type="button" class="button button--quiet" (click)="editarAula(aula)">
+                <mat-icon>edit</mat-icon><span>Editar</span>
+              </button>
+              <button type="button" class="button button--danger-quiet" (click)="confirmarEliminacion(aula)">
+                <mat-icon>delete_outline</mat-icon><span>Eliminar</span>
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </section>
+  } @else if (!cargando() && !errorCarga()) {
+    <div class="empty-state">
+      <mat-icon>{{ aulas().length ? 'search_off' : 'meeting_room' }}</mat-icon>
+      <h3>{{ aulas().length ? 'No se encontraron aulas' : 'Aún no hay aulas registradas' }}</h3>
+      <p>{{ aulas().length ? 'Pruebe con otros filtros o restablezca la búsqueda.' : 'Cuando se registren espacios aparecerán en este catálogo.' }}</p>
+      @if (aulas().length) {
+        <button type="button" class="button button--outline" (click)="restablecerFiltros()">Restablecer filtros</button>
+      }
+    </div>
+  }
+</section>
+
+@if (loginVisible()) {
+  <div class="modal-backdrop" (click)="cerrarAcceso()">
+    <section class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="login-title" (click)="$event.stopPropagation()">
+      <button type="button" class="icon-button icon-button--light dialog-close" aria-label="Cerrar" (click)="cerrarAcceso()"><mat-icon>close</mat-icon></button>
+      <span class="dialog-icon"><mat-icon>admin_panel_settings</mat-icon></span>
+      <h2 id="login-title">Acceso del personal técnico</h2>
+      <p>Inicie sesión para registrar, editar o eliminar aulas.</p>
+      <form #loginForm="ngForm" (ngSubmit)="iniciarSesion()">
+        <label class="form-field"><span>Usuario</span><input name="usuario" [(ngModel)]="usuario" autocomplete="username" required></label>
+        <label class="form-field"><span>Contraseña</span><input name="contrasena" type="password" [(ngModel)]="contrasena" autocomplete="current-password" required></label>
+        @if (errorLogin) {
+          <p class="form-error" role="alert">{{ errorLogin }}</p>
+        }
+        <button type="submit" class="button button--primary button--full" [disabled]="loginForm.invalid">
+          <mat-icon>login</mat-icon><span>Iniciar sesión</span>
+        </button>
+      </form>
+    </section>
+  </div>
+}
+
+@if (aulaAEliminar(); as aula) {
+  <div class="modal-backdrop" (click)="aulaAEliminar.set(null)">
+    <section class="dialog-card dialog-card--confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" (click)="$event.stopPropagation()">
+      <span class="dialog-icon dialog-icon--danger"><mat-icon>delete_outline</mat-icon></span>
+      <h2 id="delete-title">¿Eliminar el aula {{ aula.codigo }}?</h2>
+      <p>Esta acción no se puede deshacer. No será posible eliminarla si tiene reportes pendientes o en atención.</p>
+      <div class="dialog-actions">
+        <button type="button" class="button button--quiet" (click)="aulaAEliminar.set(null)">Cancelar</button>
+        <button type="button" class="button button--danger" (click)="eliminarAula()">Sí, eliminar</button>
+      </div>
+    </section>
+  </div>
+}
