@@ -1,0 +1,134 @@
+// ==========================================================================
+// ClassCare Campus - Sistema de Diseño Material Design 3 Personalizado
+// Marino Institucional & Acero (Día) + Pizarra Técnica (Noche)
+// Geometría Folder-Tab con Solapa Sólida Semántica | Chakra Petch + Inter
+// ==========================================================================
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Inter,
+    density: -1,
+  ));
+}
+
+:root {
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  // Modo Día: Marino Institucional & Acero
+  --page-bg: #E2E9F2;
+  --appbar-bg: #0A1626;
+  --appbar-border: rgba(255, 255, 255, 0.08);
+  --hero-bg: #10223A;
+  --hero-sub: #CBD5E1;
+
+  --filter-bg: #D4E0EE;
+  --input-bg: #F5F8FC;
+
+  --card-bg: #F8FAFD;
+  --card-header-bg: #ECF2F9;
+  --card-footer-bg: #EDF3FA;
+  --card-border: #C3D0E2;
+
+  --plaque-bg: #10223A;
+  --plaque-text: #FFFFFF;
+
+  --impact-bg: #EBF1F8;
+  --impact-border: #CFDCEB;
+
+  --text-main: #0C192C;
+  --text-secondary: #334155;
+  --text-muted: #5B6B82;
+
+  --btn-bg: #10223A;
+  --btn-text: #FFFFFF;
+
+  // Colores de Solapa Sólida Semántica
+  --st-pendiente-main: #D97706;
+  --st-atencion-main: #2563EB;
+  --st-resuelto-main: #059669;
+}
+
+// Modo Nocturno: Pizarra Técnica de Alto Contraste
+body[data-mode="dark"] {
+  color-scheme: dark;
+
+  --page-bg: #080F1A;
+  --appbar-bg: #050A12;
+  --appbar-border: #1E293B;
+  --hero-bg: #0F1D32;
+  --hero-sub: #94A3B8;
+
+  --filter-bg: #111F35;
+  --input-bg: #091322;
+
+  --card-bg: #111E32;
+  --card-header-bg: #16263F;
+  --card-footer-bg: #0D1829;
+  --card-border: #233554;
+
+  --plaque-bg: #38BDF8;
+  --plaque-text: #062238;
+
+  --impact-bg: #0B1524;
+  --impact-border: #1E304C;
+
+  --text-main: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #8696AD;
+
+  --btn-bg: #38BDF8;
+  --btn-text: #062238;
+
+  --st-pendiente-main: #D97706;
+  --st-atencion-main: #2563EB;
+  --st-resuelto-main: #059669;
+
+  // Adaptación de variables internas de Angular Material M3 en modo oscuro
+  --mat-sys-surface: #111E32;
+  --mat-sys-on-surface: #F1F5F9;
+  --mat-sys-on-surface-variant: #94A3B8;
+  --mat-sys-outline: #334155;
+  --mat-sys-outline-variant: #233554;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--page-bg);
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
+  transition: background-color 0.22s ease, color 0.22s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// Ajustes globales para MatSnackBar con estética técnica
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-left: 4px solid #38BDF8;
+  border-radius: 0 12px 4px 12px !important;
+  font-family: var(--font-display);
+}

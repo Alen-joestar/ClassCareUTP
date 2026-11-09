@@ -1,0 +1,176 @@
+<section class="m3-reportes-page">
+
+  <!-- Bloque Hero Marino Institucional con KPIs Interactivos -->
+  <header class="hero-banner">
+    <div class="hero-copy">
+      <h2 class="hero-title">Expedientes de Inspección de Aulas</h2>
+      <p class="hero-subtitle">
+        Supervisión operativa en tiempo real de averías y mantenimiento en aulas y laboratorios. Haz clic en cualquier indicador para filtrar por estado.
+      </p>
+    </div>
+
+    <div class="kpi-strip">
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === ''"
+        (click)="filterByEstado('')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalIncidencias()) }}</span>
+          <span class="kpi-lbl">Total Órdenes</span>
+        </div>
+        <span class="kpi-dot" style="background: #94A3B8"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'PENDIENTE'"
+        (click)="filterByEstado('PENDIENTE')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalPendientes()) }}</span>
+          <span class="kpi-lbl">Pendientes</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-pendiente-main)"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'EN_ATENCION'"
+        (click)="filterByEstado('EN_ATENCION')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalEnAtencion()) }}</span>
+          <span class="kpi-lbl">En Atención</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-atencion-main)"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'RESUELTO'"
+        (click)="filterByEstado('RESUELTO')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalResueltos()) }}</span>
+          <span class="kpi-lbl">Liberadas</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-resuelto-main)"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de Filtros Tonal M3 -->
+  <div class="filter-bar">
+    <div class="m3-input-box">
+      <mat-icon class="filter-icon">search</mat-icon>
+      <input
+        type="search"
+        placeholder="Buscar por código de aula (A-101, LAB-302) o avería..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+        aria-label="Buscar por código de aula o descripción"
+      />
+    </div>
+
+    <div class="m3-select-box">
+      <mat-icon class="filter-icon">filter_list</mat-icon>
+      <select
+        [ngModel]="selectedPrioridad()"
+        (ngModelChange)="onPrioridadChange($event)"
+        aria-label="Filtrar por prioridad">
+        <option value="">Todas las prioridades</option>
+        <option value="ALTA">Prioridad Alta</option>
+        <option value="MEDIA">Prioridad Media</option>
+        <option value="BAJA">Prioridad Baja</option>
+      </select>
+    </div>
+
+    <button type="button" class="m3-btn-reset" (click)="resetFilters()">
+      <mat-icon>restart_alt</mat-icon>
+      <span>Restablecer</span>
+    </button>
+  </div>
+
+  <!-- Cuadrícula de Expedientes (Folder Tab + Solapa Sólida Semántica) -->
+  <section class="cards-grid" aria-live="polite">
+    @for (reporte of filteredReportes(); track reporte.id) {
+      <article class="inspection-card" [attr.data-estado]="reporte.estado">
+
+        <!-- Solapa Superior Sólida Semántica (Folder Tab) -->
+        <div class="folder-tab-row">
+          <span class="folder-tab">
+            <span>{{ getEstadoLabel(reporte.estado) }}</span>
+            <span class="step-dots" aria-hidden="true">
+              <span class="step-pip on"></span>
+              <span class="step-pip" [class.on]="getPasoEstado(reporte.estado) >= 2"></span>
+              <span class="step-pip" [class.on]="getPasoEstado(reporte.estado) >= 3"></span>
+            </span>
+          </span>
+          <span class="folder-stage-tag">ETAPA {{ getPasoEstado(reporte.estado) }}/3</span>
+        </div>
+
+        <!-- Cuerpo del Expediente -->
+        <div class="card-surface">
+          <div>
+            <!-- Cabecera Tonal con Placa de Aula -->
+            <div class="card-header">
+              <div class="room-identity">
+                <span class="room-plaque">{{ reporte.aulaId }}</span>
+                <div>
+                  <span class="room-category-title">
+                    <mat-icon>{{ getCategoriaIcon(reporte.tipoProblema) }}</mat-icon>
+                    <span>{{ getCategoriaLabel(reporte.tipoProblema) }}</span>
+                  </span>
+                  <span class="room-location">{{ reporte.aulaUbicacion || 'Pabellón Central • Campus UTP' }}</span>
+                </div>
+              </div>
+
+              <span class="ticket-id-tag">#{{ formatCount(reporte.id) }}</span>
+            </div>
+
+            <!-- Cuerpo y Franja Unificada Condición + Prioridad -->
+            <div class="card-body">
+              <p class="card-desc">{{ reporte.descripcion }}</p>
+
+              <div class="c2-unified-condition">
+                <span class="condition-left">
+                  <mat-icon>engineering</mat-icon>
+                  <span>{{ getImpactoAula(reporte.prioridad, reporte.estado) }}</span>
+                </span>
+                <span class="condition-prio" [attr.data-prio]="reporte.prioridad">
+                  {{ getPrioridadLabel(reporte.prioridad) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie Tonal -->
+          <div class="card-footer">
+            <time class="ticket-date" [attr.datetime]="reporte.fechaRegistro">
+              REGISTRO: {{ reporte.fechaRegistro | date:'dd MMM yyyy' }}
+            </time>
+
+            <a [routerLink]="['/reportes', reporte.id]" class="m3-btn-inspect">
+              <span>Abrir expediente</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </a>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      <div class="empty-state-box">
+        <mat-icon class="empty-icon">search_off</mat-icon>
+        <h3 class="empty-title">No se encontraron expedientes</h3>
+        <p class="empty-desc">
+          No existen reportes registrados que coincidan con los filtros seleccionados.
+        </p>
+        <button type="button" class="m3-btn-inspect" (click)="resetFilters()">
+          <mat-icon>refresh</mat-icon>
+          <span>Mostrar todos los expedientes</span>
+        </button>
+      </div>
+    }
+  </section>
+
+</section>
