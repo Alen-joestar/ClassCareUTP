@@ -4,4 +4,111 @@
    ========================================================================== */
 @import url('../../css/campus.css');
 
-/* Reglas adicionales específicas para aulas si se requieren en el futuro */
+.aulas-access {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-top: 1.25rem;
+}
+
+.aulas-access__status {
+    color: var(--campus-text-muted);
+    font-size: 0.8125rem;
+}
+
+.aulas-modal {
+    width: min(32rem, calc(100% - 2rem));
+    max-width: 32rem;
+    max-height: calc(100vh - 2rem);
+    margin: auto;
+    padding: 0;
+    overflow-y: auto;
+    border: 0;
+    background: transparent;
+    color: var(--campus-text);
+}
+
+.aulas-modal::backdrop {
+    background: rgba(15, 32, 56, 0.64);
+    backdrop-filter: blur(2px);
+}
+
+.aulas-modal__card {
+    position: relative;
+    padding: 2rem;
+}
+
+.aulas-modal .campus-fieldset {
+    display: flex;
+}
+
+.aulas-modal__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--campus-border);
+    border-radius: var(--radius-md);
+    background: var(--campus-surface-subtle);
+    color: var(--campus-text-muted);
+    font: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.aulas-modal__close:hover {
+    background: #e2e8f0;
+    color: var(--campus-text-strong);
+}
+
+.aulas-confirmation {
+    max-width: 28rem;
+}
+
+.aulas-confirmation__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.item-card__footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.btn--danger {
+    background-color: var(--status-critical-text);
+    color: var(--campus-text-inverted);
+}
+
+.btn--danger:hover {
+    background-color: #7f1d1d;
+    box-shadow: var(--shadow-flat);
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+@media (max-width: 480px) {
+    .aulas-modal__card {
+        padding: 1.5rem;
+    }
+
+    .aulas-confirmation__actions {
+        flex-direction: column-reverse;
+    }
+
+    .aulas-confirmation__actions .btn {
+        width: 100%;
+    }
+}
