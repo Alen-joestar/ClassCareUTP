@@ -164,17 +164,27 @@
         </div>
       </article>
     } @empty {
-      <div class="empty-state-box">
-        <mat-icon class="empty-icon">search_off</mat-icon>
-        <h3 class="empty-title">No se encontraron reportes</h3>
-        <p class="empty-desc">
-          No existen reportes registrados que coincidan con los filtros seleccionados.
-        </p>
-        <button type="button" class="m3-btn-inspect" (click)="resetFilters()">
-          <mat-icon>refresh</mat-icon>
-          <span>Mostrar todos los reportes</span>
-        </button>
-      </div>
+      @if (cargando()) {
+        <div class="empty-state-box">
+          <mat-icon class="empty-icon">sync</mat-icon>
+          <h3 class="empty-title">Sincronizando reportes del campus...</h3>
+          <p class="empty-desc">
+            Consultando incidencias registradas en el servidor central.
+          </p>
+        </div>
+      } @else {
+        <div class="empty-state-box">
+          <mat-icon class="empty-icon">search_off</mat-icon>
+          <h3 class="empty-title">No se encontraron reportes</h3>
+          <p class="empty-desc">
+            No existen reportes registrados que coincidan con los filtros seleccionados.
+          </p>
+          <button type="button" class="m3-btn-inspect" (click)="resetFilters()">
+            <mat-icon>refresh</mat-icon>
+            <span>Mostrar todos los reportes</span>
+          </button>
+        </div>
+      }
     }
   </section>
 

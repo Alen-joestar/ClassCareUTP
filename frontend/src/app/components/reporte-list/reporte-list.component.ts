@@ -27,6 +27,7 @@ export class ReporteListComponent {
 
   // Fuente de datos compartida desde ReporteService
   readonly reportes = this.reporteService.reportes;
+  readonly cargando = this.reporteService.cargando;
 
   // Lista filtrada reactiva calculada automáticamente
   readonly filteredReportes = computed(() => {

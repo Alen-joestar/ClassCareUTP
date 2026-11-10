@@ -101,9 +101,10 @@ export class ReporteService {
   private readonly aulasApiUrl = '/api/aulas';
 
   // Estado reactivo centralizado sincronizado con HttpClient (Semana 14)
-  private readonly reportesState = signal<Reporte[]>(REPORTES_INICIALES);
+  // Inicia vacío para evitar cualquier parpadeo (flash) de datos de respaldo al recargar con el backend encendido
+  private readonly reportesState = signal<Reporte[]>([]);
   private readonly aulasSugeridasState = signal<AulaDisponible[]>(AULAS_POR_DEFECTO);
-  private readonly cargandoState = signal<boolean>(false);
+  private readonly cargandoState = signal<boolean>(true);
   private readonly backendConectadoState = signal<boolean>(false);
 
   readonly reportes = this.reportesState.asReadonly();
@@ -138,6 +139,10 @@ export class ReporteService {
         catchError(() => {
           this.backendConectadoState.set(false);
           this.cargandoState.set(false);
+          // Solo si el backend está apagado y la lista está vacía, activamos los 6 reportes de respaldo
+          if (this.reportesState().length === 0) {
+            this.reportesState.set(REPORTES_INICIALES);
+          }
           return of(null);
         })
       )
