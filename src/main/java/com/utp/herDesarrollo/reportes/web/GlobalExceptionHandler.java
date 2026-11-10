@@ -1,7 +1,10 @@
 package com.utp.herDesarrollo.reportes.web;
 
+import com.utp.herDesarrollo.atenciones.exception.AtencionNoEncontradaException;
+import com.utp.herDesarrollo.atenciones.exception.ReglaNegocioAtencionException;
 import com.utp.herDesarrollo.reportes.application.exception.RecursoNoEncontradoException;
 import com.utp.herDesarrollo.reportes.application.exception.ReglaNegocioException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -99,6 +102,32 @@ public class GlobalExceptionHandler {
                 request != null ? request.getRequestURI() : ""
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(AtencionNoEncontradaException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAtencionNoEncontrada(
+            AtencionNoEncontradaException ex, HttpServletRequest request) {
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request != null ? request.getRequestURI() : ""
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ReglaNegocioAtencionException.class)
+    public ResponseEntity<ErrorResponseDTO> handleReglaNegocioAtencion(
+            ReglaNegocioAtencionException ex, HttpServletRequest request) {
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request != null ? request.getRequestURI() : ""
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(Exception.class)
