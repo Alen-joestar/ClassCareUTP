@@ -44,7 +44,7 @@
             </div>
 
             <div class="quick-rooms-row">
-              @for (aula of aulasSugeridas; track aula.codigo) {
+              @for (aula of aulasSugeridas(); track aula.codigo) {
                 <button
                   type="button"
                   class="room-chip"

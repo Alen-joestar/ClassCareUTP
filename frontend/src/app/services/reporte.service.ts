@@ -1,8 +1,9 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 import {
   ActualizarReporteRequestDTO,
+  AulaDisponible,
   CrearReportePayload,
   CrearReporteRequestDTO,
   EstadoReporte,
@@ -10,6 +11,16 @@ import {
   Reporte,
   TipoProblema
 } from '../models/reporte.model';
+import { AuthService } from './auth.service';
+
+const AULAS_POR_DEFECTO: AulaDisponible[] = [
+  { codigo: 'A-101', ubicacion: 'Pabellón A • Piso 1' },
+  { codigo: 'LAB-302', ubicacion: 'Pabellón C • Piso 3' },
+  { codigo: 'B-204', ubicacion: 'Pabellón B • Piso 2' },
+  { codigo: 'A-305', ubicacion: 'Pabellón A • Piso 3' },
+  { codigo: 'D-401', ubicacion: 'Pabellón D • Piso 4' },
+  { codigo: 'C-201', ubicacion: 'Pabellón C • Piso 2' }
+];
 
 const REPORTES_INICIALES: Reporte[] = [
   {
@@ -85,24 +96,29 @@ const REPORTES_INICIALES: Reporte[] = [
 })
 export class ReporteService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly apiUrl = '/api/reportes';
+  private readonly aulasApiUrl = '/api/aulas';
 
   // Estado reactivo centralizado sincronizado con HttpClient (Semana 14)
   private readonly reportesState = signal<Reporte[]>(REPORTES_INICIALES);
+  private readonly aulasSugeridasState = signal<AulaDisponible[]>(AULAS_POR_DEFECTO);
   private readonly cargandoState = signal<boolean>(false);
   private readonly backendConectadoState = signal<boolean>(false);
 
   readonly reportes = this.reportesState.asReadonly();
+  readonly aulasSugeridas = this.aulasSugeridasState.asReadonly();
   readonly cargando = this.cargandoState.asReadonly();
   readonly backendConectado = this.backendConectadoState.asReadonly();
 
   constructor() {
     this.cargarReportes();
+    this.cargarAulasSugeridas();
   }
 
   /**
-   * GET /api/reportes : Obtiene las incidencias desde Spring Boot (con soporte opcional para filtros JPQL ?aulaId=&prioridad=).
-   * Si el backend está apagado, conserva los datos semilla locales para no interrumpir la experiencia.
+   * Corrección #3: GET /api/reportes sincroniza fielmente el estado del servidor cuando responde 200 OK.
+   * Solo usa el conjunto semilla local cuando el servidor backend está apagado.
    */
   cargarReportes(aulaId?: string, prioridad?: Prioridad): void {
     this.cargandoState.set(true);
@@ -129,17 +145,34 @@ export class ReporteService {
         this.cargandoState.set(false);
         if (listaRemota !== null) {
           this.backendConectadoState.set(true);
-          if (listaRemota.length > 0) {
-            this.reportesState.set(listaRemota);
-          }
+          this.reportesState.set(listaRemota);
         }
       });
   }
 
   /**
-   * Consulta síncrona sobre la señal reactiva y dispara en segundo plano GET /api/reportes/{id}
-   * para asegurar sincronización con la base de datos.
+   * Corrección #4: GET /api/aulas obtiene las aulas reales registradas en la base de datos
+   * para que los chips rápidos de ReporteFormComponent siempre apunten a aulas existentes.
    */
+  cargarAulasSugeridas(): void {
+    this.http
+      .get<AulaDisponible[]>(this.aulasApiUrl)
+      .pipe(catchError(() => of(null)))
+      .subscribe(aulasRemotas => {
+        if (aulasRemotas && aulasRemotas.length > 0) {
+          this.aulasSugeridasState.set(
+            aulasRemotas.map(a => ({
+              id: a.id,
+              codigo: (a.codigo ?? '').trim().toUpperCase(),
+              ubicacion: a.ubicacion || this.deducirUbicacionDesdeCodigo(a.codigo ?? ''),
+              capacidad: a.capacidad,
+              estado: a.estado
+            }))
+          );
+        }
+      });
+  }
+
   obtenerPorId(id: number): Reporte | undefined {
     return this.reportesState().find(r => r.id === id);
   }
@@ -181,57 +214,56 @@ export class ReporteService {
   }
 
   /**
-   * POST /api/reportes : Envía un CrearReporteDTO hacia Spring Boot y actualiza el estado reactivo.
+   * Corrección #2: POST /api/reportes devuelve un Observable<Reporte>.
+   * - Si el backend devuelve 400 o 404 (ej. aula no existe en BD), propaga el error HTTP real sin guardar datos falsos.
+   * - Si el backend está apagado (status 0 / 502 / 504), guarda en memoria local para modo demostrativo.
    */
-  crearReporte(payload: CrearReportePayload): Reporte {
-    const listaActual = this.reportesState();
-    const tempId = listaActual.length > 0 ? Math.max(...listaActual.map(r => r.id)) + 1 : 1;
+  crearReporte(payload: CrearReportePayload): Observable<Reporte> {
+    const codigoNormalizado = payload.aulaId.trim().toUpperCase();
     const ubicacionCalculada =
-      payload.aulaUbicacion.trim() || this.deducirUbicacionDesdeCodigo(payload.aulaId);
-
-    const nuevoReporteLocal: Reporte = {
-      id: tempId,
-      aulaId: payload.aulaId.trim().toUpperCase(),
-      aulaUbicacion: ubicacionCalculada,
-      tipoProblema: payload.tipoProblema,
-      prioridad: payload.prioridad,
-      estado: 'PENDIENTE',
-      descripcion: payload.descripcion.trim(),
-      fechaRegistro: new Date().toISOString()
-    };
-
-    // Actualización optimista inmediata en la señal
-    this.reportesState.update(lista => [nuevoReporteLocal, ...lista]);
+      payload.aulaUbicacion.trim() || this.deducirUbicacionDesdeCodigo(codigoNormalizado);
 
     const requestDto: CrearReporteRequestDTO = {
-      aulaId: nuevoReporteLocal.aulaId,
-      tipoProblema: nuevoReporteLocal.tipoProblema,
-      descripcion: nuevoReporteLocal.descripcion,
-      prioridad: nuevoReporteLocal.prioridad
+      aulaId: codigoNormalizado,
+      tipoProblema: payload.tipoProblema,
+      descripcion: payload.descripcion.trim(),
+      prioridad: payload.prioridad
     };
 
-    this.http
-      .post<Reporte>(this.apiUrl, requestDto)
-      .pipe(
-        map(creado => this.normalizarReporte(creado, ubicacionCalculada)),
-        catchError(() => of(null))
-      )
-      .subscribe(creadoRemoto => {
-        if (creadoRemoto) {
-          this.backendConectadoState.set(true);
-          this.reportesState.update(lista =>
-            lista.map(item => (item.id === tempId ? creadoRemoto : item))
-          );
+    return this.http.post<Reporte>(this.apiUrl, requestDto).pipe(
+      map(creado => this.normalizarReporte(creado, ubicacionCalculada)),
+      tap(creadoRemoto => {
+        this.backendConectadoState.set(true);
+        this.reportesState.update(lista => [creadoRemoto, ...lista]);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        // Si el backend respondió con error de negocio o recurso no encontrado (400 / 404), no mentir al usuario
+        if (error.status === 400 || error.status === 404 || error.status === 409) {
+          return throwError(() => error);
         }
-      });
 
-    return nuevoReporteLocal;
+        // Respaldo solo cuando el servidor Spring Boot está apagado
+        const listaActual = this.reportesState();
+        const nextId = listaActual.length > 0 ? Math.max(...listaActual.map(r => r.id)) + 1 : 1;
+        const nuevoReporteLocal: Reporte = {
+          id: nextId,
+          aulaId: codigoNormalizado,
+          aulaUbicacion: ubicacionCalculada,
+          tipoProblema: payload.tipoProblema,
+          prioridad: payload.prioridad,
+          estado: 'PENDIENTE',
+          descripcion: payload.descripcion.trim(),
+          fechaRegistro: new Date().toISOString()
+        };
+        this.reportesState.update(lista => [nuevoReporteLocal, ...lista]);
+        return of(nuevoReporteLocal);
+      })
+    );
   }
 
   /**
    * PUT /api/reportes/{id} : Actualiza el estado del reporte en el backend.
-   * Esta ruta está protegida en SecurityConfig por @PreAuthorize / hasAnyRole('TECNICO', 'ADMIN')
-   * y recibe automáticamente la cabecera Authorization: Bearer <token> mediante authInterceptor.
+   * Incluye reintento automático si el cliente tenía un DEMO_JWT previo a encender el backend.
    */
   actualizarEstado(id: number, nuevoEstado: EstadoReporte): Observable<Reporte> {
     const actual = this.obtenerPorId(id);
@@ -246,19 +278,30 @@ export class ReporteService {
       estado: nuevoEstado
     };
 
-    return this.http.put<Reporte>(`${this.apiUrl}/${id}`, requestDto).pipe(
-      map(respuesta => this.normalizarReporte(respuesta, actual.aulaUbicacion)),
-      tap(actualizado => {
-        this.backendConectadoState.set(true);
-        this.reportesState.update(lista =>
-          lista.map(r => (r.id === id ? actualizado : r))
-        );
-      }),
+    const ejecutarPut = () =>
+      this.http.put<Reporte>(`${this.apiUrl}/${id}`, requestDto).pipe(
+        map(respuesta => this.normalizarReporte(respuesta, actual.aulaUbicacion)),
+        tap(actualizado => {
+          this.backendConectadoState.set(true);
+          this.reportesState.update(lista =>
+            lista.map(r => (r.id === id ? actualizado : r))
+          );
+        })
+      );
+
+    return ejecutarPut().pipe(
       catchError((error: HttpErrorResponse) => {
-        // Si el backend devuelve 401 o 403 (sin JWT o rol sin permisos), propagamos el error HTTP real
-        if (error.status === 401 || error.status === 403) {
+        // Corrección #1: Si dio 401 porque el navegador tenía un DEMO_JWT antes de encender Spring Boot,
+        // solicita el token real a /api/auth/login y reintenta una vez.
+        if (error.status === 401 && this.authService.sesion()?.origen === 'DEMO_JWT') {
+          return this.authService.asegurarTokenReal().pipe(switchMap(() => ejecutarPut()));
+        }
+
+        // Propagar errores reales del servidor (401, 403, 404, 400)
+        if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 400) {
           return throwError(() => error);
         }
+
         // Si el servidor backend está apagado (status 0 / 502 / 504), actualizamos el estado reactivo local
         const actualizadoLocal: Reporte = { ...actual, estado: nuevoEstado };
         this.reportesState.update(lista =>

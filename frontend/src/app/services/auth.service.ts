@@ -57,11 +57,37 @@ export class AuthService {
     return 'Alumno (JWT)';
   });
 
+  constructor() {
+    // Corrección #1: Si la sesión cargada es un token simulado (DEMO_JWT),
+    // intenta automáticamente canjearlo por un JWT real firmado por Spring Boot (POST /api/auth/login).
+    const actual = this.sesionState();
+    if (actual && actual.origen === 'DEMO_JWT') {
+      const perfil = this.deducirPerfil(actual.username);
+      this.loginRapido(perfil).subscribe();
+    }
+  }
+
   /**
    * Devuelve el token JWT activo para que el funcional authInterceptor lo inyecte en Authorization: Bearer <token>.
    */
   getToken(): string | null {
     return this.sesionState()?.token ?? null;
+  }
+
+  /**
+   * Si el usuario tenía un DEMO_JWT (porque abrió Angular antes de encender Spring Boot),
+   * obtiene el token real firmado por JwtTokenProvider para reintentar la petición protegida.
+   */
+  asegurarTokenReal(): Observable<SesionUsuario | null> {
+    const actual = this.sesionState();
+    if (!actual) {
+      return of(null);
+    }
+    if (actual.origen === 'BACKEND_JWT') {
+      return of(actual);
+    }
+    const perfil = this.deducirPerfil(actual.username);
+    return this.loginRapido(perfil);
   }
 
   /**
@@ -108,6 +134,16 @@ export class AuthService {
     }
   }
 
+  private deducirPerfil(username: string): PerfilDemo {
+    if (username === 'admin') {
+      return 'admin';
+    }
+    if (username === 'alumno') {
+      return 'alumno';
+    }
+    return 'tecnico';
+  }
+
   private guardarSesion(sesion: SesionUsuario): void {
     this.sesionState.set(sesion);
     if (typeof localStorage !== 'undefined') {
@@ -127,7 +163,6 @@ export class AuthService {
         localStorage.removeItem(STORAGE_KEY);
       }
     }
-    // Sesión inicial por defecto con perfil técnico para que las pruebas de cambio de estado envíen Bearer JWT desde el primer momento
     const inicial: SesionUsuario = {
       token: this.generarTokenRespaldo('tecnico', ['ROLE_TECNICO']),
       username: 'tecnico',

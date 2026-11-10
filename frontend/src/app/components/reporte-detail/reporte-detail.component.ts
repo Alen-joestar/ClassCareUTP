@@ -1,4 +1,5 @@
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -82,11 +83,29 @@ export class ReporteDetailComponent {
           { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
         );
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
+        // Corrección #3: Diagnóstico exacto según el código de estado devuelto por GlobalExceptionHandler
+        const serverMsg = err?.error?.message;
+        if (err.status === 404) {
+          this.snackBar.open(
+            serverMsg || `El reporte #${actual.id} no existe en la base de datos del servidor (404).`,
+            'Cerrar',
+            { duration: 4500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+          );
+          return;
+        }
+        if (err.status === 400) {
+          this.snackBar.open(
+            serverMsg || 'Solicitud inválida al intentar actualizar el reporte (400).',
+            'Cerrar',
+            { duration: 4500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+          );
+          return;
+        }
         this.snackBar.open(
-          'Error de autorización JWT (401/403) al intentar actualizar el reporte en el servidor.',
+          serverMsg || 'Error de autorización JWT (401/403) al intentar actualizar el reporte en el servidor.',
           'Cerrar',
-          { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+          { duration: 4500, horizontalPosition: 'end', verticalPosition: 'bottom' }
         );
       }
     });

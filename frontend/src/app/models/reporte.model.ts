@@ -2,6 +2,14 @@ export type TipoProblema = 'TECNOLOGICO' | 'ELECTRICO' | 'MOBILIARIO' | 'INFRAES
 export type Prioridad = 'ALTA' | 'MEDIA' | 'BAJA';
 export type EstadoReporte = 'PENDIENTE' | 'EN_ATENCION' | 'RESUELTO';
 
+export interface AulaDisponible {
+  id?: number;
+  codigo: string;
+  ubicacion: string;
+  capacidad?: number;
+  estado?: string;
+}
+
 export interface Reporte {
   id: number;
   aulaId: string;

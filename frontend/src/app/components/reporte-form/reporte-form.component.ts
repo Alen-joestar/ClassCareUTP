@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import {
   AbstractControl,
@@ -7,16 +8,11 @@ import {
   ValidatorFn,
   Validators
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Prioridad, TipoProblema } from '../../models/reporte.model';
+import { Router, RouterLink } from '@angular/router';
+import { AulaDisponible, Prioridad, TipoProblema } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
-
-interface AulaSugerida {
-  codigo: string;
-  ubicacion: string;
-}
 
 /**
  * Validador Nivel 1: Exige formato real de código de aula universitaria:
@@ -78,14 +74,8 @@ export class ReporteFormComponent {
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
-  readonly aulasSugeridas: AulaSugerida[] = [
-    { codigo: 'A-101', ubicacion: 'Pabellón A • Piso 1' },
-    { codigo: 'LAB-302', ubicacion: 'Pabellón C • Piso 3' },
-    { codigo: 'B-204', ubicacion: 'Pabellón B • Piso 2' },
-    { codigo: 'A-305', ubicacion: 'Pabellón A • Piso 3' },
-    { codigo: 'D-401', ubicacion: 'Pabellón D • Piso 4' },
-    { codigo: 'C-201', ubicacion: 'Pabellón C • Piso 2' }
-  ];
+  // Corrección #4: Aulas sugeridas sincronizadas con GET /api/aulas desde ReporteService
+  readonly aulasSugeridas = this.reporteService.aulasSugeridas;
 
   readonly categorias: { valor: TipoProblema; label: string; icono: string }[] = [
     { valor: 'TECNOLOGICO', label: 'Tecnológico', icono: 'videocam_off' },
@@ -133,6 +123,8 @@ export class ReporteFormComponent {
   );
 
   constructor() {
+    this.reporteService.cargarAulasSugeridas();
+
     // Nivel 2: Autocompletado automático de Pabellón y Piso según el código del aula
     this.f.aulaId.valueChanges.subscribe(valor => {
       const ubicacionCalculada = this.deducirUbicacionDesdeCodigo(valor);
@@ -173,10 +165,15 @@ export class ReporteFormComponent {
 
   /**
    * Deduce automáticamente el Pabellón y Piso a partir del código (ej. B-204 -> Pabellón B • Piso 2)
-   * garantizando cero incoherencias entre código de aula y ubicación física.
+   * o toma la ubicación oficial registrada en GET /api/aulas si coincide.
    */
   deducirUbicacionDesdeCodigo(codigoRaw: string): string {
     const limpio = codigoRaw.trim().toUpperCase();
+    const aulaRegistrada = this.aulasSugeridas().find(a => a.codigo.toUpperCase() === limpio);
+    if (aulaRegistrada?.ubicacion) {
+      return aulaRegistrada.ubicacion;
+    }
+
     const match = limpio.match(/^([A-E]|LAB)-([1-9])\d{2}$/);
     if (!match) {
       return 'Ingresa un código válido (ej. A-101, LAB-302)';
@@ -187,7 +184,7 @@ export class ReporteFormComponent {
     return `${pabellon} • Piso ${piso}`;
   }
 
-  seleccionarAulaRapida(aula: AulaSugerida): void {
+  seleccionarAulaRapida(aula: AulaDisponible): void {
     this.f.aulaId.setValue(aula.codigo);
     this.f.aulaId.markAsDirty();
     this.f.aulaId.markAsTouched();
@@ -219,18 +216,34 @@ export class ReporteFormComponent {
       return;
     }
 
-    const creado = this.reporteService.crearReporte(this.reporteForm.getRawValue());
-    const numOrden = String(creado.id).padStart(2, '0');
+    // Corrección #2: Suscripción real al POST /api/reportes con manejo de errores 404/400 de GlobalExceptionHandler
+    this.reporteService.crearReporte(this.reporteForm.getRawValue()).subscribe({
+      next: creado => {
+        const numOrden = String(creado.id).padStart(2, '0');
+        this.snackBar
+          .open(
+            `Reporte #${numOrden} (${creado.aulaId}) registrado exitosamente`,
+            'Ver detalle',
+            { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+          )
+          .onAction()
+          .subscribe(() => {
+            this.router.navigate(['/reportes', creado.id]);
+          });
 
-    this.snackBar.open(
-      `Reporte #${numOrden} (${creado.aulaId}) registrado exitosamente`,
-      'Ver detalle',
-      { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
-    ).onAction().subscribe(() => {
-      this.router.navigate(['/reportes', creado.id]);
+        this.router.navigate(['/reportes']);
+      },
+      error: (err: HttpErrorResponse) => {
+        const mensajeBackend =
+          err?.error?.message ||
+          `No se pudo registrar el reporte (${err.status}): Verifica que el aula exista en el sistema.`;
+        this.snackBar.open(mensajeBackend, 'Cerrar', {
+          duration: 5000,
+          horizontalPosition: 'end',
+          verticalPosition: 'bottom'
+        });
+      }
     });
-
-    this.router.navigate(['/reportes']);
   }
 
   getCaracteresReales(): number {
