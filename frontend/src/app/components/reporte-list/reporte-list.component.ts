@@ -28,6 +28,16 @@ export class ReporteListComponent {
   readonly selectedCategoria = signal<string>('');
   readonly selectedEstado = signal<string>('');
   readonly sortBy = signal<OrdenReportes>('RECIENTES');
+  readonly mostrarMenuFiltros = signal<boolean>(false);
+
+  // Cantidad de filtros/ordenamientos activos dentro del menú desplegable
+  readonly totalFiltrosActivos = computed(() => {
+    let count = 0;
+    if (this.selectedCategoria()) count++;
+    if (this.selectedPrioridad()) count++;
+    if (this.sortBy() !== 'RECIENTES') count++;
+    return count;
+  });
 
   // Fuente de datos compartida desde ReporteService
   readonly reportes = this.reporteService.reportes;
@@ -104,12 +114,21 @@ export class ReporteListComponent {
     this.selectedEstado.set(estado);
   }
 
+  toggleMenuFiltros(): void {
+    this.mostrarMenuFiltros.update(v => !v);
+  }
+
+  cerrarMenuFiltros(): void {
+    this.mostrarMenuFiltros.set(false);
+  }
+
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedPrioridad.set('');
     this.selectedCategoria.set('');
     this.selectedEstado.set('');
     this.sortBy.set('RECIENTES');
+    this.mostrarMenuFiltros.set(false);
     this.reporteService.cargarReportes();
   }
 

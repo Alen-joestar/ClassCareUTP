@@ -66,7 +66,7 @@
     </div>
   </header>
 
-  <!-- Barra de Filtros Tonal M3 -->
+  <!-- Barra de Filtros Tonal M3 (4 elementos principales: Búsqueda, Filtros, Restablecer, Nuevo Reporte) -->
   <div class="filter-bar">
     <div class="m3-input-box">
       <mat-icon class="filter-icon">search</mat-icon>
@@ -79,44 +79,88 @@
       />
     </div>
 
-    <div class="m3-select-box">
-      <mat-icon class="filter-icon">category</mat-icon>
-      <select
-        [ngModel]="selectedCategoria()"
-        (ngModelChange)="onCategoriaChange($event)"
-        aria-label="Filtrar por categoría técnica">
-        <option value="">Todas las categorías</option>
-        <option value="TECNOLOGICO">Tecnológico</option>
-        <option value="ELECTRICO">Eléctrico</option>
-        <option value="MOBILIARIO">Mobiliario</option>
-        <option value="INFRAESTRUCTURA">Infraestructura</option>
-        <option value="OTRO">Otro</option>
-      </select>
-    </div>
+    <!-- Botón único de Filtros con Menú Desplegable -->
+    <div class="filter-dropdown-wrapper">
+      <button
+        type="button"
+        class="m3-btn-filter"
+        [class.has-active]="totalFiltrosActivos() > 0 || mostrarMenuFiltros()"
+        (click)="toggleMenuFiltros()"
+        aria-label="Abrir opciones de filtrado y ordenamiento">
+        <mat-icon>tune</mat-icon>
+        <span>Filtros</span>
+        @if (totalFiltrosActivos() > 0) {
+          <span class="filter-count-badge">{{ totalFiltrosActivos() }}</span>
+        }
+        <mat-icon class="chevron-icon">{{ mostrarMenuFiltros() ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
 
-    <div class="m3-select-box">
-      <mat-icon class="filter-icon">filter_list</mat-icon>
-      <select
-        [ngModel]="selectedPrioridad()"
-        (ngModelChange)="onPrioridadChange($event)"
-        aria-label="Filtrar por prioridad">
-        <option value="">Todas las prioridades</option>
-        <option value="ALTA">Prioridad Alta</option>
-        <option value="MEDIA">Prioridad Media</option>
-        <option value="BAJA">Prioridad Baja</option>
-      </select>
-    </div>
+      @if (mostrarMenuFiltros()) {
+        <div class="filter-popover" role="dialog" aria-label="Opciones de filtrado y ordenamiento">
+          <div class="filter-popover__header">
+            <strong>Filtrar y Ordenar Reportes</strong>
+            <button type="button" class="popover-close-btn" (click)="cerrarMenuFiltros()" aria-label="Cerrar filtros">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
 
-    <div class="m3-select-box">
-      <mat-icon class="filter-icon">swap_vert</mat-icon>
-      <select
-        [ngModel]="sortBy()"
-        (ngModelChange)="onSortChange($event)"
-        aria-label="Ordenar listado de reportes">
-        <option value="RECIENTES">Más recientes primero</option>
-        <option value="PRIORIDAD_ALTA">Prioridad crítica primero</option>
-        <option value="PENDIENTES_PRIMERO">Pendientes primero</option>
-      </select>
+          <div class="filter-popover__field">
+            <label for="catSelect">Categoría Técnica</label>
+            <div class="m3-select-box">
+              <mat-icon class="filter-icon">category</mat-icon>
+              <select
+                id="catSelect"
+                [ngModel]="selectedCategoria()"
+                (ngModelChange)="onCategoriaChange($event)">
+                <option value="">Todas las categorías</option>
+                <option value="TECNOLOGICO">Tecnológico</option>
+                <option value="ELECTRICO">Eléctrico</option>
+                <option value="MOBILIARIO">Mobiliario</option>
+                <option value="INFRAESTRUCTURA">Infraestructura</option>
+                <option value="OTRO">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-popover__field">
+            <label for="prioSelect">Nivel de Prioridad</label>
+            <div class="m3-select-box">
+              <mat-icon class="filter-icon">filter_list</mat-icon>
+              <select
+                id="prioSelect"
+                [ngModel]="selectedPrioridad()"
+                (ngModelChange)="onPrioridadChange($event)">
+                <option value="">Todas las prioridades</option>
+                <option value="ALTA">Prioridad Alta</option>
+                <option value="MEDIA">Prioridad Media</option>
+                <option value="BAJA">Prioridad Baja</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-popover__field">
+            <label for="sortSelect">Ordenar por</label>
+            <div class="m3-select-box">
+              <mat-icon class="filter-icon">swap_vert</mat-icon>
+              <select
+                id="sortSelect"
+                [ngModel]="sortBy()"
+                (ngModelChange)="onSortChange($event)">
+                <option value="RECIENTES">Más recientes primero</option>
+                <option value="PRIORIDAD_ALTA">Prioridad crítica primero</option>
+                <option value="PENDIENTES_PRIMERO">Pendientes primero</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-popover__footer">
+            <button type="button" class="popover-done-btn" (click)="cerrarMenuFiltros()">
+              <mat-icon>check</mat-icon>
+              <span>Aplicar y cerrar</span>
+            </button>
+          </div>
+        </div>
+      }
     </div>
 
     <button type="button" class="m3-btn-reset" (click)="resetFilters()">
