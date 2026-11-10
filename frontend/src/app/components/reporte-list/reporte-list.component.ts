@@ -1,10 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
+
+export type OrdenReportes = 'RECIENTES' | 'PRIORIDAD_ALTA' | 'PENDIENTES_PRIMERO';
 
 @Component({
   selector: 'app-reporte-list',
@@ -20,26 +22,55 @@ import { ReporteService } from '../../services/reporte.service';
 export class ReporteListComponent {
   private readonly reporteService = inject(ReporteService);
 
-  // Estado reactivo de filtros con Signals
+  // Estado reactivo de filtros y ordenamiento con Signals
   readonly searchQuery = signal<string>('');
   readonly selectedPrioridad = signal<string>('');
+  readonly selectedCategoria = signal<string>('');
   readonly selectedEstado = signal<string>('');
+  readonly sortBy = signal<OrdenReportes>('RECIENTES');
 
   // Fuente de datos compartida desde ReporteService
   readonly reportes = this.reporteService.reportes;
   readonly cargando = this.reporteService.cargando;
+  readonly backendConectado = this.reporteService.backendConectado;
 
-  // Lista filtrada reactiva calculada automáticamente
+  // Lista filtrada y ordenada reactiva calculada automáticamente
   readonly filteredReportes = computed(() => {
     const query = this.searchQuery().trim().toUpperCase();
     const prioridad = this.selectedPrioridad();
+    const categoria = this.selectedCategoria();
     const estado = this.selectedEstado();
+    const orden = this.sortBy();
 
-    return this.reportes().filter(reporte => {
-      const matchesQuery = !query || reporte.aulaId.toUpperCase().includes(query) || reporte.descripcion.toUpperCase().includes(query);
+    const filtrados = this.reportes().filter(reporte => {
+      const matchesQuery =
+        !query ||
+        reporte.aulaId.toUpperCase().includes(query) ||
+        reporte.descripcion.toUpperCase().includes(query) ||
+        (reporte.aulaUbicacion ?? '').toUpperCase().includes(query);
       const matchesPrioridad = !prioridad || reporte.prioridad === prioridad;
+      const matchesCategoria = !categoria || reporte.tipoProblema === categoria;
       const matchesEstado = !estado || reporte.estado === estado;
-      return matchesQuery && matchesPrioridad && matchesEstado;
+      return matchesQuery && matchesPrioridad && matchesCategoria && matchesEstado;
+    });
+
+    const pesoPrioridad: Record<Prioridad, number> = { ALTA: 3, MEDIA: 2, BAJA: 1 };
+    const pesoEstado: Record<EstadoReporte, number> = { PENDIENTE: 1, EN_ATENCION: 2, RESUELTO: 3 };
+
+    return [...filtrados].sort((a, b) => {
+      if (orden === 'PRIORIDAD_ALTA') {
+        const diffPrio = pesoPrioridad[b.prioridad] - pesoPrioridad[a.prioridad];
+        if (diffPrio !== 0) {
+          return diffPrio;
+        }
+      }
+      if (orden === 'PENDIENTES_PRIMERO') {
+        const diffEstado = pesoEstado[a.estado] - pesoEstado[b.estado];
+        if (diffEstado !== 0) {
+          return diffEstado;
+        }
+      }
+      return new Date(b.fechaRegistro).getTime() - new Date(a.fechaRegistro).getTime();
     });
   });
 
@@ -61,6 +92,14 @@ export class ReporteListComponent {
     this.selectedPrioridad.set(value);
   }
 
+  onCategoriaChange(value: string): void {
+    this.selectedCategoria.set(value);
+  }
+
+  onSortChange(value: OrdenReportes): void {
+    this.sortBy.set(value);
+  }
+
   filterByEstado(estado: string): void {
     this.selectedEstado.set(estado);
   }
@@ -68,7 +107,10 @@ export class ReporteListComponent {
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedPrioridad.set('');
+    this.selectedCategoria.set('');
     this.selectedEstado.set('');
+    this.sortBy.set('RECIENTES');
+    this.reporteService.cargarReportes();
   }
 
   getPasoEstado(estado: EstadoReporte): number {

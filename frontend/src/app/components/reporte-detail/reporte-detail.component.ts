@@ -163,6 +163,39 @@ export class ReporteDetailComponent {
       return;
     }
 
+    // Máquina de estados progresiva realista (PENDIENTE -> EN_ATENCION -> RESUELTO)
+    if (actual.estado === 'RESUELTO') {
+      this.snackBar.open(
+        `El Reporte #${this.formatCount(actual.id)} ya fue resuelto y cerrado; no puede retroceder a etapas anteriores.`,
+        'Cerrar',
+        { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+      );
+      return;
+    }
+
+    if (actual.estado === 'EN_ATENCION' && nuevoEstado === 'PENDIENTE') {
+      this.snackBar.open(
+        'El soporte técnico ya está interviniendo el aula (Etapa 2); el siguiente paso es resolver y liberar el aula (Etapa 3).',
+        'Cerrar',
+        { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+      );
+      return;
+    }
+
+    if (actual.estado === 'PENDIENTE' && nuevoEstado === 'RESUELTO') {
+      this.snackBar
+        .open(
+          'Flujo progresivo: Primero debes iniciar la Etapa 2 (En Intervención Técnica) antes de cerrar el reporte.',
+          'Iniciar Etapa 2',
+          { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        )
+        .onAction()
+        .subscribe(() => {
+          this.cambiarEstado('EN_ATENCION');
+        });
+      return;
+    }
+
     this.reporteService.actualizarEstado(actual.id, nuevoEstado).subscribe({
       next: () => {
         this.snackBar.open(

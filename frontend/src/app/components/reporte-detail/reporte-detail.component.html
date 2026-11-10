@@ -51,17 +51,18 @@
           </time>
         </div>
 
-        <!-- Stepper Interactivo de 3 Etapas -->
+        <!-- Stepper Interactivo de 3 Etapas (Flujo Progresivo 1 -> 2 -> 3) -->
         <div class="stepper-row" role="group" aria-label="Etapas del flujo de atención">
           <button
             type="button"
             class="step-box"
             [class.active]="item.estado === 'PENDIENTE'"
+            [class.step-done]="getPasoEstado(item.estado) > 1"
             (click)="cambiarEstado('PENDIENTE')">
-            <mat-icon>assignment_late</mat-icon>
+            <mat-icon>{{ getPasoEstado(item.estado) > 1 ? 'check_circle' : 'assignment_late' }}</mat-icon>
             <div class="step-copy">
               <strong>1. Pendiente de Revisión</strong>
-              <span>Registrado en sistema</span>
+              <span>{{ getPasoEstado(item.estado) > 1 ? 'Etapa completada' : 'Registrado en sistema' }}</span>
             </div>
           </button>
 
@@ -69,11 +70,12 @@
             type="button"
             class="step-box"
             [class.active]="item.estado === 'EN_ATENCION'"
+            [class.step-done]="getPasoEstado(item.estado) > 2"
             (click)="cambiarEstado('EN_ATENCION')">
-            <mat-icon>handyman</mat-icon>
+            <mat-icon>{{ getPasoEstado(item.estado) > 2 ? 'check_circle' : 'handyman' }}</mat-icon>
             <div class="step-copy">
               <strong>2. En Intervención Técnica</strong>
-              <span>Soporte técnico en el aula</span>
+              <span>{{ item.estado === 'PENDIENTE' ? 'Haz clic para iniciar atención' : (item.estado === 'EN_ATENCION' ? 'Soporte técnico en el aula' : 'Etapa completada') }}</span>
             </div>
           </button>
 
@@ -85,7 +87,7 @@
             <mat-icon>verified</mat-icon>
             <div class="step-copy">
               <strong>3. Aula Operativa y Liberada</strong>
-              <span>Incidencia subsanada</span>
+              <span>{{ item.estado === 'EN_ATENCION' ? 'Haz clic para finalizar y liberar' : (item.estado === 'RESUELTO' ? 'Incidencia subsanada (Cerrado)' : 'Requiere pasar por Etapa 2') }}</span>
             </div>
           </button>
         </div>

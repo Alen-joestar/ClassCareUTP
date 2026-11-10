@@ -3,6 +3,12 @@
   <!-- Bloque Hero Marino Institucional con KPIs Interactivos -->
   <header class="hero-banner">
     <div class="hero-copy">
+      <div class="hero-status-row">
+        <span class="db-status-badge" [class.db-online]="backendConectado()">
+          <span class="db-dot"></span>
+          <span>{{ backendConectado() ? 'POSTGRESQL CONECTADO' : 'MODO MEMORIA LOCAL' }}</span>
+        </span>
+      </div>
       <h2 class="hero-title">Reportes de Inspección de Aulas</h2>
       <p class="hero-subtitle">
         Supervisión operativa en tiempo real de averías y mantenimiento en aulas y laboratorios. Haz clic en cualquier indicador para filtrar por estado.
@@ -74,6 +80,21 @@
     </div>
 
     <div class="m3-select-box">
+      <mat-icon class="filter-icon">category</mat-icon>
+      <select
+        [ngModel]="selectedCategoria()"
+        (ngModelChange)="onCategoriaChange($event)"
+        aria-label="Filtrar por categoría técnica">
+        <option value="">Todas las categorías</option>
+        <option value="TECNOLOGICO">Tecnológico</option>
+        <option value="ELECTRICO">Eléctrico</option>
+        <option value="MOBILIARIO">Mobiliario</option>
+        <option value="INFRAESTRUCTURA">Infraestructura</option>
+        <option value="OTRO">Otro</option>
+      </select>
+    </div>
+
+    <div class="m3-select-box">
       <mat-icon class="filter-icon">filter_list</mat-icon>
       <select
         [ngModel]="selectedPrioridad()"
@@ -83,6 +104,18 @@
         <option value="ALTA">Prioridad Alta</option>
         <option value="MEDIA">Prioridad Media</option>
         <option value="BAJA">Prioridad Baja</option>
+      </select>
+    </div>
+
+    <div class="m3-select-box">
+      <mat-icon class="filter-icon">swap_vert</mat-icon>
+      <select
+        [ngModel]="sortBy()"
+        (ngModelChange)="onSortChange($event)"
+        aria-label="Ordenar listado de reportes">
+        <option value="RECIENTES">Más recientes primero</option>
+        <option value="PRIORIDAD_ALTA">Prioridad crítica primero</option>
+        <option value="PENDIENTES_PRIMERO">Pendientes primero</option>
       </select>
     </div>
 

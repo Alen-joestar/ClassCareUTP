@@ -220,6 +220,15 @@
       color: var(--st-color);
     }
   }
+
+  &.step-done {
+    opacity: 0.78;
+    background-color: var(--card-header-bg);
+
+    mat-icon {
+      color: #059669;
+    }
+  }
 }
 
 .step-copy {

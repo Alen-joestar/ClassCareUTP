@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { AuthResponse, LoginRequest, PerfilDemo, SesionUsuario } from '../models/auth.model';
 
 const STORAGE_KEY = 'classcare-jwt-session';
@@ -100,8 +100,10 @@ export class AuthService {
 
   /**
    * Autenticación contra POST /api/auth/login (Spring Security + JwtTokenProvider).
+   * Si las credenciales son incorrectas (401), propaga el error real.
+   * Solo usa el token demostrativo cuando el servidor backend está apagado.
    */
-  login(credenciales: LoginRequest, rolesRespaldo: string[] = ['ROLE_TECNICO']): Observable<SesionUsuario> {
+  login(credenciales: LoginRequest, rolesRespaldo?: string[]): Observable<SesionUsuario> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credenciales).pipe(
       map(respuesta => ({
         token: respuesta.token,
@@ -109,13 +111,25 @@ export class AuthService {
         roles: respuesta.roles,
         origen: 'BACKEND_JWT' as const
       })),
-      catchError(() => {
-        // Respaldo demostrativo cuando se ejecuta ng serve sin el servidor Spring Boot encendido
-        const tokenSimulado = this.generarTokenRespaldo(credenciales.username, rolesRespaldo);
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 401 || err.status === 403 || err.status === 400) {
+          return throwError(() => err);
+        }
+        // Si el backend está apagado, verificamos contra las credenciales demo locales
+        const perfilLocal = Object.values(CREDENCIALES_DEMO).find(
+          c => c.username === credenciales.username && c.password === credenciales.password
+        );
+        if (!perfilLocal && !rolesRespaldo) {
+          return throwError(
+            () => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' })
+          );
+        }
+        const rolesAsignados = rolesRespaldo ?? perfilLocal?.roles ?? ['ROLE_TECNICO'];
+        const tokenSimulado = this.generarTokenRespaldo(credenciales.username, rolesAsignados);
         return of({
           token: tokenSimulado,
           username: credenciales.username,
-          roles: rolesRespaldo,
+          roles: rolesAsignados,
           origen: 'DEMO_JWT' as const
         });
       }),
