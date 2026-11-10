@@ -3,6 +3,9 @@ package com.utp.herDesarrollo.reportes.web;
 import com.utp.herDesarrollo.reportes.application.exception.RecursoNoEncontradoException;
 import com.utp.herDesarrollo.reportes.application.exception.ReglaNegocioException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,10 +15,12 @@ import java.time.LocalDateTime;
 
 /**
  * Capturador global de excepciones para traducir errores de dominio y negocio
- * a respuestas HTTP estructuradas (404 Not Found, 400 Bad Request, etc.).
+ * a respuestas HTTP estructuradas (404 Not Found, 400 Bad Request, 409 Conflict, etc.).
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<ErrorResponseDTO> handleRecursoNoEncontrado(RecursoNoEncontradoException ex, HttpServletRequest request) {
@@ -101,8 +106,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
+        log.warn("Violación de integridad referencial en {}: {}", request != null ? request.getRequestURI() : "", ex.getMessage());
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                "Operación rechazada por integridad referencial en la base de datos (existen registros vinculados)",
+                request != null ? request.getRequestURI() : ""
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGeneral(Exception ex, HttpServletRequest request) {
+        log.error("Error no controlado en endpoint {}:", request != null ? request.getRequestURI() : "desconocido", ex);
         ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

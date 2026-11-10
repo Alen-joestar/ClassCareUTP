@@ -35,17 +35,31 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  padding: 0.22rem 0.65rem;
+  padding: 0.24rem 0.68rem;
   border-radius: 0 8px 2px 8px;
   background-color: rgba(245, 158, 11, 0.16);
   border: 1px solid rgba(245, 158, 11, 0.4);
   color: #FDE68A;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 
   .db-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background-color: #FBBF24;
+  }
+
+  .db-sync-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    opacity: 0.85;
   }
 
   &.db-online {

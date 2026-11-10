@@ -17,21 +17,28 @@ import java.util.List;
 public interface ReporteRepository extends JpaRepository<Reporte, Long> {
 
     /**
+     * Obtiene todos los reportes junto con su aula asociada en una sola consulta JOIN FETCH (evita N+1).
+     */
+    @Override
+    @Query("SELECT r FROM Reporte r JOIN FETCH r.aula ORDER BY r.fechaRegistro DESC")
+    List<Reporte> findAll();
+
+    /**
      * Consulta personalizada en JPQL para buscar reportes por aula (insensible a mayúsculas/minúsculas).
      */
-    @Query("SELECT r FROM Reporte r WHERE UPPER(r.aula.codigo) = UPPER(:aulaId) ORDER BY r.fechaRegistro DESC")
+    @Query("SELECT r FROM Reporte r JOIN FETCH r.aula WHERE UPPER(r.aula.codigo) = UPPER(:aulaId) ORDER BY r.fechaRegistro DESC")
     List<Reporte> findByAulaId(@Param("aulaId") String aulaId);
 
     /**
      * Consulta personalizada en JPQL para filtrar incidencias por su nivel de urgencia/prioridad.
      */
-    @Query("SELECT r FROM Reporte r WHERE r.prioridad = :prioridad ORDER BY r.fechaRegistro DESC")
+    @Query("SELECT r FROM Reporte r JOIN FETCH r.aula WHERE r.prioridad = :prioridad ORDER BY r.fechaRegistro DESC")
     List<Reporte> findByPrioridad(@Param("prioridad") Prioridad prioridad);
 
     /**
      * Consulta personalizada en JPQL para filtrado combinado por aula y prioridad.
      */
-    @Query("SELECT r FROM Reporte r WHERE UPPER(r.aula.codigo) = UPPER(:aulaId) AND r.prioridad = :prioridad ORDER BY r.fechaRegistro DESC")
+    @Query("SELECT r FROM Reporte r JOIN FETCH r.aula WHERE UPPER(r.aula.codigo) = UPPER(:aulaId) AND r.prioridad = :prioridad ORDER BY r.fechaRegistro DESC")
     List<Reporte> findByAulaIdAndPrioridad(@Param("aulaId") String aulaId, @Param("prioridad") Prioridad prioridad);
 
     /**

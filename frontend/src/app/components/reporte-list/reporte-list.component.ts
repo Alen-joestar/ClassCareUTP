@@ -130,6 +130,12 @@ export class ReporteListComponent {
     this.sortBy.set('RECIENTES');
     this.mostrarMenuFiltros.set(false);
     this.reporteService.cargarReportes();
+    this.reporteService.cargarAulasSugeridas();
+  }
+
+  sincronizarConBackend(): void {
+    this.reporteService.cargarReportes();
+    this.reporteService.cargarAulasSugeridas();
   }
 
   getPasoEstado(estado: EstadoReporte): number {
