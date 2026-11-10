@@ -245,6 +245,7 @@ export class ReporteService {
       tap(creadoRemoto => {
         this.backendConectadoState.set(true);
         this.reportesState.update(lista => [creadoRemoto, ...lista]);
+        this.cargarAulasSugeridas();
       }),
       catchError((error: HttpErrorResponse) => {
         // Si el backend respondió con error de negocio o recurso no encontrado (400 / 404), no mentir al usuario
@@ -296,6 +297,7 @@ export class ReporteService {
           this.reportesState.update(lista =>
             lista.map(r => (r.id === id ? actualizado : r))
           );
+          this.cargarAulasSugeridas();
         })
       );
 
@@ -350,6 +352,7 @@ export class ReporteService {
           this.reportesState.update(lista =>
             lista.map(r => (r.id === id ? actualizado : r))
           );
+          this.cargarAulasSugeridas();
         })
       );
 
@@ -385,6 +388,7 @@ export class ReporteService {
         tap(() => {
           this.backendConectadoState.set(true);
           this.reportesState.update(lista => lista.filter(r => r.id !== id));
+          this.cargarAulasSugeridas();
         })
       );
 

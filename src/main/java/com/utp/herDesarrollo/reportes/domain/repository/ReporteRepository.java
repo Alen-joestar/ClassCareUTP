@@ -3,6 +3,7 @@ package com.utp.herDesarrollo.reportes.domain.repository;
 import com.utp.herDesarrollo.reportes.domain.model.EstadoReporte;
 import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
+import com.utp.herDesarrollo.reportes.domain.model.TipoProblema;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -52,4 +53,14 @@ public interface ReporteRepository extends JpaRepository<Reporte, Long> {
      * Cuenta reportes no resueltos para un aula.
      */
     long countByAula_IdAndEstadoNot(Long aulaId, EstadoReporte estado);
+
+    /**
+     * Verifica si ya existe un reporte activo (no resuelto) en la misma aula para la misma categoría técnica.
+     */
+    boolean existsByAula_IdAndTipoProblemaAndEstadoNot(Long aulaId, TipoProblema tipoProblema, EstadoReporte estado);
+
+    /**
+     * Verifica si ya existe otro reporte activo en la misma aula para la misma categoría excluyendo un ID (modo edición).
+     */
+    boolean existsByAula_IdAndTipoProblemaAndEstadoNotAndIdNot(Long aulaId, TipoProblema tipoProblema, EstadoReporte estado, Long id);
 }
