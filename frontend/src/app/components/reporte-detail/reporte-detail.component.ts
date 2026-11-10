@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
 import { AuthService } from '../../services/auth.service';
 import { ReporteService } from '../../services/reporte.service';
@@ -21,11 +21,13 @@ import { ReporteService } from '../../services/reporte.service';
 })
 export class ReporteDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly reporteService = inject(ReporteService);
   protected readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly reporteId = signal<number | null>(null);
+  readonly confirmandoEliminacion = signal<boolean>(false);
 
   // Reporte reactivo calculado a partir del parámetro de ruta :id y del servicio
   readonly reporte = computed(() => {
@@ -41,6 +43,7 @@ export class ReporteDetailComponent {
       const rawId = params.get('id');
       const numericId = rawId ? Number(rawId) : null;
       this.reporteId.set(numericId);
+      this.confirmandoEliminacion.set(false);
 
       if (numericId !== null && !Number.isNaN(numericId)) {
         this.reporteService.sincronizarPorId(numericId).subscribe();
@@ -50,6 +53,57 @@ export class ReporteDetailComponent {
 
   formatCount(count: number): string {
     return String(count).padStart(2, '0');
+  }
+
+  solicitarEliminacion(): void {
+    if (!this.authService.puedeEliminarReportes()) {
+      this.snackBar
+        .open(
+          'Acceso restringido (403): Solo el rol ADMIN con JWT puede eliminar reportes del sistema.',
+          'Entrar como Admin',
+          { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        )
+        .onAction()
+        .subscribe(() => {
+          this.authService.loginRapido('admin').subscribe(() => {
+            this.confirmandoEliminacion.set(true);
+          });
+        });
+      return;
+    }
+    this.confirmandoEliminacion.set(true);
+  }
+
+  cancelarEliminacion(): void {
+    this.confirmandoEliminacion.set(false);
+  }
+
+  confirmarEliminacion(): void {
+    const actual = this.reporte();
+    if (!actual) {
+      return;
+    }
+
+    this.reporteService.eliminarReporte(actual.id).subscribe({
+      next: () => {
+        this.snackBar.open(
+          `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) eliminado permanentemente [JWT Admin]`,
+          'Cerrar',
+          { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        );
+        this.router.navigate(['/reportes']);
+      },
+      error: (err: HttpErrorResponse) => {
+        const msg =
+          err?.error?.message ||
+          `No se pudo eliminar el reporte (${err.status}): Requiere privilegios ADMIN.`;
+        this.snackBar.open(msg, 'Cerrar', {
+          duration: 4500,
+          horizontalPosition: 'end',
+          verticalPosition: 'bottom'
+        });
+      }
+    });
   }
 
   cambiarEstado(nuevoEstado: EstadoReporte): void {
@@ -84,7 +138,6 @@ export class ReporteDetailComponent {
         );
       },
       error: (err: HttpErrorResponse) => {
-        // Corrección #3: Diagnóstico exacto según el código de estado devuelto por GlobalExceptionHandler
         const serverMsg = err?.error?.message;
         if (err.status === 404) {
           this.snackBar.open(

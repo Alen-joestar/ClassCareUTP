@@ -121,6 +121,45 @@
             </div>
           </section>
         </div>
+
+        <!-- Barra de Operaciones CRUD (Editar PUT / Eliminar DELETE por Rol) -->
+        <footer class="detail-crud-footer">
+          @if (!confirmandoEliminacion()) {
+            <span class="crud-footer-caption">
+              OPERACIONES DEL REPORTE &bull; {{ authService.rolEtiqueta() }}
+            </span>
+
+            <div class="crud-btn-group">
+              <a [routerLink]="['/reportes', item.id, 'editar']" class="m3-btn-edit">
+                <mat-icon>edit_note</mat-icon>
+                <span>Editar reporte</span>
+              </a>
+
+              <button type="button" class="m3-btn-delete" (click)="solicitarEliminacion()">
+                <mat-icon>delete_outline</mat-icon>
+                <span>Eliminar (Admin)</span>
+              </button>
+            </div>
+          } @else {
+            <div class="delete-confirm-banner" role="alert">
+              <div class="delete-confirm-copy">
+                <mat-icon>warning_amber</mat-icon>
+                <span>
+                  ¿Confirmas eliminar permanentemente el <strong>Reporte #{{ formatCount(item.id) }} ({{ item.aulaId }})</strong> de la base de datos?
+                </span>
+              </div>
+              <div class="crud-btn-group">
+                <button type="button" class="m3-btn-cancel-del" (click)="cancelarEliminacion()">
+                  <span>Cancelar</span>
+                </button>
+                <button type="button" class="m3-btn-confirm-del" (click)="confirmarEliminacion()">
+                  <mat-icon>delete_forever</mat-icon>
+                  <span>Sí, eliminar reporte</span>
+                </button>
+              </div>
+            </div>
+          }
+        </footer>
       </article>
     </div>
   } @else {

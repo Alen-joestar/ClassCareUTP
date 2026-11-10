@@ -314,6 +314,120 @@
   }
 }
 
+.detail-crud-footer {
+  background-color: var(--card-header-bg);
+  border-top: 1px solid var(--card-border);
+  padding: 1rem 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.875rem;
+}
+
+.crud-footer-caption {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.crud-btn-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.m3-btn-edit,
+.m3-btn-delete,
+.m3-btn-cancel-del,
+.m3-btn-confirm-del {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0 11px 4px 11px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.m3-btn-edit {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-bg);
+
+  &:hover {
+    background-color: var(--btn-hover);
+    border-color: var(--btn-hover);
+  }
+}
+
+.m3-btn-delete {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+
+  &:hover {
+    background-color: #DC2626;
+    color: #FFFFFF;
+    border-color: #DC2626;
+  }
+}
+
+.delete-confirm-banner {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 0 12px 4px 12px;
+  padding: 0.75rem 1rem;
+}
+
+.delete-confirm-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+
+  mat-icon {
+    color: #EF4444;
+    flex-shrink: 0;
+  }
+}
+
+.m3-btn-cancel-del {
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+}
+
+.m3-btn-confirm-del {
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border: 1px solid #DC2626;
+
+  &:hover {
+    background-color: #B91C1C;
+  }
+}
+
 .not-found-box {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);

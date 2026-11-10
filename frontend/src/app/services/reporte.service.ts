@@ -203,15 +203,20 @@ export class ReporteService {
 
   /**
    * Verifica si ya existe un reporte activo (PENDIENTE o EN_ATENCION)
-   * para la misma aula y la misma categoría técnica.
+   * para la misma aula y la misma categoría técnica, excluyendo opcionalmente el ID en edición.
    */
-  buscarDuplicadoActivo(aulaId: string, tipoProblema: TipoProblema): Reporte | undefined {
+  buscarDuplicadoActivo(
+    aulaId: string,
+    tipoProblema: TipoProblema,
+    excluirId?: number | null
+  ): Reporte | undefined {
     const codigoNormalizado = aulaId.trim().toUpperCase();
     if (!codigoNormalizado) {
       return undefined;
     }
     return this.reportesState().find(
       r =>
+        r.id !== excluirId &&
         r.aulaId.toUpperCase() === codigoNormalizado &&
         r.tipoProblema === tipoProblema &&
         r.estado !== 'RESUELTO'
@@ -313,6 +318,87 @@ export class ReporteService {
           lista.map(r => (r.id === id ? actualizadoLocal : r))
         );
         return of(actualizadoLocal);
+      })
+    );
+  }
+
+  /**
+   * PUT /api/reportes/{id} : Actualiza los detalles (categoría, prioridad y diagnóstico) de un reporte existente.
+   * Protegido por JWT (requiere ROLE_TECNICO o ROLE_ADMIN).
+   */
+  actualizarDetallesReporte(
+    id: number,
+    cambios: { tipoProblema: TipoProblema; prioridad: Prioridad; descripcion: string }
+  ): Observable<Reporte> {
+    const actual = this.obtenerPorId(id);
+    if (!actual) {
+      return throwError(() => new Error(`No se encontró el reporte #${id}`));
+    }
+
+    const requestDto: ActualizarReporteRequestDTO = {
+      descripcion: cambios.descripcion.trim(),
+      tipoProblema: cambios.tipoProblema,
+      prioridad: cambios.prioridad,
+      estado: actual.estado
+    };
+
+    const ejecutarPut = () =>
+      this.http.put<Reporte>(`${this.apiUrl}/${id}`, requestDto).pipe(
+        map(respuesta => this.normalizarReporte(respuesta, actual.aulaUbicacion)),
+        tap(actualizado => {
+          this.backendConectadoState.set(true);
+          this.reportesState.update(lista =>
+            lista.map(r => (r.id === id ? actualizado : r))
+          );
+        })
+      );
+
+    return ejecutarPut().pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401 && this.authService.sesion()?.origen === 'DEMO_JWT') {
+          return this.authService.asegurarTokenReal().pipe(switchMap(() => ejecutarPut()));
+        }
+        if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 400) {
+          return throwError(() => error);
+        }
+        const actualizadoLocal: Reporte = {
+          ...actual,
+          tipoProblema: cambios.tipoProblema,
+          prioridad: cambios.prioridad,
+          descripcion: cambios.descripcion.trim()
+        };
+        this.reportesState.update(lista =>
+          lista.map(r => (r.id === id ? actualizadoLocal : r))
+        );
+        return of(actualizadoLocal);
+      })
+    );
+  }
+
+  /**
+   * DELETE /api/reportes/{id} : Elimina un reporte en el backend y actualiza la señal reactiva.
+   * Protegido en SecurityConfig exclusivamente para ROLE_ADMIN.
+   */
+  eliminarReporte(id: number): Observable<void> {
+    const ejecutarDelete = () =>
+      this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+        tap(() => {
+          this.backendConectadoState.set(true);
+          this.reportesState.update(lista => lista.filter(r => r.id !== id));
+        })
+      );
+
+    return ejecutarDelete().pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401 && this.authService.sesion()?.origen === 'DEMO_JWT') {
+          return this.authService.asegurarTokenReal().pipe(switchMap(() => ejecutarDelete()));
+        }
+        if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 400) {
+          return throwError(() => error);
+        }
+        // Respaldo cuando el backend está apagado
+        this.reportesState.update(lista => lista.filter(r => r.id !== id));
+        return of(undefined);
       })
     );
   }

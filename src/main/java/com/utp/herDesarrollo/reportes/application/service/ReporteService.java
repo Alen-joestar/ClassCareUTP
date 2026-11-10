@@ -23,4 +23,6 @@ public interface ReporteService {
     List<ReporteResponseDTO> listarPorAulaId(String aulaId);
 
     ReporteResponseDTO actualizarReporte(Long id, ActualizarReporteDTO dto);
+
+    void eliminarReporte(Long id);
 }

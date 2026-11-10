@@ -43,6 +43,14 @@ export class AuthService {
     return roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN');
   });
 
+  /**
+   * Según SecurityConfig.java, exclusivamente ROLE_ADMIN puede ejecutar DELETE /api/reportes/{id}.
+   */
+  readonly puedeEliminarReportes = computed(() => {
+    const roles = this.sesionState()?.roles ?? [];
+    return roles.includes('ROLE_ADMIN');
+  });
+
   readonly rolEtiqueta = computed(() => {
     const actual = this.sesionState();
     if (!actual) {

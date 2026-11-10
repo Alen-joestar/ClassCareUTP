@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -10,8 +10,9 @@ import {
 } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Router, RouterLink } from '@angular/router';
-import { AulaDisponible, Prioridad, TipoProblema } from '../../models/reporte.model';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AulaDisponible, Prioridad, Reporte, TipoProblema } from '../../models/reporte.model';
+import { AuthService } from '../../services/auth.service';
 import { ReporteService } from '../../services/reporte.service';
 
 /**
@@ -23,7 +24,7 @@ function codigoAulaCampusValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const raw = (control.value ?? '').trim();
     if (!raw) {
-      return null; // Lo maneja Validators.required
+      return null;
     }
     return regex.test(raw) ? null : { formatoAulaCampus: true };
   };
@@ -42,7 +43,7 @@ function diagnosticoRealValidator(): ValidatorFn {
     const trimmed = raw.trim();
 
     if (!raw) {
-      return null; // Lo maneja Validators.required
+      return null;
     }
     if (trimmed.length === 0) {
       return { soloEspacios: true };
@@ -70,11 +71,16 @@ function diagnosticoRealValidator(): ValidatorFn {
 })
 export class ReporteFormComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
   private readonly reporteService = inject(ReporteService);
+  protected readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
-  // Corrección #4: Aulas sugeridas sincronizadas con GET /api/aulas desde ReporteService
+  readonly reporteEditandoId = signal<number | null>(null);
+  readonly modoEdicion = computed(() => this.reporteEditandoId() !== null);
+
+  // Aulas sugeridas sincronizadas con GET /api/aulas desde ReporteService
   readonly aulasSugeridas = this.reporteService.aulasSugeridas;
 
   readonly categorias: { valor: TipoProblema; label: string; icono: string }[] = [
@@ -130,16 +136,46 @@ export class ReporteFormComponent {
       const ubicacionCalculada = this.deducirUbicacionDesdeCodigo(valor);
       this.f.aulaUbicacion.setValue(ubicacionCalculada, { emitEvent: false });
     });
+
+    // Detectar si estamos en ruta /reportes/:id/editar (Modo Edición CRUD)
+    this.route.paramMap.subscribe(params => {
+      const rawId = params.get('id');
+      const numericId = rawId ? Number(rawId) : null;
+      this.reporteEditandoId.set(numericId);
+
+      if (numericId !== null && !Number.isNaN(numericId)) {
+        const local = this.reporteService.obtenerPorId(numericId);
+        if (local) {
+          this.precargarFormulario(local);
+        }
+        this.reporteService.sincronizarPorId(numericId).subscribe(remoto => {
+          if (remoto) {
+            this.precargarFormulario(remoto);
+          }
+        });
+      }
+    });
   }
 
   get f() {
     return this.reporteForm.controls;
   }
 
+  private precargarFormulario(reporte: Reporte): void {
+    this.reporteForm.patchValue({
+      aulaId: reporte.aulaId,
+      aulaUbicacion: reporte.aulaUbicacion || this.deducirUbicacionDesdeCodigo(reporte.aulaId),
+      tipoProblema: reporte.tipoProblema,
+      prioridad: reporte.prioridad,
+      descripcion: reporte.descripcion
+    });
+    this.reporteForm.updateValueAndValidity();
+  }
+
   /**
    * Validador Nivel 2 (a nivel de FormGroup):
    * Impide registrar un reporte si ya existe uno PENDIENTE o EN_ATENCION
-   * para la misma aula y la misma categoría técnica.
+   * para la misma aula y la misma categoría técnica (excluyendo el ID propio en modo edición).
    */
   private reporteDuplicadoValidator(): ValidatorFn {
     return (group: AbstractControl): ValidationErrors | null => {
@@ -149,7 +185,11 @@ export class ReporteFormComponent {
         return null;
       }
 
-      const duplicado = this.reporteService.buscarDuplicadoActivo(aulaId, tipo);
+      const duplicado = this.reporteService.buscarDuplicadoActivo(
+        aulaId,
+        tipo,
+        this.reporteEditandoId()
+      );
       if (duplicado) {
         return {
           reporteDuplicado: {
@@ -163,10 +203,6 @@ export class ReporteFormComponent {
     };
   }
 
-  /**
-   * Deduce automáticamente el Pabellón y Piso a partir del código (ej. B-204 -> Pabellón B • Piso 2)
-   * o toma la ubicación oficial registrada en GET /api/aulas si coincide.
-   */
   deducirUbicacionDesdeCodigo(codigoRaw: string): string {
     const limpio = codigoRaw.trim().toUpperCase();
     const aulaRegistrada = this.aulasSugeridas().find(a => a.codigo.toUpperCase() === limpio);
@@ -185,6 +221,9 @@ export class ReporteFormComponent {
   }
 
   seleccionarAulaRapida(aula: AulaDisponible): void {
+    if (this.modoEdicion()) {
+      return;
+    }
     this.f.aulaId.setValue(aula.codigo);
     this.f.aulaId.markAsDirty();
     this.f.aulaId.markAsTouched();
@@ -201,6 +240,15 @@ export class ReporteFormComponent {
   }
 
   limpiarFormulario(): void {
+    const idEdicion = this.reporteEditandoId();
+    if (idEdicion !== null) {
+      const original = this.reporteService.obtenerPorId(idEdicion);
+      if (original) {
+        this.precargarFormulario(original);
+        return;
+      }
+    }
+
     this.reporteForm.reset({
       aulaId: '',
       aulaUbicacion: 'Ingresa un código válido (ej. A-101, LAB-302)',
@@ -216,7 +264,55 @@ export class ReporteFormComponent {
       return;
     }
 
-    // Corrección #2: Suscripción real al POST /api/reportes con manejo de errores 404/400 de GlobalExceptionHandler
+    const idEdicion = this.reporteEditandoId();
+
+    // Modo Edición: PUT /api/reportes/{id} (protegido por JWT TECNICO o ADMIN)
+    if (idEdicion !== null) {
+      if (!this.authService.puedeActualizarReportes()) {
+        this.snackBar
+          .open(
+            'Acceso denegado (401/403): Se requiere rol TECNICO o ADMIN con JWT para editar un reporte.',
+            'Entrar como Técnico',
+            { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+          )
+          .onAction()
+          .subscribe(() => {
+            this.authService.loginRapido('tecnico').subscribe(() => this.onSubmit());
+          });
+        return;
+      }
+
+      const raw = this.reporteForm.getRawValue();
+      this.reporteService
+        .actualizarDetallesReporte(idEdicion, {
+          tipoProblema: raw.tipoProblema,
+          prioridad: raw.prioridad,
+          descripcion: raw.descripcion
+        })
+        .subscribe({
+          next: actualizado => {
+            this.snackBar.open(
+              `Reporte #${this.formatCount(actualizado.id)} (${actualizado.aulaId}) editado exitosamente [JWT Bearer]`,
+              'Cerrar',
+              { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+            );
+            this.router.navigate(['/reportes', actualizado.id]);
+          },
+          error: (err: HttpErrorResponse) => {
+            const msg =
+              err?.error?.message ||
+              `Error (${err.status}) al guardar los cambios del reporte.`;
+            this.snackBar.open(msg, 'Cerrar', {
+              duration: 4500,
+              horizontalPosition: 'end',
+              verticalPosition: 'bottom'
+            });
+          }
+        });
+      return;
+    }
+
+    // Modo Creación: POST /api/reportes
     this.reporteService.crearReporte(this.reporteForm.getRawValue()).subscribe({
       next: creado => {
         const numOrden = String(creado.id).padStart(2, '0');

@@ -173,4 +173,30 @@ public class ReporteServiceImpl implements ReporteService {
         Reporte actualizado = reporteRepository.save(reporteExistente);
         return ReporteResponseDTO.fromDomain(actualizado);
     }
+
+    @Override
+    @Transactional
+    public void eliminarReporte(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El ID del reporte no puede ser nulo");
+        }
+
+        Reporte reporteExistente = reporteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el reporte con ID: " + id));
+
+        Aula aulaAsociada = reporteExistente.getAula();
+        reporteRepository.delete(reporteExistente);
+
+        if (aulaAsociada != null) {
+            long reportesActivosRestantes = reporteRepository.countByAula_IdAndEstadoNotAndIdNot(
+                    aulaAsociada.getId(),
+                    EstadoReporte.RESUELTO,
+                    id
+            );
+            if (reportesActivosRestantes == 0 && "Mantenimiento".equalsIgnoreCase(aulaAsociada.getEstado())) {
+                aulaAsociada.setEstado("Disponible");
+                aulaRepository.save(aulaAsociada);
+            }
+        }
+    }
 }

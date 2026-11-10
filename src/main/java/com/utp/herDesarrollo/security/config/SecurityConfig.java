@@ -71,6 +71,10 @@ public class SecurityConfig {
                         // Módulo de Reportes: actualización restringida a personal técnico o admin
                         .requestMatchers(HttpMethod.PUT, "/api/reportes/**").hasAnyRole("TECNICO", "ADMIN")
 
+                        // Eliminacion de reportes: exclusivamente administrador
+                        .requestMatchers(HttpMethod.DELETE, "/api/reportes/**")
+                        .hasRole("ADMIN")
+
                         // Módulo de Atenciones: endpoints de atenciones
                         .requestMatchers("/api/atenciones/**").permitAll()
 
