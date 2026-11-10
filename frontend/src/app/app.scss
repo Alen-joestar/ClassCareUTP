@@ -110,6 +110,54 @@
   }
 }
 
+.m3-jwt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.85rem;
+  border-radius: 0 11px 4px 11px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #CBD5E1;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    border-color: #38BDF8;
+    color: #FFFFFF;
+  }
+
+  &--authorized {
+    background-color: rgba(5, 150, 105, 0.18);
+    border-color: rgba(16, 185, 129, 0.45);
+    color: #A7F3D0;
+
+    mat-icon {
+      color: #34D399;
+    }
+  }
+
+  &--readonly {
+    background-color: rgba(217, 119, 6, 0.18);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #FDE68A;
+
+    mat-icon {
+      color: #FBBF24;
+    }
+  }
+}
+
 .m3-theme-btn {
   background-color: rgba(255, 255, 255, 0.07);
   color: #E2E8F0;

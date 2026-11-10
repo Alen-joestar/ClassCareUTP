@@ -1,9 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
+import { AuthService } from '../../services/auth.service';
 import { ReporteService } from '../../services/reporte.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ReporteService } from '../../services/reporte.service';
 export class ReporteDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly reporteService = inject(ReporteService);
+  protected readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly reporteId = signal<number | null>(null);
@@ -36,7 +38,12 @@ export class ReporteDetailComponent {
   constructor() {
     this.route.paramMap.subscribe(params => {
       const rawId = params.get('id');
-      this.reporteId.set(rawId ? Number(rawId) : null);
+      const numericId = rawId ? Number(rawId) : null;
+      this.reporteId.set(numericId);
+
+      if (numericId !== null && !Number.isNaN(numericId)) {
+        this.reporteService.sincronizarPorId(numericId).subscribe();
+      }
     });
   }
 
@@ -49,12 +56,40 @@ export class ReporteDetailComponent {
     if (!actual || actual.estado === nuevoEstado) {
       return;
     }
-    this.reporteService.actualizarEstado(actual.id, nuevoEstado);
-    this.snackBar.open(
-      `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)}`,
-      'Cerrar',
-      { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
-    );
+
+    // Validación RBAC + JWT coherente con SecurityConfig.java (PUT /api/reportes/** requiere TECNICO o ADMIN)
+    if (!this.authService.puedeActualizarReportes()) {
+      this.snackBar
+        .open(
+          'Acceso denegado (401/403): Se requiere sesión JWT con rol TECNICO o ADMIN para actualizar estados.',
+          'Entrar como Técnico',
+          { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        )
+        .onAction()
+        .subscribe(() => {
+          this.authService.loginRapido('tecnico').subscribe(() => {
+            this.cambiarEstado(nuevoEstado);
+          });
+        });
+      return;
+    }
+
+    this.reporteService.actualizarEstado(actual.id, nuevoEstado).subscribe({
+      next: () => {
+        this.snackBar.open(
+          `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)} [JWT Bearer]`,
+          'Cerrar',
+          { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        );
+      },
+      error: () => {
+        this.snackBar.open(
+          'Error de autorización JWT (401/403) al intentar actualizar el reporte en el servidor.',
+          'Cerrar',
+          { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        );
+      }
+    });
   }
 
   getPasoEstado(estado: EstadoReporte): number {

@@ -26,6 +26,18 @@
         <span>Aulas</span>
       </a>
 
+      <!-- Selector interactivo de Sesión JWT (Semana 14: AuthController + authInterceptor) -->
+      <button
+        type="button"
+        class="m3-jwt-pill"
+        [class.m3-jwt-pill--authorized]="authService.puedeActualizarReportes()"
+        [class.m3-jwt-pill--readonly]="authService.autenticado() && !authService.puedeActualizarReportes()"
+        (click)="alternarSesionJwt()"
+        title="Haz clic para alternar el rol JWT (Técnico -> Admin -> Alumno -> Público)">
+        <mat-icon>{{ authService.autenticado() ? 'verified_user' : 'lock_open' }}</mat-icon>
+        <span>{{ authService.rolEtiqueta() }}</span>
+      </button>
+
       <button
         type="button"
         class="m3-theme-btn"

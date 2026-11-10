@@ -9,7 +9,11 @@
 
     @if (reporte()) {
       <span class="detail-hint">
-        HAZ CLIC EN CUALQUIER ETAPA PARA ACTUALIZAR EL ESTADO DEL REPORTE
+        @if (authService.puedeActualizarReportes()) {
+          SESIÓN ACTIVA: {{ authService.rolEtiqueta() }} &bull; HAZ CLIC EN CUALQUIER ETAPA PARA ACTUALIZAR EL ESTADO
+        } @else {
+          MODO CONSULTA ({{ authService.rolEtiqueta() }}) &bull; REQUIERE ROL TÉCNICO O ADMIN PARA CAMBIAR ESTADO
+        }
       </span>
     }
   </nav>

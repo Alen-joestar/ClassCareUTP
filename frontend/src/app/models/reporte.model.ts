@@ -21,3 +21,23 @@ export interface CrearReportePayload {
   prioridad: Prioridad;
   descripcion: string;
 }
+
+/**
+ * Contrato exacto de CrearReporteDTO en Spring Boot (POST /api/reportes)
+ */
+export interface CrearReporteRequestDTO {
+  aulaId: string;
+  tipoProblema: TipoProblema;
+  descripcion: string;
+  prioridad: Prioridad;
+}
+
+/**
+ * Contrato exacto de ActualizarReporteDTO en Spring Boot (PUT /api/reportes/{id})
+ */
+export interface ActualizarReporteRequestDTO {
+  descripcion: string;
+  tipoProblema: TipoProblema;
+  prioridad: Prioridad;
+  estado: EstadoReporte;
+}
