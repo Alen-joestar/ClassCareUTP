@@ -367,10 +367,15 @@
   background-color: var(--btn-bg);
   color: var(--btn-text);
   border: 1px solid var(--btn-bg);
+  transition: opacity 0.15s ease;
 
-  &:hover {
-    background-color: var(--btn-hover);
-    border-color: var(--btn-hover);
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 

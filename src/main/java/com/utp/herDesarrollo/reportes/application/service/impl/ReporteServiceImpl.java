@@ -143,6 +143,11 @@ public class ReporteServiceImpl implements ReporteService {
         Reporte reporteExistente = reporteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el reporte con ID: " + id));
 
+        if (reporteExistente.getEstado() == EstadoReporte.RESUELTO
+                && (dto.getEstado() == null || dto.getEstado() == EstadoReporte.RESUELTO)) {
+            throw new ReglaNegocioException("No se pueden editar los datos de un reporte que ya se encuentra resuelto y cerrado");
+        }
+
         if (dto.getDescripcion() != null && !dto.getDescripcion().isBlank()) {
             reporteExistente.setDescripcion(dto.getDescripcion().trim());
         }

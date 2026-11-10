@@ -55,6 +55,40 @@ export class ReporteDetailComponent {
     return String(count).padStart(2, '0');
   }
 
+  irAEditarReporte(): void {
+    const actual = this.reporte();
+    if (!actual) {
+      return;
+    }
+
+    if (actual.estado === 'RESUELTO') {
+      this.snackBar.open(
+        `El Reporte #${this.formatCount(actual.id)} ya está resuelto y cerrado; no admite ediciones.`,
+        'Cerrar',
+        { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+      );
+      return;
+    }
+
+    if (!this.authService.puedeActualizarReportes()) {
+      this.snackBar
+        .open(
+          'Acceso restringido (401/403): Solo Soporte Técnico o Admin con JWT pueden editar un reporte.',
+          'Entrar como Técnico',
+          { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        )
+        .onAction()
+        .subscribe(() => {
+          this.authService.loginRapido('tecnico').subscribe(() => {
+            this.router.navigate(['/reportes', actual.id, 'editar']);
+          });
+        });
+      return;
+    }
+
+    this.router.navigate(['/reportes', actual.id, 'editar']);
+  }
+
   solicitarEliminacion(): void {
     if (!this.authService.puedeEliminarReportes()) {
       this.snackBar

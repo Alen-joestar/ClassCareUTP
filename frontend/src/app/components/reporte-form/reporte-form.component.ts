@@ -162,6 +162,16 @@ export class ReporteFormComponent {
   }
 
   private precargarFormulario(reporte: Reporte): void {
+    if (reporte.estado === 'RESUELTO') {
+      this.snackBar.open(
+        `El Reporte #${this.formatCount(reporte.id)} ya se encuentra resuelto y cerrado; no admite ediciones.`,
+        'Cerrar',
+        { duration: 4500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+      );
+      this.router.navigate(['/reportes', reporte.id]);
+      return;
+    }
+
     this.reporteForm.patchValue({
       aulaId: reporte.aulaId,
       aulaUbicacion: reporte.aulaUbicacion || this.deducirUbicacionDesdeCodigo(reporte.aulaId),

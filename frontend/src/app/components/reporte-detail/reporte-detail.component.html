@@ -130,10 +130,15 @@
             </span>
 
             <div class="crud-btn-group">
-              <a [routerLink]="['/reportes', item.id, 'editar']" class="m3-btn-edit">
-                <mat-icon>edit_note</mat-icon>
-                <span>Editar reporte</span>
-              </a>
+              <button
+                type="button"
+                class="m3-btn-edit"
+                [disabled]="item.estado === 'RESUELTO'"
+                [attr.title]="item.estado === 'RESUELTO' ? 'Un reporte resuelto y cerrado no puede ser editado' : 'Editar diagnóstico, categoría o prioridad'"
+                (click)="irAEditarReporte()">
+                <mat-icon>{{ item.estado === 'RESUELTO' ? 'lock' : 'edit_note' }}</mat-icon>
+                <span>{{ item.estado === 'RESUELTO' ? 'Reporte cerrado (No editable)' : 'Editar reporte' }}</span>
+              </button>
 
               <button type="button" class="m3-btn-delete" (click)="solicitarEliminacion()">
                 <mat-icon>delete_outline</mat-icon>
