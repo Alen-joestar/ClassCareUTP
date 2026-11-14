@@ -76,40 +76,98 @@
           <mat-icon>close</mat-icon>
         </button>
       </div>
-      <form #aulaForm="ngForm" (ngSubmit)="guardarAula()">
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Código del aula</span>
-            <input name="codigo" [(ngModel)]="datosFormulario.codigo" required maxlength="30" placeholder="Ej. A-101">
-          </label>
-          <label class="form-field">
-            <span>Ubicación</span>
-            <input name="ubicacion" [(ngModel)]="datosFormulario.ubicacion" required maxlength="120" placeholder="Pabellón y piso">
-          </label>
-          <label class="form-field">
-            <span>Capacidad</span>
-            <input name="capacidad" type="number" [(ngModel)]="datosFormulario.capacidad" required min="1" max="200">
-          </label>
-          <label class="form-field">
-            <span>Estado operativo</span>
-            <select name="estado" [(ngModel)]="datosFormulario.estado" required>
-              <option value="Disponible">Disponible</option>
-              <option value="Ocupada">Ocupada</option>
-              <option value="Mantenimiento">Mantenimiento</option>
-            </select>
-          </label>
-        </div>
-        @if (errorFormulario) {
-          <p class="form-error" role="alert">{{ errorFormulario }}</p>
-        }
-        <div class="form-actions">
-          <button type="button" class="button button--quiet" (click)="cancelarFormulario()">Cancelar</button>
-          <button type="submit" class="button button--primary" [disabled]="aulaForm.invalid || guardando">
-            <mat-icon>{{ guardando ? 'hourglass_top' : 'save' }}</mat-icon>
-            <span>{{ guardando ? 'Guardando…' : (aulaEnEdicion === null ? 'Registrar aula' : 'Guardar cambios') }}</span>
-          </button>
-        </div>
-      </form>
+      
+<form [formGroup]="aulaForm" (ngSubmit)="guardarAula()">
+  <div class="form-grid">
+    <label class="form-field">
+      <span>Código del aula</span>
+      <input
+        formControlName="codigo"
+        maxlength="30"
+        placeholder="Ej. A-101"
+      >
+      @if (aulaForm.controls.codigo.touched && aulaForm.controls.codigo.invalid) {
+        <small class="form-error">
+          @if (aulaForm.controls.codigo.hasError('required') ||
+               aulaForm.controls.codigo.hasError('pattern')) {
+            Ingrese el código del aula.
+          } @else if (aulaForm.controls.codigo.hasError('maxlength')) {
+            El código no debe superar los 30 caracteres.
+          }
+        </small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Ubicación</span>
+      <input
+        formControlName="ubicacion"
+        maxlength="120"
+        placeholder="Pabellón y piso"
+      >
+      @if (aulaForm.controls.ubicacion.touched && aulaForm.controls.ubicacion.invalid) {
+        <small class="form-error">
+          @if (aulaForm.controls.ubicacion.hasError('required') ||
+               aulaForm.controls.ubicacion.hasError('pattern')) {
+            Ingrese la ubicación del aula.
+          } @else if (aulaForm.controls.ubicacion.hasError('maxlength')) {
+            La ubicación no debe superar los 120 caracteres.
+          }
+        </small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Capacidad</span>
+      <input
+        type="number"
+        formControlName="capacidad"
+        min="1"
+        max="200"
+      >
+      @if (aulaForm.controls.capacidad.touched && aulaForm.controls.capacidad.invalid) {
+        <small class="form-error">
+          La capacidad debe estar entre 1 y 200 personas.
+        </small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Estado operativo</span>
+      <select formControlName="estado">
+        <option value="Disponible">Disponible</option>
+        <option value="Ocupada">Ocupada</option>
+        <option value="Mantenimiento">Mantenimiento</option>
+      </select>
+    </label>
+  </div>
+
+  @if (errorFormulario) {
+    <p class="form-error" role="alert">{{ errorFormulario }}</p>
+  }
+
+  <div class="form-actions">
+    <button
+      type="button"
+      class="button button--quiet"
+      (click)="cancelarFormulario()"
+    >
+      Cancelar
+    </button>
+
+    <button
+      type="submit"
+      class="button button--primary"
+      [disabled]="aulaForm.invalid || guardando"
+    >
+      <mat-icon>{{ guardando ? 'hourglass_top' : 'save' }}</mat-icon>
+      <span>
+        {{ guardando ? 'Guardando…' : (aulaEnEdicion === null ? 'Registrar aula' : 'Guardar cambios') }}
+      </span>
+    </button>
+  </div>
+</form>
+
     </section>
   }
 

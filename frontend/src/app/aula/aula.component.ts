@@ -1,5 +1,6 @@
+
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Aula, AulaFormData } from './aula.model';
 import { AulaService } from './aula.service';
@@ -13,7 +14,7 @@ const NUEVA_AULA: AulaFormData = {
 
 @Component({
   selector: 'app-aula',
-  imports: [FormsModule, MatIconModule],
+  imports: [FormsModule, ReactiveFormsModule, MatIconModule],
   templateUrl: './aula.component.html',
   styleUrl: './aula.component.scss'
 })
@@ -30,10 +31,46 @@ export class AulaComponent implements OnInit {
   readonly loginVisible = signal(false);
   readonly formularioVisible = signal(false);
   readonly aulaAEliminar = signal<Aula | null>(null);
+
   readonly sesion = this.aulaService.session;
+
   readonly puedeGestionar = computed(() =>
-    this.sesion()?.roles.some(rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN') ?? false
+    this.sesion()?.roles.some(
+      rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN'
+    ) ?? false
   );
+
+  // Formulario reactivo para registrar y editar aulas.
+  readonly aulaForm = new FormGroup({
+    codigo: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.maxLength(30),
+        Validators.pattern(/\S/)
+      ]
+    }),
+    ubicacion: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.maxLength(120),
+        Validators.pattern(/\S/)
+      ]
+    }),
+    capacidad: new FormControl(1, {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(200)
+      ]
+    }),
+    estado: new FormControl('Disponible', {
+      nonNullable: true,
+      validators: [Validators.required]
+    })
+  });
 
   readonly aulasFiltradas = computed(() => {
     const query = this.normalizar(this.busqueda());
@@ -45,23 +82,32 @@ export class AulaComponent implements OnInit {
         !query ||
         this.normalizar(aula.codigo).includes(query) ||
         this.normalizar(aula.ubicacion).includes(query);
-      const coincideEstado = !estado || this.normalizar(aula.estado) === estado;
+
+      const coincideEstado =
+        !estado || this.normalizar(aula.estado) === estado;
+
       return coincideTexto && coincideEstado && aula.capacidad >= capacidad;
     });
   });
 
   readonly totalAulas = computed(() => this.aulas().length);
+
   readonly aulasDisponibles = computed(() =>
-    this.aulas().filter(aula => this.normalizar(aula.estado) === 'disponible').length
+    this.aulas().filter(
+      aula => this.normalizar(aula.estado) === 'disponible'
+    ).length
   );
+
   readonly aulasOcupadas = computed(() =>
-    this.aulas().filter(aula => this.normalizar(aula.estado) === 'ocupada').length
+    this.aulas().filter(
+      aula => this.normalizar(aula.estado) === 'ocupada'
+    ).length
   );
+
   readonly aulasMantenimiento = computed(() =>
     this.aulas().filter(aula => this.esMantenimiento(aula.estado)).length
   );
 
-  datosFormulario: AulaFormData = { ...NUEVA_AULA };
   usuario = '';
   contrasena = '';
   errorLogin = '';
@@ -76,6 +122,7 @@ export class AulaComponent implements OnInit {
   async cargarAulas(): Promise<void> {
     this.cargando.set(true);
     this.errorCarga.set('');
+
     try {
       this.aulas.set(await this.aulaService.listar());
     } catch (error) {
@@ -106,23 +153,38 @@ export class AulaComponent implements OnInit {
 
   async iniciarSesion(): Promise<void> {
     this.errorLogin = '';
+
     try {
-      const sesion = await this.aulaService.iniciarSesion(this.usuario.trim(), this.contrasena);
-      if (sesion.roles.some(rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN')) {
+      const sesion = await this.aulaService.iniciarSesion(
+        this.usuario.trim(),
+        this.contrasena
+      );
+
+      if (
+        sesion.roles.some(
+          rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN'
+        )
+      ) {
         this.loginVisible.set(false);
-        this.mensaje.set(`Bienvenido, ${sesion.username}. Ya puede gestionar las aulas.`);
+        this.mensaje.set(
+          `Bienvenido, ${sesion.username}. Ya puede gestionar las aulas.`
+        );
       } else {
-        this.errorLogin = 'Su cuenta inició sesión, pero no tiene permisos para gestionar aulas.';
+        this.errorLogin =
+          'Su cuenta inició sesión, pero no tiene permisos para gestionar aulas.';
       }
     } catch (error) {
-      this.errorLogin = this.aulaService.mensajeError(error, 'No se pudo iniciar sesión.');
+      this.errorLogin = this.aulaService.mensajeError(
+        error,
+        'No se pudo iniciar sesión.'
+      );
     }
   }
 
   cerrarSesion(): void {
     this.aulaService.cerrarSesion();
     this.formularioVisible.set(false);
-    this.aulaEnEdicion = null;
+    this.limpiarFormulario();
     this.mensaje.set('La sesión se cerró correctamente.');
   }
 
@@ -133,12 +195,19 @@ export class AulaComponent implements OnInit {
 
   editarAula(aula: Aula): void {
     this.aulaEnEdicion = aula.id;
-    this.datosFormulario = {
+
+    this.aulaForm.setValue({
       codigo: aula.codigo,
       ubicacion: aula.ubicacion,
       capacidad: aula.capacidad,
-      estado: this.esMantenimiento(aula.estado) ? 'Mantenimiento' : aula.estado
-    };
+      estado: this.esMantenimiento(aula.estado)
+        ? 'Mantenimiento'
+        : aula.estado
+    });
+
+    this.aulaForm.markAsPristine();
+    this.aulaForm.markAsUntouched();
+
     this.errorFormulario = '';
     this.formularioVisible.set(true);
   }
@@ -150,11 +219,20 @@ export class AulaComponent implements OnInit {
 
   async guardarAula(): Promise<void> {
     this.errorFormulario = '';
+
+    if (this.aulaForm.invalid) {
+      this.aulaForm.markAllAsTouched();
+      return;
+    }
+
     this.guardando = true;
-    const datos = {
-      ...this.datosFormulario,
-      codigo: this.datosFormulario.codigo.trim(),
-      ubicacion: this.datosFormulario.ubicacion.trim()
+
+    const valores = this.aulaForm.getRawValue();
+
+    const datos: AulaFormData = {
+      ...valores,
+      codigo: valores.codigo.trim(),
+      ubicacion: valores.ubicacion.trim()
     };
 
     try {
@@ -163,8 +241,11 @@ export class AulaComponent implements OnInit {
         this.mensaje.set('El aula se registró correctamente.');
       } else {
         await this.aulaService.actualizar(this.aulaEnEdicion, datos);
-        this.mensaje.set('Los datos del aula se actualizaron correctamente.');
+        this.mensaje.set(
+          'Los datos del aula se actualizaron correctamente.'
+        );
       }
+
       this.cancelarFormulario();
       await this.cargarAulas();
     } catch (error) {
@@ -184,6 +265,7 @@ export class AulaComponent implements OnInit {
 
   async eliminarAula(): Promise<void> {
     const aula = this.aulaAEliminar();
+
     if (!aula) {
       return;
     }
@@ -191,11 +273,16 @@ export class AulaComponent implements OnInit {
     try {
       await this.aulaService.eliminar(aula.id);
       this.aulaAEliminar.set(null);
-      this.mensaje.set(`El aula ${aula.codigo} se eliminó correctamente.`);
+      this.mensaje.set(
+        `El aula ${aula.codigo} se eliminó correctamente.`
+      );
       await this.cargarAulas();
     } catch (error) {
       this.mensaje.set(
-        this.aulaService.mensajeError(error, 'No se pudo eliminar el aula.')
+        this.aulaService.mensajeError(
+          error,
+          'No se pudo eliminar el aula.'
+        )
       );
       this.aulaAEliminar.set(null);
     }
@@ -205,29 +292,39 @@ export class AulaComponent implements OnInit {
     if (this.esMantenimiento(estado)) {
       return 'En mantenimiento';
     }
+
     const normalizado = this.normalizar(estado);
+
     if (normalizado === 'disponible') {
       return 'Disponible';
     }
+
     if (normalizado === 'ocupada') {
       return 'Ocupada';
     }
+
     return estado;
   }
 
   claveEstado(estado: string): string {
-    return this.esMantenimiento(estado) ? 'mantenimiento' : this.normalizar(estado);
+    return this.esMantenimiento(estado)
+      ? 'mantenimiento'
+      : this.normalizar(estado);
   }
 
   private limpiarFormulario(): void {
-    this.datosFormulario = { ...NUEVA_AULA };
+    this.aulaForm.reset(NUEVA_AULA);
     this.aulaEnEdicion = null;
     this.errorFormulario = '';
   }
 
   private esMantenimiento(estado: string): boolean {
     const normalizado = this.normalizar(estado);
-    return normalizado === 'mantenimiento' || normalizado === 'en mantenimiento';
+
+    return (
+      normalizado === 'mantenimiento' ||
+      normalizado === 'en mantenimiento'
+    );
   }
 
   private normalizar(valor: string): string {
