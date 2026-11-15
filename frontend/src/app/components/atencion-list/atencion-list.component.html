@@ -1,0 +1,267 @@
+<section class="m3-atenciones-page">
+
+  <!-- Bloque Hero Marino Institucional con KPIs y Métrica de Efectividad -->
+  <header class="hero-banner">
+    <div class="hero-copy">
+      <div class="hero-pill-badge">
+        <mat-icon aria-hidden="true">build_circle</mat-icon>
+        <span>Mesa de Operaciones y Mantenimiento UTP</span>
+      </div>
+      <h2 class="hero-title">Bandeja de Atenciones Técnicas</h2>
+      <p class="hero-subtitle">
+        Gestión técnica de incidencias en campus. Monitoreo del ciclo de vida, asignaciones por técnico y cumplimiento de acuerdos de nivel de servicio (SLA).
+      </p>
+    </div>
+
+    <div class="kpi-strip" role="toolbar" aria-label="Filtros rápidos por estado de atención">
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === ''"
+        [attr.aria-pressed]="selectedEstado() === ''"
+        aria-label="Ver todas las órdenes de atención"
+        (click)="filterByEstado('')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalAtenciones()) }}</span>
+          <span class="kpi-lbl">Total Órdenes</span>
+        </div>
+        <span class="kpi-dot" style="background: #94A3B8" aria-hidden="true"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'PENDIENTE'"
+        [attr.aria-pressed]="selectedEstado() === 'PENDIENTE'"
+        aria-label="Filtrar atenciones pendientes"
+        (click)="filterByEstado('PENDIENTE')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalPendientes()) }}</span>
+          <span class="kpi-lbl">Pendientes</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-pendiente-main)" aria-hidden="true"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'EN_ATENCION'"
+        [attr.aria-pressed]="selectedEstado() === 'EN_ATENCION'"
+        aria-label="Filtrar atenciones en proceso"
+        (click)="filterByEstado('EN_ATENCION')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalEnAtencion()) }}</span>
+          <span class="kpi-lbl">En Proceso</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-atencion-main)" aria-hidden="true"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="selectedEstado() === 'RESUELTO'"
+        [attr.aria-pressed]="selectedEstado() === 'RESUELTO'"
+        aria-label="Filtrar atenciones resueltas"
+        (click)="filterByEstado('RESUELTO')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalResueltos()) }}</span>
+          <span class="kpi-lbl">Resueltas</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-resuelto-main)" aria-hidden="true"></span>
+      </button>
+
+      <!-- KPI Extra Diferenciador: Tasa de Resolución / Eficiencia Técnica -->
+      <div class="kpi-tile kpi-tile--efficiency" title="Índice de resoluciones sobre el total de órdenes asignadas">
+        <div class="kpi-data">
+          <span class="kpi-num efficiency-num">{{ tasaResolucion() }}%</span>
+          <span class="kpi-lbl">Efectividad SLA</span>
+        </div>
+        <mat-icon class="efficiency-icon" aria-hidden="true">speed</mat-icon>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Filtros y Selector de Carga de Trabajo por Técnico -->
+  <section class="filter-panel" aria-label="Controles de búsqueda y filtros técnicos">
+    <div class="filter-row-top">
+      <div class="filter-field search-field">
+        <mat-icon class="search-icon" aria-hidden="true">search</mat-icon>
+        <input
+          type="search"
+          id="search-atencion"
+          class="filter-input"
+          placeholder="Buscar por técnico, aula, observaciones o #ID..."
+          aria-label="Buscar atenciones por técnico, código de aula, observaciones o número de ticket"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+
+      <div class="filter-actions">
+        @if (searchQuery() || selectedEstado() || selectedTecnico()) {
+          <button type="button" class="btn-clear" aria-label="Limpiar todos los filtros aplicados" (click)="resetFilters()">
+            <mat-icon aria-hidden="true">clear_all</mat-icon>
+            <span>Restablecer Filtros</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Píldoras de Filtro Rápido por Técnico Asignado (Carga Laboral) -->
+    <div class="tecnico-pills-bar" role="group" aria-label="Filtro rápido por técnico encargado">
+      <span class="pills-label">
+        <mat-icon aria-hidden="true">badge</mat-icon>
+        Filtrar por Técnico:
+      </span>
+
+      <button
+        type="button"
+        class="tecnico-pill"
+        [class.tecnico-pill--active]="selectedTecnico() === ''"
+        (click)="filterByTecnico('')">
+        Todos ({{ totalAtenciones() }})
+      </button>
+
+      <button
+        type="button"
+        class="tecnico-pill tecnico-pill--my"
+        [class.tecnico-pill--active]="selectedTecnico() === tecnicoLogueado"
+        (click)="filterByTecnico(tecnicoLogueado)">
+        <mat-icon aria-hidden="true">account_circle</mat-icon>
+        Mis Casos ({{ tecnicoLogueado }})
+      </button>
+
+      @for (item of tecnicosDisponibles(); track item.tecnico) {
+        @if (item.tecnico !== tecnicoLogueado) {
+          <button
+            type="button"
+            class="tecnico-pill"
+            [class.tecnico-pill--active]="selectedTecnico() === item.tecnico"
+            (click)="filterByTecnico(item.tecnico)">
+            {{ item.tecnico }} ({{ item.count }})
+          </button>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- Cuadrícula de Tarjetas Folder-Tab M3 -->
+  <section class="cards-grid" aria-live="polite">
+    @for (atencion of filteredAtenciones(); track atencion.id) {
+      <article
+        class="folder-card"
+        [class.folder-card--pendiente]="atencion.estado === 'PENDIENTE'"
+        [class.folder-card--atencion]="atencion.estado === 'EN_ATENCION'"
+        [class.folder-card--resuelto]="atencion.estado === 'RESUELTO'">
+
+        <!-- Solapa Sólida Superior con Estado e ID -->
+        <div class="folder-tab">
+          <span class="tab-tag">ORDEN #{{ atencion.id }}</span>
+          <span class="tab-status">
+            <mat-icon class="tab-icon" aria-hidden="true">{{ getEstadoIcon(atencion.estado) }}</mat-icon>
+            {{ getEstadoLabel(atencion.estado) }}
+          </span>
+        </div>
+
+        <div class="folder-body">
+          <header class="card-head">
+            <div class="aula-badge">
+              <mat-icon aria-hidden="true">meeting_room</mat-icon>
+              <span>Aula {{ atencion.aulaCodigo || 'N/A' }}</span>
+            </div>
+
+            <span class="mantenimiento-chip" [class.mantenimiento-chip--correctivo]="atencion.tipoMantenimiento === 'CORRECTIVO'">
+              <mat-icon aria-hidden="true">{{ atencion.tipoMantenimiento === 'CORRECTIVO' ? 'warning' : 'verified' }}</mat-icon>
+              {{ getMantenimientoLabel(atencion.tipoMantenimiento) }}
+            </span>
+          </header>
+
+          <!-- Stepper de Ciclo de Vida Visual (Progreso de la Atención) -->
+          <div class="stepper-track" role="region" aria-label="Progreso de la atención">
+            <div class="stepper-step" [class.stepper-step--done]="getPasoActivo(atencion.estado) >= 1" [class.stepper-step--current]="getPasoActivo(atencion.estado) === 1">
+              <span class="step-circle">1</span>
+              <span class="step-text">Asignado</span>
+            </div>
+
+            <div class="stepper-connector" [class.stepper-connector--done]="getPasoActivo(atencion.estado) >= 2"></div>
+
+            <div class="stepper-step" [class.stepper-step--done]="getPasoActivo(atencion.estado) >= 2" [class.stepper-step--current]="getPasoActivo(atencion.estado) === 2">
+              <span class="step-circle">2</span>
+              <span class="step-text">En Proceso</span>
+            </div>
+
+            <div class="stepper-connector" [class.stepper-connector--done]="getPasoActivo(atencion.estado) >= 3"></div>
+
+            <div class="stepper-step" [class.stepper-step--done]="getPasoActivo(atencion.estado) >= 3" [class.stepper-step--current]="getPasoActivo(atencion.estado) === 3">
+              <span class="step-circle">3</span>
+              <span class="step-text">Solucionado</span>
+            </div>
+          </div>
+
+          <div class="meta-row">
+            <div class="meta-item">
+              <mat-icon class="meta-icon" aria-hidden="true">person</mat-icon>
+              <div class="meta-content">
+                <span class="meta-label">Técnico a Cargo</span>
+                <span class="meta-val" [class.meta-val--highlight]="atencion.tecnicoEncargado === tecnicoLogueado">
+                  {{ atencion.tecnicoEncargado }}
+                  @if (atencion.tecnicoEncargado === tecnicoLogueado) {
+                    <span class="tag-me">(Tú)</span>
+                  }
+                </span>
+              </div>
+            </div>
+
+            <div class="meta-item">
+              <mat-icon class="meta-icon" aria-hidden="true">alt_route</mat-icon>
+              <div class="meta-content">
+                <span class="meta-label">Ticket Origen</span>
+                <span class="meta-val">Reporte #{{ atencion.reporteId }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Impacto en Aula / Diagnóstico Preliminar -->
+          @if (atencion.impactoAcademico) {
+            <div class="impacto-box">
+              <mat-icon class="impacto-icon" aria-hidden="true">info</mat-icon>
+              <span class="impacto-text">{{ atencion.impactoAcademico }}</span>
+            </div>
+          }
+
+          <div class="obs-box">
+            <span class="obs-label">Diagnóstico y Solución Técnica:</span>
+            <p class="obs-text">{{ atencion.observaciones || 'Sin observaciones registradas.' }}</p>
+          </div>
+
+          <footer class="card-foot">
+            <div class="time-track">
+              <span class="time-entry">
+                <mat-icon aria-hidden="true">schedule</mat-icon>
+                <span>Inicio: {{ atencion.fechaRegistro | date:'short' }}</span>
+              </span>
+              @if (atencion.fechaResolucion) {
+                <span class="time-entry time-entry--done">
+                  <mat-icon aria-hidden="true">task_alt</mat-icon>
+                  <span>Cierre Técnico: {{ atencion.fechaResolucion | date:'short' }}</span>
+                </span>
+              }
+            </div>
+          </footer>
+        </div>
+      </article>
+    } @empty {
+      <div class="empty-state">
+        <mat-icon class="empty-icon" aria-hidden="true">engineering</mat-icon>
+        <h3 class="empty-title">Sin atenciones asignadas</h3>
+        <p class="empty-desc">
+          No existen órdenes técnicas que coincidan con los filtros aplicados.
+        </p>
+        <button type="button" class="btn-reset" (click)="resetFilters()">
+          Ver todas las órdenes
+        </button>
+      </div>
+    }
+  </section>
+
+</section>
