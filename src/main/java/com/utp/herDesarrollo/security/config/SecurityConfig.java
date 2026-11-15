@@ -21,6 +21,13 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Configuración central de seguridad y control de acceso basado en roles (RBAC).
+ * Unifica las políticas de acceso para los tres módulos:
+ * - Reportes: consulta pública, registro libre y actualización restringida (TECNICO, ADMIN).
+ * - Aulas: consulta pública y gestión restringida (POST, PUT, DELETE para TECNICO, ADMIN).
+ * - Atenciones: endpoints libres y vistas de seguimiento.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -39,35 +46,35 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Vistas estaticas
+                        // Vistas estáticas de los tres módulos
                         .requestMatchers(
                                 "/", "/index.html", "/css/**",
-                                "/js/**", "/images/**", "/error"
+                                "/js/**", "/images/**", "/error",
+                                "/aulas/**", "/atenciones/**"
                         ).permitAll()
 
-                        // Autenticacion JWT
+                        // Autenticación JWT
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // Consultas publicas de aulas
+                        // Módulo de Aulas: consultas públicas
                         .requestMatchers(HttpMethod.GET, "/api/aulas/**").permitAll()
 
-                        // Modificaciones de aulas: solo tecnico o administrador
-                        .requestMatchers(HttpMethod.POST, "/api/aulas/**")
-                        .hasAnyRole("TECNICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/aulas/**")
-                        .hasAnyRole("TECNICO", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/aulas/**")
-                        .hasAnyRole("TECNICO", "ADMIN")
+                        // Módulo de Aulas: gestión técnica restringida
+                        .requestMatchers(HttpMethod.POST, "/api/aulas/**").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/aulas/**").hasAnyRole("TECNICO", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/aulas/**").hasAnyRole("TECNICO", "ADMIN")
 
-                        // Consultas y registro publico de reportes
+                        // Módulo de Reportes: consulta y registro libre
                         .requestMatchers(HttpMethod.GET, "/api/reportes/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reportes").permitAll()
 
-                        // Actualizacion de reportes: solo tecnico o administrador
-                        .requestMatchers(HttpMethod.PUT, "/api/reportes/**")
-                        .hasAnyRole("TECNICO", "ADMIN")
+                        // Módulo de Reportes: actualización restringida a personal técnico o admin
+                        .requestMatchers(HttpMethod.PUT, "/api/reportes/**").hasAnyRole("TECNICO", "ADMIN")
 
-                        // El resto de peticiones requiere autenticacion
+                        // Módulo de Atenciones: endpoints de atenciones
+                        .requestMatchers("/api/atenciones/**").permitAll()
+
+                        // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())

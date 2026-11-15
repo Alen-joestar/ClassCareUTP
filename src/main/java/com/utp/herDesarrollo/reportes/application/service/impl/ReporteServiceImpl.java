@@ -1,5 +1,7 @@
 package com.utp.herDesarrollo.reportes.application.service.impl;
 
+import com.utp.herDesarrollo.aulas.model.Aula;
+import com.utp.herDesarrollo.aulas.repository.AulaRepository;
 import com.utp.herDesarrollo.reportes.application.dto.ActualizarReporteDTO;
 import com.utp.herDesarrollo.reportes.application.dto.CrearReporteDTO;
 import com.utp.herDesarrollo.reportes.application.dto.ReporteResponseDTO;
@@ -11,9 +13,11 @@ import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
 import com.utp.herDesarrollo.reportes.domain.repository.ReporteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementación de la lógica de negocio para la gestión de incidencias.
@@ -22,12 +26,15 @@ import java.util.List;
 public class ReporteServiceImpl implements ReporteService {
 
     private final ReporteRepository reporteRepository;
+    private final AulaRepository aulaRepository;
 
-    public ReporteServiceImpl(ReporteRepository reporteRepository) {
+    public ReporteServiceImpl(ReporteRepository reporteRepository, AulaRepository aulaRepository) {
         this.reporteRepository = reporteRepository;
+        this.aulaRepository = aulaRepository;
     }
 
     @Override
+    @Transactional
     public ReporteResponseDTO crearReporte(CrearReporteDTO dto) {
         if (dto == null) {
             throw new ReglaNegocioException("La solicitud para crear el reporte no puede ser nula");
@@ -45,8 +52,26 @@ public class ReporteServiceImpl implements ReporteService {
             throw new ReglaNegocioException("La prioridad del reporte es obligatoria");
         }
 
+        String aulaParam = dto.getAulaId().trim();
+        Aula aula = aulaRepository.findByCodigoIgnoreCase(aulaParam)
+                .or(() -> {
+                    try {
+                        Long aulaIdNum = Long.parseLong(aulaParam);
+                        return aulaRepository.findById(aulaIdNum);
+                    } catch (NumberFormatException e) {
+                        return Optional.empty();
+                    }
+                })
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un aula registrada con código o ID: " + aulaParam));
+
+        // Regla cruzada: si la incidencia es de prioridad ALTA, el aula pasa a Mantenimiento automáticamente
+        if (dto.getPrioridad() == Prioridad.ALTA) {
+            aula.setEstado("Mantenimiento");
+            aulaRepository.save(aula);
+        }
+
         Reporte nuevoReporte = new Reporte(
-                dto.getAulaId().trim().toUpperCase(),
+                aula,
                 dto.getTipoProblema(),
                 dto.getDescripcion().trim(),
                 dto.getPrioridad(),
@@ -106,6 +131,7 @@ public class ReporteServiceImpl implements ReporteService {
     }
 
     @Override
+    @Transactional
     public ReporteResponseDTO actualizarReporte(Long id, ActualizarReporteDTO dto) {
         if (id == null) {
             throw new ReglaNegocioException("El ID del reporte no puede ser nulo");
@@ -128,6 +154,20 @@ public class ReporteServiceImpl implements ReporteService {
         }
         if (dto.getEstado() != null) {
             reporteExistente.setEstado(dto.getEstado());
+
+            // Regla cruzada: si se resuelve y no quedan otros reportes activos, el aula vuelve a Disponible
+            if (dto.getEstado() == EstadoReporte.RESUELTO && reporteExistente.getAula() != null) {
+                long reportesActivosRestantes = reporteRepository.countByAula_IdAndEstadoNotAndIdNot(
+                        reporteExistente.getAula().getId(),
+                        EstadoReporte.RESUELTO,
+                        reporteExistente.getId()
+                );
+                if (reportesActivosRestantes == 0) {
+                    Aula aula = reporteExistente.getAula();
+                    aula.setEstado("Disponible");
+                    aulaRepository.save(aula);
+                }
+            }
         }
 
         Reporte actualizado = reporteRepository.save(reporteExistente);

@@ -1,5 +1,7 @@
 package com.utp.herDesarrollo.reportes.domain.repository;
 
+import com.utp.herDesarrollo.aulas.model.Aula;
+import com.utp.herDesarrollo.aulas.repository.AulaRepository;
 import com.utp.herDesarrollo.reportes.domain.model.EstadoReporte;
 import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.model.Reporte;
@@ -28,9 +30,18 @@ class ReporteRepositoryTest {
     @Autowired
     private ReporteRepository reporteRepository;
 
-    private Reporte crearReporteEjemplo(String aulaId, String descripcion) {
+    @Autowired
+    private AulaRepository aulaRepository;
+
+    private Aula obtenerOCrearAula(String codigo) {
+        return aulaRepository.findByCodigo(codigo)
+                .orElseGet(() -> aulaRepository.save(new Aula(null, codigo, "Pabellón Principal", 35, "Disponible")));
+    }
+
+    private Reporte crearReporteEjemplo(String aulaCodigo, String descripcion) {
+        Aula aula = obtenerOCrearAula(aulaCodigo);
         return new Reporte(
-                aulaId,
+                aula,
                 TipoProblema.TECNOLOGICO,
                 descripcion,
                 Prioridad.ALTA,
@@ -39,9 +50,10 @@ class ReporteRepositoryTest {
         );
     }
 
-    private Reporte crearReporteConPrioridad(String aulaId, String descripcion, Prioridad prioridad) {
+    private Reporte crearReporteConPrioridad(String aulaCodigo, String descripcion, Prioridad prioridad) {
+        Aula aula = obtenerOCrearAula(aulaCodigo);
         return new Reporte(
-                aulaId,
+                aula,
                 TipoProblema.TECNOLOGICO,
                 descripcion,
                 prioridad,

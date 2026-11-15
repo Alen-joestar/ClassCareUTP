@@ -1,0 +1,7 @@
+/* ==========================================================================
+   ClassCare Campus - Hoja de Estilos Módulo de Aulas
+   Importa el Sistema de Diseño Central Campus Core y provee compatibilidad.
+   ========================================================================== */
+@import url('../../css/campus.css');
+
+/* Reglas adicionales específicas para aulas si se requieren en el futuro */

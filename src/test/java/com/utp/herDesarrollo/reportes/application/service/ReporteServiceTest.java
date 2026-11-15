@@ -1,5 +1,7 @@
 package com.utp.herDesarrollo.reportes.application.service;
 
+import com.utp.herDesarrollo.aulas.model.Aula;
+import com.utp.herDesarrollo.aulas.repository.AulaRepository;
 import com.utp.herDesarrollo.reportes.application.dto.ActualizarReporteDTO;
 import com.utp.herDesarrollo.reportes.application.dto.CrearReporteDTO;
 import com.utp.herDesarrollo.reportes.application.dto.ReporteResponseDTO;
@@ -34,8 +36,15 @@ class ReporteServiceTest {
     @Mock
     private ReporteRepository reporteRepository;
 
+    @Mock
+    private AulaRepository aulaRepository;
+
     @InjectMocks
     private ReporteServiceImpl reporteService;
+
+    private Aula crearAulaMock(Long id, String codigo) {
+        return new Aula(id, codigo, "Pabellón A", 40, "Disponible");
+    }
 
     private CrearReporteDTO crearDTOValido() {
         return new CrearReporteDTO("A-101", TipoProblema.TECNOLOGICO, "Proyector apagado", Prioridad.ALTA);
@@ -45,9 +54,10 @@ class ReporteServiceTest {
     @DisplayName("Debe crear reporte con estado PENDIENTE y fecha actual por defecto")
     void debeCrearReporteConEstadoPendienteYFechaActual() {
         CrearReporteDTO dto = crearDTOValido();
+        Aula aulaMock = crearAulaMock(1L, "A-101");
         Reporte reporteSimulado = new Reporte(
                 1L,
-                "A-101",
+                aulaMock,
                 TipoProblema.TECNOLOGICO,
                 "Proyector apagado",
                 Prioridad.ALTA,
@@ -55,6 +65,7 @@ class ReporteServiceTest {
                 LocalDateTime.now()
         );
 
+        when(aulaRepository.findByCodigoIgnoreCase("A-101")).thenReturn(Optional.of(aulaMock));
         when(reporteRepository.save(any(Reporte.class))).thenReturn(reporteSimulado);
 
         ReporteResponseDTO respuesta = reporteService.crearReporte(dto);
@@ -70,6 +81,16 @@ class ReporteServiceTest {
         Reporte reporteEnviado = captor.getValue();
         assertEquals(EstadoReporte.PENDIENTE, reporteEnviado.getEstado());
         assertNotNull(reporteEnviado.getFechaRegistro());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar RecursoNoEncontradoException cuando el aula no existe al crear reporte")
+    void debeLanzarExcepcionCuandoAulaNoExiste() {
+        CrearReporteDTO dto = new CrearReporteDTO("INEXISTENTE", TipoProblema.TECNOLOGICO, "Falla", Prioridad.MEDIA);
+        when(aulaRepository.findByCodigoIgnoreCase("INEXISTENTE")).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class, () -> reporteService.crearReporte(dto));
+        verify(reporteRepository, never()).save(any());
     }
 
     @Test
@@ -92,8 +113,8 @@ class ReporteServiceTest {
     @DisplayName("Debe listar todos los reportes transformados a DTO")
     void debeListarTodosLosReportes() {
         List<Reporte> listaMock = List.of(
-                new Reporte(1L, "A-101", TipoProblema.ELECTRICO, "Foco", Prioridad.BAJA, EstadoReporte.PENDIENTE, LocalDateTime.now()),
-                new Reporte(2L, "B-201", TipoProblema.MOBILIARIO, "Silla", Prioridad.MEDIA, EstadoReporte.EN_ATENCION, LocalDateTime.now())
+                new Reporte(1L, crearAulaMock(1L, "A-101"), TipoProblema.ELECTRICO, "Foco", Prioridad.BAJA, EstadoReporte.PENDIENTE, LocalDateTime.now()),
+                new Reporte(2L, crearAulaMock(2L, "B-201"), TipoProblema.MOBILIARIO, "Silla", Prioridad.MEDIA, EstadoReporte.EN_ATENCION, LocalDateTime.now())
         );
         when(reporteRepository.findAll()).thenReturn(listaMock);
 
@@ -108,7 +129,7 @@ class ReporteServiceTest {
     @Test
     @DisplayName("Debe buscar por ID y retornar DTO cuando existe")
     void debeBuscarPorIdExitosamente() {
-        Reporte reporteMock = new Reporte(10L, "C-301", TipoProblema.INFRAESTRUCTURA, "Ventana rota", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now());
+        Reporte reporteMock = new Reporte(10L, crearAulaMock(10L, "C-301"), TipoProblema.INFRAESTRUCTURA, "Ventana rota", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now());
         when(reporteRepository.findById(10L)).thenReturn(Optional.of(reporteMock));
 
         ReporteResponseDTO resultado = reporteService.buscarPorId(10L);
@@ -131,7 +152,7 @@ class ReporteServiceTest {
     @DisplayName("Debe listar reportes filtrados por aulaId")
     void debeListarReportesPorAulaId() {
         List<Reporte> mockList = List.of(
-                new Reporte(1L, "LAB-1", TipoProblema.TECNOLOGICO, "Mouse dañado", Prioridad.BAJA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+                new Reporte(1L, crearAulaMock(1L, "LAB-1"), TipoProblema.TECNOLOGICO, "Mouse dañado", Prioridad.BAJA, EstadoReporte.PENDIENTE, LocalDateTime.now())
         );
         when(reporteRepository.findByAulaId("LAB-1")).thenReturn(mockList);
 
@@ -145,7 +166,8 @@ class ReporteServiceTest {
     @Test
     @DisplayName("Debe actualizar estado y detalles de un reporte existente")
     void debeActualizarReporteExistente() {
-        Reporte existente = new Reporte(1L, "A-101", TipoProblema.ELECTRICO, "Luz quemada", Prioridad.BAJA, EstadoReporte.PENDIENTE, LocalDateTime.now());
+        Aula aula = crearAulaMock(1L, "A-101");
+        Reporte existente = new Reporte(1L, aula, TipoProblema.ELECTRICO, "Luz quemada", Prioridad.BAJA, EstadoReporte.PENDIENTE, LocalDateTime.now());
         when(reporteRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(reporteRepository.save(any(Reporte.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -178,7 +200,7 @@ class ReporteServiceTest {
     @DisplayName("Debe listar con filtros combinando aula y prioridad")
     void debeListarConFiltrosPorAulaYPrioridad() {
         List<Reporte> listaMock = List.of(
-                new Reporte(1L, "A-101", TipoProblema.TECNOLOGICO, "Proyector", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+                new Reporte(1L, crearAulaMock(1L, "A-101"), TipoProblema.TECNOLOGICO, "Proyector", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
         );
         when(reporteRepository.findByAulaIdAndPrioridad("A-101", Prioridad.ALTA)).thenReturn(listaMock);
 
@@ -194,7 +216,7 @@ class ReporteServiceTest {
     @DisplayName("Debe listar con filtros filtrando únicamente por aula")
     void debeListarConFiltrosSoloPorAula() {
         List<Reporte> listaMock = List.of(
-                new Reporte(1L, "B-202", TipoProblema.ELECTRICO, "Luz", Prioridad.MEDIA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+                new Reporte(1L, crearAulaMock(1L, "B-202"), TipoProblema.ELECTRICO, "Luz", Prioridad.MEDIA, EstadoReporte.PENDIENTE, LocalDateTime.now())
         );
         when(reporteRepository.findByAulaId("B-202")).thenReturn(listaMock);
 
@@ -209,7 +231,7 @@ class ReporteServiceTest {
     @DisplayName("Debe listar con filtros filtrando únicamente por prioridad")
     void debeListarConFiltrosSoloPorPrioridad() {
         List<Reporte> listaMock = List.of(
-                new Reporte(1L, "C-303", TipoProblema.MOBILIARIO, "Mesa", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+                new Reporte(1L, crearAulaMock(1L, "C-303"), TipoProblema.MOBILIARIO, "Mesa", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
         );
         when(reporteRepository.findByPrioridad(Prioridad.ALTA)).thenReturn(listaMock);
 
@@ -224,7 +246,7 @@ class ReporteServiceTest {
     @DisplayName("Debe listar con filtros llamando findAll si ambos parámetros son nulos o vacíos")
     void debeListarConFiltrosSinParametros() {
         List<Reporte> listaMock = List.of(
-                new Reporte(1L, "A-101", TipoProblema.TECNOLOGICO, "Proyector", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
+                new Reporte(1L, crearAulaMock(1L, "A-101"), TipoProblema.TECNOLOGICO, "Proyector", Prioridad.ALTA, EstadoReporte.PENDIENTE, LocalDateTime.now())
         );
         when(reporteRepository.findAll()).thenReturn(listaMock);
 
