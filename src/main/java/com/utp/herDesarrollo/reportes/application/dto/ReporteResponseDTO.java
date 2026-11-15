@@ -39,9 +39,10 @@ public class ReporteResponseDTO {
         if (reporte == null) {
             return null;
         }
+        String codigoAula = reporte.getAulaId() != null ? reporte.getAulaId() : "SIN-AULA";
         ReporteResponseDTO dto = new ReporteResponseDTO(
                 reporte.getId(),
-                reporte.getAulaId(),
+                codigoAula,
                 reporte.getTipoProblema(),
                 reporte.getDescripcion(),
                 reporte.getPrioridad(),

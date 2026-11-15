@@ -255,4 +255,60 @@ class ReporteServiceTest {
         assertEquals(1, resultado.size());
         verify(reporteRepository).findAll();
     }
+
+    @Test
+    @DisplayName("Debe lanzar ReglaNegocioException si ya existe un reporte activo del mismo tipoProblema en la misma aula")
+    void debeLanzarExcepcionCuandoExisteReporteDuplicadoActivoEnMismaAula() {
+        CrearReporteDTO dto = crearDTOValido();
+        Aula aulaMock = crearAulaMock(1L, "A-101");
+
+        when(aulaRepository.findByCodigoIgnoreCase("A-101")).thenReturn(Optional.of(aulaMock));
+        when(reporteRepository.existsByAula_IdAndTipoProblemaAndEstadoNot(1L, TipoProblema.TECNOLOGICO, EstadoReporte.RESUELTO))
+                .thenReturn(true);
+
+        assertThrows(ReglaNegocioException.class, () -> reporteService.crearReporte(dto));
+        verify(reporteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe cambiar el estado del Aula a Mantenimiento cuando un reporte pasa a EN_ATENCION")
+    void debeCambiarAulaAMantenimientoCuandoReportePasaAEnAtencion() {
+        Aula aula = crearAulaMock(2L, "B-204");
+        Reporte existente = new Reporte(3L, aula, TipoProblema.MOBILIARIO, "Carpetas sueltas", Prioridad.MEDIA, EstadoReporte.PENDIENTE, LocalDateTime.now());
+
+        when(reporteRepository.findById(3L)).thenReturn(Optional.of(existente));
+        when(reporteRepository.save(any(Reporte.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ActualizarReporteDTO dto = new ActualizarReporteDTO(
+                "Técnico reparando carpetas en aula",
+                TipoProblema.MOBILIARIO,
+                Prioridad.MEDIA,
+                EstadoReporte.EN_ATENCION
+        );
+
+        ReporteResponseDTO respuesta = reporteService.actualizarReporte(3L, dto);
+
+        assertEquals(EstadoReporte.EN_ATENCION, respuesta.getEstado());
+        assertEquals("Mantenimiento", aula.getEstado());
+        verify(aulaRepository).save(aula);
+    }
+
+    @Test
+    @DisplayName("Debe bloquear la edición de datos de un reporte que ya se encuentra RESUELTO")
+    void debeLanzarExcepcionAlIntentarEditarReporteYaResuelto() {
+        Aula aula = crearAulaMock(5L, "LAB-104");
+        Reporte resuelto = new Reporte(5L, aula, TipoProblema.TECNOLOGICO, "Wi-Fi reparado", Prioridad.BAJA, EstadoReporte.RESUELTO, LocalDateTime.now());
+
+        when(reporteRepository.findById(5L)).thenReturn(Optional.of(resuelto));
+
+        ActualizarReporteDTO dtoEdicion = new ActualizarReporteDTO(
+                "Intentando alterar descripción de reporte cerrado",
+                TipoProblema.TECNOLOGICO,
+                Prioridad.ALTA,
+                EstadoReporte.RESUELTO
+        );
+
+        assertThrows(ReglaNegocioException.class, () -> reporteService.actualizarReporte(5L, dtoEdicion));
+        verify(reporteRepository, never()).save(any());
+    }
 }
