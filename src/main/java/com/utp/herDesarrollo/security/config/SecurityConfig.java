@@ -24,9 +24,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 /**
  * Configuración central de seguridad y control de acceso basado en roles (RBAC).
  * Unifica las políticas de acceso para los tres módulos:
- * - Reportes: consulta pública, registro libre y actualización restringida (TECNICO, ADMIN).
+ * - Reportes: consulta pública, registro libre, actualización restringida (TECNICO, ADMIN) y eliminación exclusiva (ADMIN).
  * - Aulas: consulta pública y gestión restringida (POST, PUT, DELETE para TECNICO, ADMIN).
- * - Atenciones: endpoints libres y vistas de seguimiento.
+ * - Atenciones: consulta y registro libre, actualización restringida (TECNICO, ADMIN).
  */
 @Configuration
 @EnableWebSecurity
@@ -70,6 +70,9 @@ public class SecurityConfig {
 
                         // Módulo de Reportes: actualización restringida a personal técnico o admin
                         .requestMatchers(HttpMethod.PUT, "/api/reportes/**").hasAnyRole("TECNICO", "ADMIN")
+
+                        // Eliminación de reportes: exclusivamente administrador
+                        .requestMatchers(HttpMethod.DELETE, "/api/reportes/**").hasRole("ADMIN")
 
                         // Módulo de Atenciones: consulta y registro libre
                         .requestMatchers(HttpMethod.GET, "/api/atenciones/**").permitAll()

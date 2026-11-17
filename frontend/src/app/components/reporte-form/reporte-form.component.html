@@ -1,0 +1,292 @@
+<section class="m3-form-page">
+
+  <!-- Barra Superior de Retorno -->
+  <nav class="form-nav-bar" aria-label="Navegación de retorno">
+    <a [routerLink]="modoEdicion() ? ['/reportes', reporteEditandoId()] : ['/reportes']" class="m3-btn-back">
+      <mat-icon>arrow_back</mat-icon>
+      <span>{{ modoEdicion() ? 'Volver al detalle del reporte' : 'Volver al tablero de reportes' }}</span>
+    </a>
+
+    <span class="form-hint">
+      {{ modoEdicion() ? 'MODO EDICIÓN TÉCNICA (PUT /api/reportes/' + reporteEditandoId() + ')' : 'VALIDACIÓN EN TIEMPO REAL Y COHERENCIA DE CAMPUS ACTIVA' }}
+    </span>
+  </nav>
+
+  <div class="form-layout-grid">
+
+    <!-- COLUMNA IZQUIERDA: FORMULARIO REACTIVO EN FORMATO REPORTE -->
+    <div class="form-folder-wrap">
+      <div class="folder-tab-row">
+        <span class="folder-tab">
+          <mat-icon>{{ modoEdicion() ? 'edit_note' : 'note_add' }}</mat-icon>
+          <span>{{ modoEdicion() ? 'EDICIÓN DEL REPORTE #' + formatCount(reporteEditandoId()!) : 'REGISTRO DE NUEVO REPORTE' }}</span>
+        </span>
+        <span class="folder-stage-tag">{{ modoEdicion() ? 'ACTUALIZACIÓN TÉCNICA • JWT' : 'ETAPA INICIAL 1/3 • PENDIENTE' }}</span>
+      </div>
+
+      <article class="form-card">
+        <header class="form-card-header">
+          <div>
+            <h2 class="form-title">{{ modoEdicion() ? 'Editar Diagnóstico y Prioridad' : 'Registrar Incidencia de Aula' }}</h2>
+            <p class="form-subtitle">
+              {{ modoEdicion() ? 'Actualiza la categoría, el nivel de prioridad o el diagnóstico técnico del reporte seleccionado.' : 'El sistema verifica automáticamente el formato de aula, su ubicación física y evita reportes duplicados activos.' }}
+            </p>
+          </div>
+        </header>
+
+        <form [formGroup]="reporteForm" (ngSubmit)="onSubmit()" novalidate class="reactive-form">
+
+          <!-- Selección rápida de aula + Input de Código y Ubicación Autocompletada -->
+          <div class="field-group">
+            <div class="label-row">
+              <label for="aulaIdInput" class="field-label">1. Identificación del Aula o Laboratorio *</label>
+              <span class="quick-pick-caption">Aulas frecuentes del campus:</span>
+            </div>
+
+            @if (!modoEdicion()) {
+              <div class="quick-rooms-row">
+                @for (aula of aulasSugeridas(); track aula.codigo) {
+                  <button
+                    type="button"
+                    class="room-chip"
+                    [class.active]="f.aulaId.value.trim().toUpperCase() === aula.codigo"
+                    (click)="seleccionarAulaRapida(aula)">
+                    {{ aula.codigo }}
+                  </button>
+                }
+              </div>
+            }
+
+            <div class="two-cols-inputs">
+              <div class="input-wrapper">
+                <label for="aulaIdInput" class="sub-label">Código de Ambiente (Ej: A-101, LAB-302) *</label>
+                <div
+                  class="m3-field-box"
+                  [class.m3-field-box--readonly]="modoEdicion()"
+                  [class.field-invalid]="f.aulaId.invalid && (f.aulaId.touched || f.aulaId.dirty)"
+                  [class.field-valid]="f.aulaId.valid && (f.aulaId.touched || f.aulaId.dirty)">
+                  <mat-icon>meeting_room</mat-icon>
+                  <input
+                    id="aulaIdInput"
+                    type="text"
+                    formControlName="aulaId"
+                    placeholder="Pabellón (A-E o LAB) + Piso + Aula"
+                    autocomplete="off"
+                    [readonly]="modoEdicion()"
+                  />
+                </div>
+
+                @if (f.aulaId.invalid && (f.aulaId.touched || f.aulaId.dirty)) {
+                  <div class="error-msg" role="alert">
+                    @if (f.aulaId.errors?.['required']) {
+                      <span>El código del aula es obligatorio.</span>
+                    } @else if (f.aulaId.errors?.['formatoAulaCampus']) {
+                      <span>Formato inválido. Usa Pabellón (A–E o LAB) + guion + 3 dígitos de piso/aula (ej. A-101, B-204, LAB-302).</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="input-wrapper">
+                <div class="label-row">
+                  <label for="ubicacionInput" class="sub-label">Pabellón y Piso (Auto-sincronizado)</label>
+                  <span class="auto-sync-tag">
+                    <mat-icon>verified</mat-icon>
+                    <span>AUTO</span>
+                  </span>
+                </div>
+                <div class="m3-field-box m3-field-box--readonly" [class.field-valid]="f.aulaId.valid">
+                  <mat-icon>place</mat-icon>
+                  <input
+                    id="ubicacionInput"
+                    type="text"
+                    formControlName="aulaUbicacion"
+                    readonly
+                    aria-readonly="true"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Categoría Técnica del Problema -->
+          <div class="field-group">
+            <label class="field-label">2. Categoría Técnica de la Avería *</label>
+            <div class="category-selector-grid" role="radiogroup" aria-label="Categoría técnica">
+              @for (cat of categorias; track cat.valor) {
+                <button
+                  type="button"
+                  class="cat-option-btn"
+                  [class.active]="f.tipoProblema.value === cat.valor"
+                  (click)="seleccionarCategoria(cat.valor)">
+                  <mat-icon>{{ cat.icono }}</mat-icon>
+                  <span>{{ cat.label }}</span>
+                </button>
+              }
+            </div>
+
+            <!-- Alerta de Validación Nivel 2: Reporte Duplicado Activo -->
+            @if (reporteForm.errors?.['reporteDuplicado']; as dup) {
+              <div class="duplicate-alert-box" role="alert">
+                <div class="duplicate-alert-copy">
+                  <mat-icon>warning_amber</mat-icon>
+                  <div>
+                    <strong>Incidencia duplicada detectada en {{ dup.aulaId }}</strong>
+                    <span>
+                      Ya existe el Reporte #{{ formatCount(dup.id) }} activo ({{ dup.estado }}) para la categoría {{ getCategoriaActual().label }}. Cambia de categoría/aula o consulta el reporte existente.
+                    </span>
+                  </div>
+                </div>
+                <a [routerLink]="['/reportes', dup.id]" class="duplicate-link-btn">
+                  <span>Ver reporte #{{ formatCount(dup.id) }}</span>
+                  <mat-icon>open_in_new</mat-icon>
+                </a>
+              </div>
+            }
+          </div>
+
+          <!-- Nivel de Prioridad e Impacto -->
+          <div class="field-group">
+            <label class="field-label">3. Nivel de Prioridad e Impacto Académico *</label>
+            <div class="prio-selector-grid" role="radiogroup" aria-label="Nivel de prioridad">
+              @for (p of prioridades; track p.valor) {
+                <button
+                  type="button"
+                  class="prio-option-card"
+                  [attr.data-prio]="p.valor"
+                  [class.active]="f.prioridad.value === p.valor"
+                  (click)="seleccionarPrioridad(p.valor)">
+                  <strong class="prio-title">{{ p.label }}</strong>
+                  <span class="prio-impact">{{ p.impacto }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Descripción Técnica con Contador de Caracteres Reales (sin espacios extremos) -->
+          <div class="field-group">
+            <div class="label-row">
+              <label for="descripcionInput" class="field-label">4. Diagnóstico o Descripción del Problema *</label>
+              <span
+                class="char-counter"
+                [class.counter-warn]="getCaracteresReales() > 230">
+                {{ getCaracteresReales() }} / 255 caracteres útiles
+              </span>
+            </div>
+
+            <div
+              class="m3-textarea-box"
+              [class.field-invalid]="f.descripcion.invalid && (f.descripcion.touched || f.descripcion.dirty)"
+              [class.field-valid]="f.descripcion.valid && (f.descripcion.touched || f.descripcion.dirty)">
+              <textarea
+                id="descripcionInput"
+                rows="4"
+                formControlName="descripcion"
+                placeholder="Describe el problema con al menos 2 palabras descriptivas y 10 caracteres útiles (ej: Proyector sin señal HDMI en el aula)..."></textarea>
+            </div>
+
+            @if (f.descripcion.invalid && (f.descripcion.touched || f.descripcion.dirty)) {
+              <div class="error-msg" role="alert">
+                @if (f.descripcion.errors?.['required'] || f.descripcion.errors?.['soloEspacios']) {
+                  <span>La descripción no puede estar vacía ni contener solo espacios en blanco.</span>
+                } @else if (f.descripcion.errors?.['minlengthReal']) {
+                  <span>Escribe al menos 10 caracteres reales sin contar espacios vacíos (actual: {{ getCaracteresReales() }}).</span>
+                } @else if (f.descripcion.errors?.['diagnosticoIncoherente']) {
+                  <span>Ingresa una descripción real con al menos 2 palabras con sentido técnico (sin caracteres repetidos).</span>
+                } @else if (f.descripcion.errors?.['maxlength']) {
+                  <span>Has superado el máximo permitido de 255 caracteres.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Acciones del Formulario -->
+          <div class="form-actions">
+            <button type="button" class="m3-btn-secondary" (click)="limpiarFormulario()">
+              <mat-icon>restart_alt</mat-icon>
+              <span>{{ modoEdicion() ? 'Restaurar original' : 'Limpiar campos' }}</span>
+            </button>
+
+            <button
+              type="submit"
+              class="m3-btn-submit"
+              [disabled]="reporteForm.invalid">
+              <mat-icon>{{ modoEdicion() ? 'check_circle' : 'save' }}</mat-icon>
+              <span>{{ modoEdicion() ? 'Guardar cambios' : 'Registrar reporte' }}</span>
+            </button>
+          </div>
+        </form>
+      </article>
+    </div>
+
+    <!-- COLUMNA DERECHA: VISTA PREVIA EN TIEMPO REAL DEL REPORTE -->
+    <aside class="preview-column" aria-label="Vista previa del reporte">
+      <span class="preview-overline">VISTA PREVIA EN TIEMPO REAL DEL REPORTE</span>
+
+      <article class="inspection-card" data-estado="PENDIENTE">
+        <div class="folder-tab-row">
+          <span class="folder-tab folder-tab--preview">
+            <span>PENDIENTE</span>
+            <span class="step-dots" aria-hidden="true">
+              <span class="step-pip on"></span>
+              <span class="step-pip"></span>
+              <span class="step-pip"></span>
+            </span>
+          </span>
+          <span class="folder-stage-tag">ETAPA 1/3</span>
+        </div>
+
+        <div class="card-surface">
+          <div>
+            <div class="card-header">
+              <div class="room-identity">
+                <span class="room-plaque">
+                  {{ (f.aulaId.value.trim() || 'AULA').toUpperCase() }}
+                </span>
+                <div>
+                  <span class="room-category-title">
+                    <mat-icon>{{ getCategoriaActual().icono }}</mat-icon>
+                    <span>{{ getCategoriaActual().label }}</span>
+                  </span>
+                  <span class="room-location">
+                    {{ f.aulaUbicacion.value }}
+                  </span>
+                </div>
+              </div>
+
+              <span class="ticket-id-tag">NUEVO</span>
+            </div>
+
+            <div class="card-body">
+              <p class="card-desc">
+                {{ f.descripcion.value.trim() || 'La descripción técnica que escribas en el formulario se reflejará aquí en tiempo real...' }}
+              </p>
+
+              <div class="c2-unified-condition">
+                <span class="condition-left">
+                  <mat-icon>engineering</mat-icon>
+                  <span>{{ getPrioridadActual().impacto }}</span>
+                </span>
+                <span class="condition-prio" [attr.data-prio]="f.prioridad.value">
+                  {{ getPrioridadActual().label }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <span class="ticket-date">ESTADO DE VALIDACIÓN:</span>
+            <span
+              class="validation-status-tag"
+              [class.valid]="reporteForm.valid">
+              <mat-icon>{{ reporteForm.valid ? 'check_circle' : 'pending' }}</mat-icon>
+              <span>{{ reporteForm.valid ? 'Listo para registrar' : 'Pendiente de validación' }}</span>
+            </span>
+          </div>
+        </div>
+      </article>
+    </aside>
+
+  </div>
+
+</section>

@@ -75,4 +75,13 @@ public class ReporteController {
         ReporteResponseDTO actualizado = reporteService.actualizarReporte(id, dto);
         return ResponseEntity.ok(actualizado);
     }
+
+    /**
+     * DELETE /api/reportes/{id} : Eliminar un reporte por ID (Solo rol ADMIN).
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarReporte(@PathVariable Long id) {
+        reporteService.eliminarReporte(id);
+        return ResponseEntity.noContent().build();
+    }
 }

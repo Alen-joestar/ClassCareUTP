@@ -64,6 +64,16 @@ public class ReporteServiceImpl implements ReporteService {
                 })
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe un aula registrada con código o ID: " + aulaParam));
 
+        // Regla de negocio: impedir duplicados activos (PENDIENTE o EN_ATENCION) del mismo tipo de problema en la misma aula
+        if (aula.getId() != null && reporteRepository.existsByAula_IdAndTipoProblemaAndEstadoNot(
+                aula.getId(),
+                dto.getTipoProblema(),
+                EstadoReporte.RESUELTO)) {
+            throw new ReglaNegocioException(
+                    "Ya existe un reporte activo (" + dto.getTipoProblema() + ") pendiente de solución en el aula " + aula.getCodigo()
+            );
+        }
+
         // Regla cruzada: si la incidencia es de prioridad ALTA, el aula pasa a Mantenimiento automáticamente
         if (dto.getPrioridad() == Prioridad.ALTA) {
             aula.setEstado("Mantenimiento");
@@ -143,10 +153,26 @@ public class ReporteServiceImpl implements ReporteService {
         Reporte reporteExistente = reporteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el reporte con ID: " + id));
 
+        if (reporteExistente.getEstado() == EstadoReporte.RESUELTO
+                && (dto.getEstado() == null || dto.getEstado() == EstadoReporte.RESUELTO)) {
+            throw new ReglaNegocioException("No se pueden editar los datos de un reporte que ya se encuentra resuelto y cerrado");
+        }
+
         if (dto.getDescripcion() != null && !dto.getDescripcion().isBlank()) {
             reporteExistente.setDescripcion(dto.getDescripcion().trim());
         }
         if (dto.getTipoProblema() != null) {
+            if (reporteExistente.getAula() != null
+                    && reporteExistente.getAula().getId() != null
+                    && reporteRepository.existsByAula_IdAndTipoProblemaAndEstadoNotAndIdNot(
+                            reporteExistente.getAula().getId(),
+                            dto.getTipoProblema(),
+                            EstadoReporte.RESUELTO,
+                            reporteExistente.getId())) {
+                throw new ReglaNegocioException(
+                        "Ya existe otro reporte activo con la categoría " + dto.getTipoProblema() + " en el aula " + reporteExistente.getAulaId()
+                );
+            }
             reporteExistente.setTipoProblema(dto.getTipoProblema());
         }
         if (dto.getPrioridad() != null) {
@@ -154,23 +180,55 @@ public class ReporteServiceImpl implements ReporteService {
         }
         if (dto.getEstado() != null) {
             reporteExistente.setEstado(dto.getEstado());
+        }
 
-            // Regla cruzada: si se resuelve y no quedan otros reportes activos, el aula vuelve a Disponible
-            if (dto.getEstado() == EstadoReporte.RESUELTO && reporteExistente.getAula() != null) {
+        // Sincronización cruzada del estado del Aula según la etapa de atención y prioridad
+        if (reporteExistente.getAula() != null) {
+            Aula aula = reporteExistente.getAula();
+            if (reporteExistente.getEstado() == EstadoReporte.RESUELTO) {
                 long reportesActivosRestantes = reporteRepository.countByAula_IdAndEstadoNotAndIdNot(
-                        reporteExistente.getAula().getId(),
+                        aula.getId(),
                         EstadoReporte.RESUELTO,
                         reporteExistente.getId()
                 );
                 if (reportesActivosRestantes == 0) {
-                    Aula aula = reporteExistente.getAula();
                     aula.setEstado("Disponible");
                     aulaRepository.save(aula);
                 }
+            } else if (reporteExistente.getEstado() == EstadoReporte.EN_ATENCION
+                    || reporteExistente.getPrioridad() == Prioridad.ALTA) {
+                aula.setEstado("Mantenimiento");
+                aulaRepository.save(aula);
             }
         }
 
         Reporte actualizado = reporteRepository.save(reporteExistente);
         return ReporteResponseDTO.fromDomain(actualizado);
+    }
+
+    @Override
+    @Transactional
+    public void eliminarReporte(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El ID del reporte no puede ser nulo");
+        }
+
+        Reporte reporteExistente = reporteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el reporte con ID: " + id));
+
+        Aula aulaAsociada = reporteExistente.getAula();
+        reporteRepository.delete(reporteExistente);
+
+        if (aulaAsociada != null) {
+            long reportesActivosRestantes = reporteRepository.countByAula_IdAndEstadoNotAndIdNot(
+                    aulaAsociada.getId(),
+                    EstadoReporte.RESUELTO,
+                    id
+            );
+            if (reportesActivosRestantes == 0 && "Mantenimiento".equalsIgnoreCase(aulaAsociada.getEstado())) {
+                aulaAsociada.setEstado("Disponible");
+                aulaRepository.save(aulaAsociada);
+            }
+        }
     }
 }

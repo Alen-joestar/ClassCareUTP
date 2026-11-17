@@ -23,6 +23,57 @@
   box-shadow: 0 10px 26px rgba(8, 15, 26, 0.15);
 }
 
+.hero-status-row {
+  margin-bottom: 0.45rem;
+}
+
+.db-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.24rem 0.68rem;
+  border-radius: 0 8px 2px 8px;
+  background-color: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #FDE68A;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .db-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #FBBF24;
+  }
+
+  .db-sync-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    opacity: 0.85;
+  }
+
+  &.db-online {
+    background-color: rgba(16, 185, 129, 0.16);
+    border-color: rgba(16, 185, 129, 0.45);
+    color: #A7F3D0;
+
+    .db-dot {
+      background-color: #34D399;
+      box-shadow: 0 0 8px #34D399;
+    }
+  }
+}
+
 .hero-title {
   font-family: var(--font-display);
   font-size: 1.75rem;
@@ -154,7 +205,146 @@
 }
 
 .m3-select-box {
-  min-width: 205px;
+  width: 100%;
+}
+
+.filter-dropdown-wrapper {
+  position: relative;
+}
+
+.m3-btn-filter {
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+
+  .chevron-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+  }
+
+  &:hover,
+  &.has-active {
+    border-color: #38BDF8;
+    background-color: var(--card-header-bg);
+  }
+}
+
+.filter-count-badge {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  font-size: 0.7rem;
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+
+.filter-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 310px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-top: 3px solid #2563EB;
+  border-radius: 0 16px 6px 16px;
+  padding: 1rem;
+  box-shadow: 0 16px 36px rgba(8, 15, 26, 0.24);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-display);
+    font-size: 0.84rem;
+    color: var(--text-main);
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    label {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+  }
+
+  &__footer {
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.popover-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.popover-done-btn {
+  width: 100%;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-bg);
+  border-radius: 0 10px 4px 10px;
+  padding: 0.5rem 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: opacity 0.15s ease;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    opacity: 0.9;
+  }
 }
 
 .m3-btn-reset {
@@ -182,6 +372,33 @@
     background-color: var(--btn-bg);
     color: var(--btn-text);
     border-color: var(--btn-bg);
+  }
+}
+
+.m3-btn-new {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-bg);
+  padding: 0.625rem 1.05rem;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+
+  &:hover {
+    opacity: 0.9;
   }
 }
 

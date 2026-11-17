@@ -1,8 +1,10 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Atencion, EstadoAtencion, TipoMantenimiento } from '../../models/atencion.model';
+import { Atencion, EstadoAtencion, ReportePendienteAsignacion, TipoMantenimiento } from '../../models/atencion.model';
+import { AtencionService } from '../../services/atencion.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-atencion-list',
@@ -16,59 +18,52 @@ import { Atencion, EstadoAtencion, TipoMantenimiento } from '../../models/atenci
   styleUrl: './atencion-list.component.scss'
 })
 export class AtencionListComponent {
+  readonly atencionService = inject(AtencionService);
+  readonly authService = inject(AuthService);
+
   // Estado reactivo de filtros con Signals
   readonly searchQuery = signal<string>('');
   readonly selectedEstado = signal<string>('');
   readonly selectedTecnico = signal<string>('');
 
-  // Usuario técnico en sesión actual (Simulación técnica para pruebas de rol)
-  readonly tecnicoLogueado = 'tecnico01';
+  // Notificaciones y retroalimentación para el usuario
+  readonly mensajeExito = signal<string | null>(null);
+  readonly mensajeAlerta = signal<string | null>(null);
 
-  // Datos de la mesa de soporte técnico
-  readonly atenciones = signal<Atencion[]>([
-    {
-      id: 1,
-      reporteId: 1,
-      tecnicoEncargado: 'tecnico01',
-      estado: 'PENDIENTE',
-      observaciones: 'Caso asignado para inspección de proyector multimedia en aula A-101.',
-      fechaRegistro: '2026-09-10T09:00:00',
-      fechaResolucion: null,
-      aulaCodigo: 'A-101',
-      tipoProblema: 'Tecnológico',
-      prioridad: 'ALTA',
-      tipoMantenimiento: 'CORRECTIVO',
-      impactoAcademico: 'Requiere aula alterna'
-    },
-    {
-      id: 2,
-      reporteId: 2,
-      tecnicoEncargado: 'tecnico02',
-      estado: 'EN_ATENCION',
-      observaciones: 'Técnico en sitio realizando reemplazo de luminaria fluorescente.',
-      fechaRegistro: '2026-09-09T14:30:00',
-      fechaResolucion: null,
-      aulaCodigo: 'B-202',
-      tipoProblema: 'Eléctrico',
-      prioridad: 'MEDIA',
-      tipoMantenimiento: 'CORRECTIVO',
-      impactoAcademico: 'Clase en curso con luz natural'
-    },
-    {
-      id: 3,
-      reporteId: 3,
-      tecnicoEncargado: 'tecnico01',
-      estado: 'RESUELTO',
-      observaciones: 'Soporte y tornillería de respaldo ajustados correctamente. Aula 100% operativa.',
-      fechaRegistro: '2026-09-08T11:15:00',
-      fechaResolucion: '2026-09-08T12:00:00',
-      aulaCodigo: 'C-305',
-      tipoProblema: 'Mobiliario',
-      prioridad: 'BAJA',
-      tipoMantenimiento: 'PREVENTIVO',
-      impactoAcademico: 'Sin afectación académica'
-    }
-  ]);
+  // Modal de Resolución Técnica (Semana 13)
+  readonly mostrarModalResolucion = signal<boolean>(false);
+  readonly atencionSeleccionada = signal<Atencion | null>(null);
+  readonly resolucionObservaciones = signal<string>('');
+  readonly resolucionTipoSolucion = signal<string>('Reemplazo de componente');
+  readonly resolucionRepuesto = signal<string>('');
+  readonly resolucionConfirmacion = signal<boolean>(false);
+  readonly errorResolucion = signal<string | null>(null);
+
+  // Modal de Nueva Orden de Atención Técnica (Semana 13)
+  readonly mostrarModalNueva = signal<boolean>(false);
+  readonly nuevoReporteId = signal<number | null>(null);
+  readonly nuevoAulaCodigo = signal<string>('A-101');
+  readonly nuevoTecnico = signal<string>('tecnico01');
+  readonly nuevoTipoMantenimiento = signal<TipoMantenimiento>('CORRECTIVO');
+  readonly nuevaPrioridad = signal<'ALTA' | 'MEDIA' | 'BAJA'>('MEDIA');
+  readonly nuevasObservaciones = signal<string>('');
+  readonly errorNueva = signal<string | null>(null);
+
+  // Atenciones obtenidas reactivamente desde el servicio (Semana 14)
+  readonly atenciones = this.atencionService.atenciones;
+  readonly reportesPendientes = this.atencionService.reportesPendientes;
+  readonly cargando = this.atencionService.cargando;
+
+  // Usuario técnico en sesión actual (obtenido dinámicamente desde AuthService / JWT)
+  readonly tecnicoLogueado = computed(() => {
+    const sesion = this.authService.sesion();
+    return sesion ? sesion.username : 'tecnico01';
+  });
+
+  // Permisos según rol RBAC (ROLE_TECNICO o ROLE_ADMIN)
+  readonly puedeGestionar = computed(() => {
+    return this.authService.puedeActualizarReportes();
+  });
 
   // Lista filtrada reactiva en tiempo real (por texto, estado y técnico asignado)
   readonly filteredAtenciones = computed(() => {
@@ -135,6 +130,189 @@ export class AtencionListComponent {
     this.searchQuery.set('');
     this.selectedEstado.set('');
     this.selectedTecnico.set('');
+  }
+
+  // --- Acciones de Cambio de Estado (Semana 13 y 14) ---
+
+  iniciarAtencion(atencion: Atencion): void {
+    if (!this.puedeGestionar()) {
+      this.mostrarAlerta('Acceso denegado: debes autenticarte como personal técnico o administrador en la barra superior.');
+      return;
+    }
+
+    const usuario = this.tecnicoLogueado();
+    this.atencionService.iniciarAtencion(atencion.id, usuario).subscribe({
+      next: () => {
+        this.mostrarExito(`Orden #${atencion.id} iniciada con éxito. El caso pasó a estado EN ATENCIÓN.`);
+      },
+      error: (err) => {
+        this.mostrarAlerta(`Error al iniciar atención: ${err.message || 'Verifica los permisos en el servidor.'}`);
+      }
+    });
+  }
+
+  abrirModalResolucion(atencion: Atencion): void {
+    if (!this.puedeGestionar()) {
+      this.mostrarAlerta('Acceso denegado: solo el personal técnico autorizado puede registrar resoluciones.');
+      return;
+    }
+
+    this.atencionSeleccionada.set(atencion);
+    this.resolucionObservaciones.set('');
+    this.resolucionTipoSolucion.set('Reemplazo de componente');
+    this.resolucionRepuesto.set('');
+    this.resolucionConfirmacion.set(false);
+    this.errorResolucion.set(null);
+    this.mostrarModalResolucion.set(true);
+  }
+
+  cerrarModalResolucion(): void {
+    this.mostrarModalResolucion.set(false);
+    this.atencionSeleccionada.set(null);
+    this.errorResolucion.set(null);
+  }
+
+  guardarResolucion(): void {
+    const atencion = this.atencionSeleccionada();
+    if (!atencion) return;
+
+    const obs = this.resolucionObservaciones().trim();
+    if (!obs || obs.length < 10) {
+      this.errorResolucion.set('El diagnóstico técnico es obligatorio y debe tener al menos 10 caracteres.');
+      return;
+    }
+
+    if (!this.resolucionConfirmacion()) {
+      this.errorResolucion.set('Debes marcar la casilla certificando la operatividad del aula.');
+      return;
+    }
+
+    const detalle = `${this.resolucionTipoSolucion()}${this.resolucionRepuesto() ? ' - Repuesto: ' + this.resolucionRepuesto().trim() : ''}`;
+    const usuario = this.tecnicoLogueado();
+
+    this.atencionService.resolverAtencion(atencion.id, obs, detalle, usuario).subscribe({
+      next: () => {
+        this.cerrarModalResolucion();
+        this.mostrarExito(`Orden #${atencion.id} resuelta y certificada correctamente. ¡Aula 100% operativa!`);
+      },
+      error: (err) => {
+        this.errorResolucion.set(`No se pudo resolver la atención: ${err.message || 'Error en el servidor.'}`);
+      }
+    });
+  }
+
+  // --- Acciones de Triaje Rápido (Bandeja de Entrada de Reportes) ---
+
+  tomarReporte(rep: ReportePendienteAsignacion): void {
+    if (!this.puedeGestionar()) {
+      this.mostrarAlerta('Acceso denegado: debes tener rol Técnico o Admin para asignarte reportes.');
+      return;
+    }
+
+    const usuario = this.tecnicoLogueado();
+    this.atencionService.autoAsignarReporte(rep, usuario).subscribe({
+      next: (nueva) => {
+        this.mostrarExito(`Orden #${nueva.id} generada y asignada a ${usuario} para el Aula ${nueva.aulaCodigo}.`);
+      },
+      error: (err) => {
+        this.mostrarAlerta(`Error al asignar reporte: ${err.message || 'Verifica el servidor.'}`);
+      }
+    });
+  }
+
+  abrirModalAsignarReporte(rep: ReportePendienteAsignacion): void {
+    if (!this.puedeGestionar()) {
+      this.mostrarAlerta('Acceso denegado: solo personal técnico o administradores pueden asignar reportes.');
+      return;
+    }
+
+    this.nuevoReporteId.set(rep.id);
+    this.nuevoAulaCodigo.set(rep.aulaId);
+    this.nuevoTecnico.set(this.tecnicoLogueado());
+    this.nuevoTipoMantenimiento.set('CORRECTIVO');
+    const p = (['ALTA', 'MEDIA', 'BAJA'].includes(rep.prioridad) ? rep.prioridad : 'MEDIA') as 'ALTA' | 'MEDIA' | 'BAJA';
+    this.nuevaPrioridad.set(p);
+    this.nuevasObservaciones.set(rep.descripcion);
+    this.errorNueva.set(null);
+    this.mostrarModalNueva.set(true);
+  }
+
+  abrirModalNueva(): void {
+    if (!this.puedeGestionar()) {
+      this.mostrarAlerta('Acceso denegado: solo personal técnico o administradores pueden crear órdenes de atención.');
+      return;
+    }
+
+    this.nuevoReporteId.set(null);
+    this.nuevoAulaCodigo.set('A-101');
+    this.nuevoTecnico.set(this.tecnicoLogueado());
+    this.nuevoTipoMantenimiento.set('CORRECTIVO');
+    this.nuevaPrioridad.set('MEDIA');
+    this.nuevasObservaciones.set('');
+    this.errorNueva.set(null);
+    this.mostrarModalNueva.set(true);
+  }
+
+  cerrarModalNueva(): void {
+    this.mostrarModalNueva.set(false);
+    this.errorNueva.set(null);
+  }
+
+  crearNuevaAtencion(): void {
+    const repId = this.nuevoReporteId();
+    if (!repId || repId <= 0) {
+      this.errorNueva.set('Debes ingresar un número válido de Reporte / Ticket de origen.');
+      return;
+    }
+
+    const tecnico = this.nuevoTecnico().trim();
+    if (!tecnico) {
+      this.errorNueva.set('Debes asignar un técnico responsable para el caso.');
+      return;
+    }
+
+    this.atencionService.crearAtencion({
+      reporteId: repId,
+      tecnicoEncargado: tecnico,
+      aulaCodigo: this.nuevoAulaCodigo(),
+      prioridad: this.nuevaPrioridad(),
+      tipoMantenimiento: this.nuevoTipoMantenimiento(),
+      observaciones: this.nuevasObservaciones().trim() || 'Orden técnica creada manualmente.',
+      impactoAcademico: 'Atención prioritaria asignada en campus'
+    }).subscribe({
+      next: (nueva) => {
+        this.cerrarModalNueva();
+        this.mostrarExito(`Nueva Orden #${nueva.id} para Aula ${nueva.aulaCodigo} generada con éxito.`);
+      },
+      error: (err) => {
+        this.errorNueva.set(`No se pudo generar la orden: ${err.message || 'Error de validación.'}`);
+      }
+    });
+  }
+
+  cerrarMensaje(): void {
+    this.mensajeExito.set(null);
+    this.mensajeAlerta.set(null);
+  }
+
+  private mostrarExito(mensaje: string): void {
+    this.mensajeExito.set(mensaje);
+    this.mensajeAlerta.set(null);
+    setTimeout(() => {
+      if (this.mensajeExito() === mensaje) {
+        this.mensajeExito.set(null);
+      }
+    }, 5000);
+  }
+
+  private mostrarAlerta(mensaje: string): void {
+    this.mensajeAlerta.set(mensaje);
+    this.mensajeExito.set(null);
+    setTimeout(() => {
+      if (this.mensajeAlerta() === mensaje) {
+        this.mensajeAlerta.set(null);
+      }
+    }, 6000);
   }
 
   // Stepper de Ciclo de Vida: 1=Asignado, 2=En Proceso, 3=Certificado
