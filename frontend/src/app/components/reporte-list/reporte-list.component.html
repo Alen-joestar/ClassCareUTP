@@ -3,18 +3,6 @@
   <!-- Bloque Hero Marino Institucional con KPIs Interactivos -->
   <header class="hero-banner">
     <div class="hero-copy">
-      <div class="hero-status-row">
-        <button
-          type="button"
-          class="db-status-badge"
-          [class.db-online]="backendConectado()"
-          (click)="sincronizarConBackend()"
-          title="Haz clic para verificar y sincronizar la conexión con PostgreSQL">
-          <span class="db-dot"></span>
-          <span>{{ backendConectado() ? 'POSTGRESQL CONECTADO' : 'MODO MEMORIA LOCAL' }}</span>
-          <mat-icon class="db-sync-icon">sync</mat-icon>
-        </button>
-      </div>
       <h2 class="hero-title">Reportes de Inspección de Aulas</h2>
       <p class="hero-subtitle">
         Supervisión operativa en tiempo real de averías y mantenimiento en aulas y laboratorios. Haz clic en cualquier indicador para filtrar por estado.

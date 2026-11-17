@@ -23,57 +23,6 @@
   box-shadow: 0 10px 26px rgba(8, 15, 26, 0.15);
 }
 
-.hero-status-row {
-  margin-bottom: 0.45rem;
-}
-
-.db-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.24rem 0.68rem;
-  border-radius: 0 8px 2px 8px;
-  background-color: rgba(245, 158, 11, 0.16);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #FDE68A;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-
-  &:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
-
-  .db-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background-color: #FBBF24;
-  }
-
-  .db-sync-icon {
-    font-size: 13px;
-    width: 13px;
-    height: 13px;
-    opacity: 0.85;
-  }
-
-  &.db-online {
-    background-color: rgba(16, 185, 129, 0.16);
-    border-color: rgba(16, 185, 129, 0.45);
-    color: #A7F3D0;
-
-    .db-dot {
-      background-color: #34D399;
-      box-shadow: 0 0 8px #34D399;
-    }
-  }
-}
-
 .hero-title {
   font-family: var(--font-display);
   font-size: 1.75rem;
