@@ -78,9 +78,18 @@ Para verificar que todas las pruebas unitarias y de integración se ejecuten cor
 .\gradlew.bat bootRun
 ```
 
-Una vez levantada la aplicación, los servicios estarán disponibles en:
-* API REST: `http://localhost:8080/api/reportes`
-* Interfaz Web: `http://localhost:8080/index.html`
+### 4. Iniciar el frontend Angular
+En otra terminal, inicie la aplicación Angular:
+
+```powershell
+cd frontend
+npm install
+npm start
+```
+
+La interfaz Angular estará disponible en `http://localhost:4200`. El módulo de aulas se encuentra en `http://localhost:4200/aulas` y consume la API de Spring Boot mediante el proxy de desarrollo configurado para `http://localhost:8080`.
+
+La pantalla anterior de aulas se conserva en `src/main/resources/static/aulas` para no interrumpir el acceso existente desde el backend mientras se completa la migración de los demás módulos.
 
 ---
 
