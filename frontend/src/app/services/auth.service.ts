@@ -105,12 +105,22 @@ export class AuthService {
    */
   login(credenciales: LoginRequest, rolesRespaldo?: string[]): Observable<SesionUsuario> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credenciales).pipe(
-      map(respuesta => ({
-        token: respuesta.token,
-        username: respuesta.username,
-        roles: respuesta.roles,
-        origen: 'BACKEND_JWT' as const
-      })),
+      map(respuesta => {
+        const perfilLocal = Object.values(CREDENCIALES_DEMO).find(
+          c => c.username === credenciales.username
+        );
+        const rolesResueltos =
+          respuesta.roles && respuesta.roles.length > 0
+            ? respuesta.roles
+            : (rolesRespaldo ?? perfilLocal?.roles ?? ['ROLE_TECNICO']);
+
+        return {
+          token: respuesta.token,
+          username: respuesta.username || credenciales.username,
+          roles: rolesResueltos,
+          origen: 'BACKEND_JWT' as const
+        };
+      }),
       catchError((err: HttpErrorResponse) => {
         if (err.status === 401 || err.status === 403 || err.status === 400) {
           return throwError(() => err);
