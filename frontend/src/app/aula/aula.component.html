@@ -185,16 +185,31 @@
           <h3 class="room-code">{{ aula.codigo }}</h3>
           <p class="room-location"><mat-icon>location_on</mat-icon>{{ aula.ubicacion }}</p>
           <div class="room-capacity"><mat-icon>groups</mat-icon><span><strong>{{ aula.capacidad }}</strong> personas</span></div>
-          @if (puedeGestionar()) {
-            <div class="card-actions">
+          <div class="card-actions">
+            @if (claveEstado(aula.estado) === 'mantenimiento') {
+              <a
+                class="button button--outline"
+                [routerLink]="['/reportes']"
+                [queryParams]="{ aula: aula.codigo }">
+                <mat-icon>folder_open</mat-icon><span>Ver reportes</span>
+              </a>
+            } @else {
+              <a
+                class="button button--outline"
+                [routerLink]="['/reportes/nuevo']"
+                [queryParams]="{ aula: aula.codigo }">
+                <mat-icon>report_problem</mat-icon><span>Reportar falla</span>
+              </a>
+            }
+            @if (puedeGestionar()) {
               <button type="button" class="button button--quiet" (click)="editarAula(aula)">
                 <mat-icon>edit</mat-icon><span>Editar</span>
               </button>
               <button type="button" class="button button--danger-quiet" (click)="confirmarEliminacion(aula)">
                 <mat-icon>delete_outline</mat-icon><span>Eliminar</span>
               </button>
-            </div>
-          }
+            }
+          </div>
         </article>
       }
     </section>

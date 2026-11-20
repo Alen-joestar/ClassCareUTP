@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { Aula, AulaFormData } from './aula.model';
 import { AulaService } from './aula.service';
@@ -16,7 +17,7 @@ const AULAS_POR_PAGINA = 8;
 
 @Component({
   selector: 'app-aula',
-  imports: [FormsModule, MatIconModule],
+  imports: [FormsModule, MatIconModule, RouterLink],
   templateUrl: './aula.component.html',
   styleUrl: './aula.component.scss'
 })

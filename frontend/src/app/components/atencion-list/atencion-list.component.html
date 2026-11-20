@@ -308,7 +308,9 @@
               <mat-icon class="meta-icon" aria-hidden="true">alt_route</mat-icon>
               <div class="meta-content">
                 <span class="meta-label">Ticket Origen</span>
-                <span class="meta-val">Reporte #{{ atencion.reporteId }}</span>
+                <a class="meta-val" [routerLink]="['/reportes', atencion.reporteId]" title="Abrir detalle del Reporte #{{ atencion.reporteId }}">
+                  Reporte #{{ atencion.reporteId }}
+                </a>
               </div>
             </div>
           </div>

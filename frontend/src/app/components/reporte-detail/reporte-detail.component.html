@@ -132,6 +132,15 @@
             </span>
 
             <div class="crud-btn-group">
+              <a
+                class="m3-btn-edit"
+                [routerLink]="['/atenciones']"
+                [queryParams]="{ reporte: item.id }"
+                title="Abrir Bandeja de Atenciones Técnicas para este reporte">
+                <mat-icon>assignment_turned_in</mat-icon>
+                <span>Ver en Atenciones</span>
+              </a>
+
               <button
                 type="button"
                 class="m3-btn-edit"

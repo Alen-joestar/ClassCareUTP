@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Atencion, EstadoAtencion, ReportePendienteAsignacion, TipoMantenimiento } from '../../models/atencion.model';
 import { AtencionService } from '../../services/atencion.service';
 import { AuthService } from '../../services/auth.service';
@@ -12,7 +13,8 @@ import { AuthService } from '../../services/auth.service';
   imports: [
     DatePipe,
     FormsModule,
-    MatIconModule
+    MatIconModule,
+    RouterLink
   ],
   templateUrl: './atencion-list.component.html',
   styleUrl: './atencion-list.component.scss'
@@ -20,6 +22,16 @@ import { AuthService } from '../../services/auth.service';
 export class AtencionListComponent {
   readonly atencionService = inject(AtencionService);
   readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+
+  constructor() {
+    this.route.queryParamMap.subscribe(params => {
+      const reporteIdParam = params.get('reporte');
+      if (reporteIdParam) {
+        this.searchQuery.set(reporteIdParam.trim());
+      }
+    });
+  }
 
   // Estado reactivo de filtros con Signals
   readonly searchQuery = signal<string>('');

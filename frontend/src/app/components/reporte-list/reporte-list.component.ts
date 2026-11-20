@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
 import { ReporteService } from '../../services/reporte.service';
 
@@ -21,6 +21,16 @@ export type OrdenReportes = 'RECIENTES' | 'PRIORIDAD_ALTA' | 'PENDIENTES_PRIMERO
 })
 export class ReporteListComponent {
   private readonly reporteService = inject(ReporteService);
+  private readonly route = inject(ActivatedRoute);
+
+  constructor() {
+    this.route.queryParamMap.subscribe(params => {
+      const aulaQuery = params.get('aula');
+      if (aulaQuery) {
+        this.searchQuery.set(aulaQuery.trim());
+      }
+    });
+  }
 
   // Estado reactivo de filtros y ordenamiento con Signals
   readonly searchQuery = signal<string>('');

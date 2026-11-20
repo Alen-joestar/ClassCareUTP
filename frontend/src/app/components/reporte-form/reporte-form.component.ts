@@ -137,6 +137,17 @@ export class ReporteFormComponent {
       this.f.aulaUbicacion.setValue(ubicacionCalculada, { emitEvent: false });
     });
 
+    // Detectar si viene parámetro ?aula=A-101 desde el módulo de Aulas
+    this.route.queryParamMap.subscribe(queryParams => {
+      const aulaPreseleccionada = queryParams.get('aula');
+      if (aulaPreseleccionada && !this.modoEdicion()) {
+        const codigoNormalizado = aulaPreseleccionada.trim().toUpperCase();
+        this.f.aulaId.setValue(codigoNormalizado);
+        this.f.aulaId.markAsDirty();
+        this.f.aulaId.markAsTouched();
+      }
+    });
+
     // Detectar si estamos en ruta /reportes/:id/editar (Modo Edición CRUD)
     this.route.paramMap.subscribe(params => {
       const rawId = params.get('id');

@@ -11,14 +11,18 @@ export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
-  const authService = inject(AuthService);
-  const token = authService.getToken();
-
-  // No adjuntar el token en el endpoint público de login (/api/auth/login)
+  // No adjuntar el token ni inyectar AuthService en el endpoint público de login (/api/auth/login)
   const esRutaApi = req.url.startsWith('/api/') || req.url.includes('/api/');
   const esRutaAuth = req.url.includes('/api/auth/login');
 
-  if (token && esRutaApi && !esRutaAuth) {
+  if (!esRutaApi || esRutaAuth) {
+    return next(req);
+  }
+
+  const authService = inject(AuthService);
+  const token = authService.getToken();
+
+  if (token) {
     const peticionAutenticada = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
