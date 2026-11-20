@@ -18,7 +18,7 @@
         </div>
       } @else {
         <button type="button" class="button button--outline" (click)="abrirAcceso()">
-          <mat-icon>lock_open</mat-icon><span>Acceso técnico</span>
+          <mat-icon>lock_open</mat-icon><span>{{ sesion() ? 'Cambiar cuenta' : 'Iniciar sesión' }}</span>
         </button>
       }
     </div>
@@ -44,11 +44,11 @@
   <section class="filter-panel" aria-label="Filtros de aulas">
     <label class="filter-control filter-control--search">
       <mat-icon>search</mat-icon>
-      <input type="search" placeholder="Buscar por código o ubicación" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar por código o ubicación">
+      <input type="search" placeholder="Buscar por código o ubicación" [ngModel]="busqueda()" (ngModelChange)="cambiarBusqueda($event)" aria-label="Buscar por código o ubicación">
     </label>
     <label class="filter-control">
       <mat-icon>filter_list</mat-icon>
-      <select [ngModel]="estadoSeleccionado()" (ngModelChange)="estadoSeleccionado.set($event)" aria-label="Filtrar por estado">
+      <select [ngModel]="estadoSeleccionado()" (ngModelChange)="cambiarEstado($event)" aria-label="Filtrar por estado">
         <option value="">Todos los estados</option>
         <option value="Disponible">Disponible</option>
         <option value="Ocupada">Ocupada</option>
@@ -57,7 +57,7 @@
     </label>
     <label class="filter-control filter-control--capacity">
       <mat-icon>groups</mat-icon>
-      <input type="number" min="0" step="1" placeholder="Capacidad mínima" [ngModel]="capacidadMinima()" (ngModelChange)="capacidadMinima.set($event)" aria-label="Capacidad mínima">
+      <input type="number" min="0" step="1" placeholder="Capacidad mínima" [ngModel]="capacidadMinima()" (ngModelChange)="cambiarCapacidadMinima($event)" aria-label="Capacidad mínima">
     </label>
     <button type="button" class="button button--quiet" (click)="restablecerFiltros()">
       <mat-icon>restart_alt</mat-icon><span>Limpiar</span>
@@ -117,7 +117,7 @@
     <div class="empty-state" role="status"><mat-icon>sync</mat-icon><h3>Cargando aulas</h3><p>Consultando el catálogo del campus…</p></div>
   } @else if (aulasFiltradas().length > 0) {
     <section class="aula-grid" aria-label="Aulas registradas" aria-live="polite">
-      @for (aula of aulasFiltradas(); track aula.id) {
+      @for (aula of aulasPaginadas(); track aula.id) {
         <article class="aula-card" [attr.data-estado]="claveEstado(aula.estado)">
           <div class="card-topline">
             <span class="status-pill"><span class="status-dot"></span>{{ etiquetaEstado(aula.estado) }}</span>
@@ -149,28 +149,64 @@
       }
     </div>
   }
-</section>
 
-@if (loginVisible()) {
-  <div class="modal-backdrop" (click)="cerrarAcceso()">
-    <section class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="login-title" (click)="$event.stopPropagation()">
-      <button type="button" class="icon-button icon-button--light dialog-close" aria-label="Cerrar" (click)="cerrarAcceso()"><mat-icon>close</mat-icon></button>
-      <span class="dialog-icon"><mat-icon>admin_panel_settings</mat-icon></span>
-      <h2 id="login-title">Acceso del personal técnico</h2>
-      <p>Inicie sesión para registrar, editar o eliminar aulas.</p>
-      <form #loginForm="ngForm" (ngSubmit)="iniciarSesion()">
-        <label class="form-field"><span>Usuario</span><input name="usuario" [(ngModel)]="usuario" autocomplete="username" required></label>
-        <label class="form-field"><span>Contraseña</span><input name="contrasena" type="password" [(ngModel)]="contrasena" autocomplete="current-password" required></label>
-        @if (errorLogin) {
-          <p class="form-error" role="alert">{{ errorLogin }}</p>
-        }
-        <button type="submit" class="button button--primary button--full" [disabled]="loginForm.invalid">
-          <mat-icon>login</mat-icon><span>Iniciar sesión</span>
-        </button>
-      </form>
-    </section>
-  </div>
-}
+  @if (aulasFiltradas().length > 0) {
+    <nav class="pagination" aria-label="Paginación del catálogo de aulas">
+      <p class="pagination__summary">
+        Mostrando {{ primerResultado() }}–{{ ultimoResultado() }} de {{ aulasFiltradas().length }} aulas
+      </p>
+      @if (totalPaginas() > 1) {
+        <div class="pagination__controls">
+          <button
+            type="button"
+            class="pagination__button pagination__step"
+            [disabled]="paginaActualVisible() === 1"
+            (click)="irPagina(paginaActualVisible() - 1)"
+            aria-label="Página anterior">
+            <mat-icon>chevron_left</mat-icon><span>Anterior</span>
+          </button>
+          @if (paginasVisibles()[0] > 1) {
+            <button type="button" class="pagination__button" (click)="irPagina(1)" aria-label="Página 1">1</button>
+            @if (paginasVisibles()[0] > 2) {
+              <span class="pagination__ellipsis" aria-hidden="true">…</span>
+            }
+          }
+          @for (pagina of paginasVisibles(); track pagina) {
+            <button
+              type="button"
+              class="pagination__button"
+              [class.pagination__button--active]="pagina === paginaActualVisible()"
+              [attr.aria-current]="pagina === paginaActualVisible() ? 'page' : null"
+              [attr.aria-label]="'Página ' + pagina"
+              (click)="irPagina(pagina)">
+              {{ pagina }}
+            </button>
+          }
+          @if (paginasVisibles()[paginasVisibles().length - 1] < totalPaginas()) {
+            @if (paginasVisibles()[paginasVisibles().length - 1] < totalPaginas() - 1) {
+              <span class="pagination__ellipsis" aria-hidden="true">…</span>
+            }
+            <button
+              type="button"
+              class="pagination__button"
+              [attr.aria-label]="'Página ' + totalPaginas()"
+              (click)="irPagina(totalPaginas())">
+              {{ totalPaginas() }}
+            </button>
+          }
+          <button
+            type="button"
+            class="pagination__button pagination__step"
+            [disabled]="paginaActualVisible() === totalPaginas()"
+            (click)="irPagina(paginaActualVisible() + 1)"
+            aria-label="Página siguiente">
+            <span>Siguiente</span><mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
+    </nav>
+  }
+</section>
 
 @if (aulaAEliminar(); as aula) {
   <div class="modal-backdrop" (click)="aulaAEliminar.set(null)">

@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from '../services/auth.service';
 import { Aula, AulaFormData } from './aula.model';
 import { AulaService } from './aula.service';
 
@@ -11,6 +12,8 @@ const NUEVA_AULA: AulaFormData = {
   estado: 'Disponible'
 };
 
+const AULAS_POR_PAGINA = 8;
+
 @Component({
   selector: 'app-aula',
   imports: [FormsModule, MatIconModule],
@@ -19,6 +22,7 @@ const NUEVA_AULA: AulaFormData = {
 })
 export class AulaComponent implements OnInit {
   private readonly aulaService = inject(AulaService);
+  private readonly authService = inject(AuthService);
 
   readonly aulas = signal<Aula[]>([]);
   readonly busqueda = signal('');
@@ -27,10 +31,10 @@ export class AulaComponent implements OnInit {
   readonly cargando = signal(false);
   readonly errorCarga = signal('');
   readonly mensaje = signal('');
-  readonly loginVisible = signal(false);
   readonly formularioVisible = signal(false);
   readonly aulaAEliminar = signal<Aula | null>(null);
-  readonly sesion = this.aulaService.session;
+  readonly sesion = this.authService.sesion;
+  readonly paginaActual = signal(1);
   readonly puedeGestionar = computed(() =>
     this.sesion()?.roles.some(rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN') ?? false
   );
@@ -50,6 +54,34 @@ export class AulaComponent implements OnInit {
     });
   });
 
+  readonly totalPaginas = computed(() =>
+    Math.max(1, Math.ceil(this.aulasFiltradas().length / AULAS_POR_PAGINA))
+  );
+  readonly paginaActualVisible = computed(() =>
+    Math.min(this.paginaActual(), this.totalPaginas())
+  );
+  readonly paginasVisibles = computed(() => {
+    const total = this.totalPaginas();
+    const cantidad = Math.min(total, 5);
+    const inicio = Math.max(
+      1,
+      Math.min(this.paginaActualVisible() - 2, total - cantidad + 1)
+    );
+    return Array.from({ length: cantidad }, (_, indice) => inicio + indice);
+  });
+  readonly aulasPaginadas = computed(() => {
+    const inicio = (this.paginaActualVisible() - 1) * AULAS_POR_PAGINA;
+    return this.aulasFiltradas().slice(inicio, inicio + AULAS_POR_PAGINA);
+  });
+  readonly primerResultado = computed(() =>
+    this.aulasFiltradas().length === 0
+      ? 0
+      : (this.paginaActualVisible() - 1) * AULAS_POR_PAGINA + 1
+  );
+  readonly ultimoResultado = computed(() =>
+    Math.min(this.paginaActualVisible() * AULAS_POR_PAGINA, this.aulasFiltradas().length)
+  );
+
   readonly totalAulas = computed(() => this.aulas().length);
   readonly aulasDisponibles = computed(() =>
     this.aulas().filter(aula => this.normalizar(aula.estado) === 'disponible').length
@@ -62,9 +94,6 @@ export class AulaComponent implements OnInit {
   );
 
   datosFormulario: AulaFormData = { ...NUEVA_AULA };
-  usuario = '';
-  contrasena = '';
-  errorLogin = '';
   errorFormulario = '';
   guardando = false;
   aulaEnEdicion: number | null = null;
@@ -78,6 +107,7 @@ export class AulaComponent implements OnInit {
     this.errorCarga.set('');
     try {
       this.aulas.set(await this.aulaService.listar());
+      this.ajustarPagina();
     } catch (error) {
       this.errorCarga.set(
         this.aulaService.mensajeError(error, 'No se pudieron cargar las aulas.')
@@ -91,39 +121,37 @@ export class AulaComponent implements OnInit {
     this.busqueda.set('');
     this.estadoSeleccionado.set('');
     this.capacidadMinima.set('');
+    this.paginaActual.set(1);
   }
 
-  abrirAcceso(): void {
-    this.usuario = '';
-    this.contrasena = '';
-    this.errorLogin = '';
-    this.loginVisible.set(true);
+  cambiarBusqueda(valor: string): void {
+    this.busqueda.set(valor);
+    this.paginaActual.set(1);
   }
 
-  cerrarAcceso(): void {
-    this.loginVisible.set(false);
+  cambiarEstado(valor: string): void {
+    this.estadoSeleccionado.set(valor);
+    this.paginaActual.set(1);
   }
 
-  async iniciarSesion(): Promise<void> {
-    this.errorLogin = '';
-    try {
-      const sesion = await this.aulaService.iniciarSesion(this.usuario.trim(), this.contrasena);
-      if (sesion.roles.some(rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN')) {
-        this.loginVisible.set(false);
-        this.mensaje.set(`Bienvenido, ${sesion.username}. Ya puede gestionar las aulas.`);
-      } else {
-        this.errorLogin = 'Su cuenta inició sesión, pero no tiene permisos para gestionar aulas.';
-      }
-    } catch (error) {
-      this.errorLogin = this.aulaService.mensajeError(error, 'No se pudo iniciar sesión.');
-    }
+  cambiarCapacidadMinima(valor: string): void {
+    this.capacidadMinima.set(valor);
+    this.paginaActual.set(1);
+  }
+
+  irPagina(pagina: number): void {
+    this.paginaActual.set(Math.max(1, Math.min(pagina, this.totalPaginas())));
   }
 
   cerrarSesion(): void {
-    this.aulaService.cerrarSesion();
+    this.authService.logout();
     this.formularioVisible.set(false);
     this.aulaEnEdicion = null;
     this.mensaje.set('La sesión se cerró correctamente.');
+  }
+
+  abrirAcceso(): void {
+    this.authService.abrirPanel();
   }
 
   nuevaAula(): void {
@@ -223,6 +251,10 @@ export class AulaComponent implements OnInit {
     this.datosFormulario = { ...NUEVA_AULA };
     this.aulaEnEdicion = null;
     this.errorFormulario = '';
+  }
+
+  private ajustarPagina(): void {
+    this.paginaActual.set(Math.min(this.paginaActual(), this.totalPaginas()));
   }
 
   private esMantenimiento(estado: string): boolean {

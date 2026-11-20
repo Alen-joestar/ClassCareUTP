@@ -34,6 +34,7 @@ export class AuthService {
 
   readonly sesion = this.sesionState.asReadonly();
   readonly autenticado = computed(() => Boolean(this.sesionState()?.token));
+  readonly panelVisible = signal(false);
 
   /**
    * Según SecurityConfig.java, solo ROLE_TECNICO y ROLE_ADMIN pueden ejecutar PUT /api/reportes/{id}.
@@ -164,6 +165,18 @@ export class AuthService {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
     }
+  }
+
+  abrirPanel(): void {
+    this.panelVisible.set(true);
+  }
+
+  togglePanel(): void {
+    this.panelVisible.update(visible => !visible);
+  }
+
+  cerrarPanel(): void {
+    this.panelVisible.set(false);
   }
 
   private deducirPerfil(username: string): PerfilDemo {

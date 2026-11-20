@@ -1,15 +1,10 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Aula, AulaAuthSession, AulaFormData } from './aula.model';
-
-const SESSION_KEY = 'classcareSesion';
+import { Aula, AulaFormData } from './aula.model';
 
 @Injectable({ providedIn: 'root' })
 export class AulaService {
-  private readonly sessionState = signal<AulaAuthSession | null>(this.readSession());
-  readonly session = this.sessionState.asReadonly();
-
   constructor(private readonly http: HttpClient) {}
 
   async listar(): Promise<Aula[]> {
@@ -20,48 +15,16 @@ export class AulaService {
     return aulas;
   }
 
-  async iniciarSesion(username: string, password: string): Promise<AulaAuthSession> {
-    const response = await firstValueFrom(
-      this.http.post<AulaAuthSession>('/api/auth/login', { username, password })
-    );
-    if (!response.token || !Array.isArray(response.roles)) {
-      throw new Error('El servidor no devolvió una sesión válida.');
-    }
-
-    this.sessionState.set(response);
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(response));
-    }
-    return response;
-  }
-
   async registrar(datos: AulaFormData): Promise<Aula> {
-    return firstValueFrom(
-      this.http.post<Aula>('/api/aulas', datos, { headers: this.authHeaders() })
-    );
+    return firstValueFrom(this.http.post<Aula>('/api/aulas', datos));
   }
 
   async actualizar(id: number, datos: AulaFormData): Promise<Aula> {
-    return firstValueFrom(
-      this.http.put<Aula>(`/api/aulas/${encodeURIComponent(id)}`, datos, {
-        headers: this.authHeaders()
-      })
-    );
+    return firstValueFrom(this.http.put<Aula>(`/api/aulas/${encodeURIComponent(id)}`, datos));
   }
 
   async eliminar(id: number): Promise<void> {
-    await firstValueFrom(
-      this.http.delete<void>(`/api/aulas/${encodeURIComponent(id)}`, {
-        headers: this.authHeaders()
-      })
-    );
-  }
-
-  cerrarSesion(): void {
-    this.sessionState.set(null);
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.removeItem(SESSION_KEY);
-    }
+    await firstValueFrom(this.http.delete<void>(`/api/aulas/${encodeURIComponent(id)}`));
   }
 
   mensajeError(error: unknown, fallback: string): string {
@@ -78,46 +41,5 @@ export class AulaService {
       }
     }
     return error instanceof Error ? error.message : fallback;
-  }
-
-  private authHeaders(): HttpHeaders {
-    const session = this.sessionState();
-    if (!session?.token) {
-      throw new Error('Inicie sesión con una cuenta técnica para gestionar las aulas.');
-    }
-    return new HttpHeaders({
-      Authorization: `${session.tipo || 'Bearer'} ${session.token}`
-    });
-  }
-
-  private readSession(): AulaAuthSession | null {
-    if (typeof sessionStorage === 'undefined') {
-      return null;
-    }
-
-    const storedSession = sessionStorage.getItem(SESSION_KEY);
-    if (!storedSession) {
-      return null;
-    }
-
-    try {
-      const session: unknown = JSON.parse(storedSession);
-      if (
-        session &&
-        typeof session === 'object' &&
-        'token' in session &&
-        typeof session.token === 'string' &&
-        'roles' in session &&
-        Array.isArray(session.roles)
-      ) {
-        return session as AulaAuthSession;
-      }
-    } catch {
-      sessionStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-
-    sessionStorage.removeItem(SESSION_KEY);
-    return null;
   }
 }

@@ -30,7 +30,7 @@ export class App {
 
   protected readonly title = signal('ClassCare Campus');
   protected readonly isDarkMode = signal(false);
-  protected readonly mostrarPanelJwt = signal(false);
+  protected readonly mostrarPanelJwt = this.authService.panelVisible;
 
   protected readonly loginUsername = signal('tecnico');
   protected readonly loginPassword = signal('tecnico123');
@@ -48,11 +48,11 @@ export class App {
 
   togglePanelJwt(): void {
     this.errorLogin.set(null);
-    this.mostrarPanelJwt.update(v => !v);
+    this.authService.togglePanel();
   }
 
   cerrarPanelJwt(): void {
-    this.mostrarPanelJwt.set(false);
+    this.authService.cerrarPanel();
   }
 
   iniciarSesionManual(): void {
@@ -66,7 +66,7 @@ export class App {
     this.errorLogin.set(null);
     this.authService.login({ username, password }).subscribe({
       next: sesion => {
-        this.mostrarPanelJwt.set(false);
+        this.authService.cerrarPanel();
         this.snackBar.open(
           `Autenticado en /api/auth/login como ${sesion.username} (${sesion.roles.join(', ')})`,
           'Cerrar',
@@ -84,7 +84,7 @@ export class App {
     this.authService.loginRapido(perfil).subscribe(sesion => {
       this.loginUsername.set(sesion.username);
       this.loginPassword.set(`${sesion.username}123`);
-      this.mostrarPanelJwt.set(false);
+      this.authService.cerrarPanel();
       this.snackBar.open(
         `Sesión JWT activa: ${sesion.username} (${sesion.roles.join(', ')}) • Bearer Token listo`,
         'Cerrar',
@@ -95,7 +95,7 @@ export class App {
 
   cerrarSesionJwt(): void {
     this.authService.logout();
-    this.mostrarPanelJwt.set(false);
+    this.authService.cerrarPanel();
     this.snackBar.open(
       'Sesión cerrada: Peticiones HTTP se enviarán sin cabecera Authorization Bearer.',
       'Cerrar',

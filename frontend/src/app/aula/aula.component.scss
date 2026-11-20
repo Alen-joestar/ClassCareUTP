@@ -13,12 +13,11 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.5rem;
   align-items: start;
-  padding: 1.75rem;
+  padding: 1.5rem 1.75rem;
   color: #fff;
   background: var(--hero-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 18px 6px 18px 6px;
-  box-shadow: 0 10px 26px rgba(8, 15, 26, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .hero-copy h2,
@@ -29,7 +28,7 @@
 
 .hero-copy h2 {
   margin: 0.45rem 0;
-  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  font-size: clamp(1.5rem, 3vw, 1.8rem);
   line-height: 1.15;
 }
 
@@ -74,7 +73,7 @@
   justify-content: center;
   gap: 0.45rem;
   border: 1px solid transparent;
-  border-radius: 0 11px 4px 11px;
+  border-radius: 8px;
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
@@ -198,7 +197,7 @@
   padding: 0.7rem 0.85rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 0 12px 4px 12px;
+  border-radius: 10px;
 }
 
 .metric__value {
@@ -221,7 +220,7 @@
   padding: 0.8rem;
   background: var(--filter-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0 16px 6px 16px;
+  border-radius: 10px;
 }
 
 .filter-control {
@@ -233,7 +232,7 @@
   padding: 0.5rem 0.7rem;
   background: var(--input-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0 10px 4px 10px;
+  border-radius: 8px;
 }
 
 .filter-control:focus-within,
@@ -285,7 +284,7 @@
   gap: 0.55rem;
   padding: 0.75rem 0.9rem;
   border: 1px solid;
-  border-radius: 0 12px 4px 12px;
+  border-radius: 8px;
   font-size: 0.85rem;
 }
 
@@ -320,7 +319,7 @@
   padding: 1.25rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 14px 5px 14px 5px;
+  border-radius: 12px;
   box-shadow: 0 6px 18px rgba(8, 15, 26, 0.07);
 }
 
@@ -375,7 +374,7 @@
   color: var(--text-main);
   background: var(--input-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0 9px 4px 9px;
+  border-radius: 8px;
   font: inherit;
   font-weight: 400;
 }
@@ -410,7 +409,7 @@
   overflow: hidden;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 14px 5px 14px 5px;
+  border-radius: 12px;
   box-shadow: 0 6px 18px rgba(8, 15, 26, 0.06);
 }
 
@@ -475,7 +474,7 @@
   place-items: center;
   color: #38bdf8;
   background: var(--card-header-bg);
-  border-radius: 0 10px 4px 10px;
+  border-radius: 8px;
 }
 
 .room-code {
@@ -537,7 +536,7 @@
   text-align: center;
   background: var(--card-bg);
   border: 1px dashed var(--card-border);
-  border-radius: 14px 5px 14px 5px;
+  border-radius: 12px;
 }
 
 .empty-state > mat-icon {
@@ -559,6 +558,69 @@
   font-size: 0.85rem;
 }
 
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.pagination__summary {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.pagination__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.pagination__button {
+  display: inline-flex;
+  min-width: 38px;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.55rem;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pagination__button:hover:not(:disabled),
+.pagination__button--active {
+  color: #fff;
+  background: #10223a;
+  border-color: #10223a;
+}
+
+.pagination__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination__button mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.pagination__ellipsis {
+  padding: 0 0.2rem;
+  color: var(--text-muted);
+}
+
 .modal-backdrop {
   position: fixed;
   z-index: 200;
@@ -577,7 +639,7 @@
   color: var(--text-main);
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 16px 5px 16px 5px;
+  border-radius: 14px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
 }
 
@@ -606,7 +668,7 @@
   place-items: center;
   color: #0369a1;
   background: #e0f2fe;
-  border-radius: 0 13px 5px 13px;
+  border-radius: 10px;
 }
 
 .dialog-icon--danger {
@@ -649,6 +711,19 @@
   .results-count {
     width: 100%;
     text-align: right;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+
+  .pagination__summary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .pagination__step span {
+    display: none;
   }
 
   .form-grid {

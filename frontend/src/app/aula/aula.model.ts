@@ -12,10 +12,3 @@ export interface AulaFormData {
   capacidad: number;
   estado: string;
 }
-
-export interface AulaAuthSession {
-  token: string;
-  tipo: string;
-  username: string;
-  roles: string[];
-}
