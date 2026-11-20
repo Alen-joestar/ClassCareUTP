@@ -5,6 +5,7 @@ import com.utp.herDesarrollo.aulas.model.Aula;
 import com.utp.herDesarrollo.aulas.repository.AulaRepository;
 import com.utp.herDesarrollo.reportes.application.dto.ReporteResponseDTO;
 import com.utp.herDesarrollo.reportes.domain.model.EstadoReporte;
+import com.utp.herDesarrollo.reportes.domain.model.Prioridad;
 import com.utp.herDesarrollo.reportes.domain.repository.ReporteRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,10 @@ import java.util.Locale;
 
 @Service
 public class AulaService {
+
+    private static final int CODIGO_MAX_LONGITUD = 30;
+    private static final int UBICACION_MAX_LONGITUD = 120;
+    private static final int CAPACIDAD_MAXIMA = 200;
 
     private final AulaRepository aulaRepository;
     private final ReporteRepository reporteRepository;
@@ -44,17 +49,18 @@ public class AulaService {
     public Aula registrarAula(Aula aula) {
         validarAula(aula);
 
-        aula.setCodigo(aula.getCodigo().trim());
-        aula.setUbicacion(aula.getUbicacion().trim());
-        aula.setEstado(aula.getEstado().trim());
+        String codigo = normalizarCodigo(aula.getCodigo());
 
-        if (aulaRepository.existsByCodigo(aula.getCodigo())) {
+        if (aulaRepository.existsByCodigoIgnoreCase(codigo)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Ya existe un aula con el código: "
-                            + aula.getCodigo());
+                            + codigo);
         }
 
+        aula.setCodigo(codigo);
+        aula.setUbicacion(aula.getUbicacion().trim());
+        aula.setEstado(normalizarEstado(aula.getEstado()));
         aula.setId(null);
         return aulaRepository.save(aula);
     }
@@ -65,24 +71,29 @@ public class AulaService {
 
         Aula aula = obtenerAulaPorId(id);
 
-        String codigo = datosAula.getCodigo().trim();
+        String codigo = normalizarCodigo(datosAula.getCodigo());
         String ubicacion = datosAula.getUbicacion().trim();
         String estado = datosAula.getEstado().trim();
 
-        boolean codigoCambiado =
-                !aula.getCodigo().equalsIgnoreCase(codigo);
-
-        if (codigoCambiado
-                && aulaRepository.existsByCodigo(codigo)) {
+        if (aulaRepository.existsByCodigoIgnoreCaseAndIdNot(codigo, aula.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Ya existe un aula con el código: " + codigo);
         }
 
+        String estadoNormalizado = normalizarEstado(estado);
+        if (!"Mantenimiento".equals(estadoNormalizado)
+                && requiereMantenimientoPorReportes(aula.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede cambiar el aula a Disponible u Ocupada mientras "
+                            + "tenga reportes de prioridad alta o en atención");
+        }
+
         aula.setCodigo(codigo);
         aula.setUbicacion(ubicacion);
         aula.setCapacidad(datosAula.getCapacidad());
-        aula.setEstado(estado);
+        aula.setEstado(estadoNormalizado);
 
         return aulaRepository.save(aula);
     }
@@ -100,6 +111,12 @@ public class AulaService {
                     HttpStatus.BAD_REQUEST,
                     "El código del aula es obligatorio");
         }
+        if (aula.getCodigo().trim().length() > CODIGO_MAX_LONGITUD) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El código del aula no puede superar "
+                            + CODIGO_MAX_LONGITUD + " caracteres");
+        }
 
         if (aula.getUbicacion() == null
                 || aula.getUbicacion().isBlank()) {
@@ -107,11 +124,20 @@ public class AulaService {
                     HttpStatus.BAD_REQUEST,
                     "La ubicación del aula es obligatoria");
         }
-
-        if (aula.getCapacidad() <= 0) {
+        if (aula.getUbicacion().trim().length()
+                > UBICACION_MAX_LONGITUD) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "La capacidad debe ser mayor que cero");
+                    "La ubicación no puede superar "
+                            + UBICACION_MAX_LONGITUD + " caracteres");
+        }
+
+        if (aula.getCapacidad() < 1
+                || aula.getCapacidad() > CAPACIDAD_MAXIMA) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La capacidad debe ser un número entero entre 1 y "
+                            + CAPACIDAD_MAXIMA);
         }
 
         if (aula.getEstado() == null
@@ -121,32 +147,41 @@ public class AulaService {
                     "El estado del aula es obligatorio");
         }
 
-        String estado = aula.getEstado()
-                .trim()
-                .toLowerCase(Locale.ROOT);
+        normalizarEstado(aula.getEstado());
+    }
 
-        if (!estado.equals("disponible")
-                && !estado.equals("ocupada")
-                && !estado.equals("mantenimiento")
-                && !estado.equals("en mantenimiento")) {
-            throw new ResponseStatusException(
+    private String normalizarEstado(String estado) {
+        return switch (estado.trim().toLowerCase(Locale.ROOT)) {
+            case "disponible" -> "Disponible";
+            case "ocupada" -> "Ocupada";
+            case "mantenimiento", "en mantenimiento" -> "Mantenimiento";
+            default -> throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Estado no válido. Use Disponible, Ocupada "
+                    "Estado no válido. Seleccione Disponible, Ocupada "
                             + "o Mantenimiento");
-        }
+        };
+    }
+
+    private String normalizarCodigo(String codigo) {
+        return codigo.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private boolean requiereMantenimientoPorReportes(Long aulaId) {
+        return reporteRepository.existsByAula_IdAndEstado(
+                        aulaId, EstadoReporte.EN_ATENCION)
+                || reporteRepository.existsByAula_IdAndEstadoNotAndPrioridad(
+                        aulaId, EstadoReporte.RESUELTO, Prioridad.ALTA);
     }
 
     @Transactional
     public void eliminarAula(Long id) {
         Aula aula = obtenerAulaPorId(id);
 
-        if (reporteRepository.existsByAula_IdAndEstadoNot(
-                id, EstadoReporte.RESUELTO)) {
+        if (reporteRepository.existsByAula_Id(id)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "No se puede eliminar el aula porque cuenta "
-                            + "con incidencias pendientes o en "
-                            + "atención asociadas");
+                    "No se puede eliminar el aula porque tiene reportes asociados; "
+                            + "los reportes históricos deben conservar su aula");
         }
 
         aulaRepository.delete(aula);

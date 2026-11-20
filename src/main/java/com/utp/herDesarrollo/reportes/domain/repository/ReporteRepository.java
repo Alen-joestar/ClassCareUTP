@@ -46,10 +46,17 @@ public interface ReporteRepository extends JpaRepository<Reporte, Long> {
      */
     List<Reporte> findByAula_IdOrderByFechaRegistroDesc(Long aulaId);
 
+    boolean existsByAula_Id(Long aulaId);
+
+    boolean existsByAula_IdAndEstado(Long aulaId, EstadoReporte estado);
+
     /**
      * Verifica si existen reportes activos (no resueltos) para un aula específica.
      */
     boolean existsByAula_IdAndEstadoNot(Long aulaId, EstadoReporte estado);
+
+    boolean existsByAula_IdAndEstadoNotAndPrioridad(
+            Long aulaId, EstadoReporte estado, Prioridad prioridad);
 
     /**
      * Cuenta reportes no resueltos para un aula excluyendo un reporte específico.

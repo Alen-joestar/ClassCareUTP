@@ -315,6 +315,12 @@
   cursor: pointer;
 }
 
+.filter-error {
+  margin-top: -0.75rem;
+  color: #b4232e;
+  font-size: 0.8rem;
+}
+
 .form-panel {
   padding: 1.25rem;
   background: var(--card-bg);
@@ -392,6 +398,12 @@
   margin-top: 0.25rem;
   color: #b4232e;
   font-size: 0.82rem;
+}
+
+.form-hint {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 400;
 }
 
 .aula-grid {

@@ -57,13 +57,16 @@
     </label>
     <label class="filter-control filter-control--capacity">
       <mat-icon>groups</mat-icon>
-      <input type="number" min="0" step="1" placeholder="Capacidad mínima" [ngModel]="capacidadMinima()" (ngModelChange)="cambiarCapacidadMinima($event)" aria-label="Capacidad mínima">
+      <input type="number" min="0" step="1" placeholder="Capacidad mínima" [ngModel]="capacidadMinima()" (ngModelChange)="cambiarCapacidadMinima($event)" [attr.aria-invalid]="!!errorCapacidadMinima()" aria-label="Capacidad mínima">
     </label>
     <button type="button" class="button button--quiet" (click)="restablecerFiltros()">
       <mat-icon>restart_alt</mat-icon><span>Limpiar</span>
     </button>
     <span class="results-count">{{ aulasFiltradas().length }} espacios</span>
   </section>
+  @if (errorCapacidadMinima()) {
+    <p class="filter-error" role="alert">{{ errorCapacidadMinima() }}</p>
+  }
 
   @if (formularioVisible() && puedeGestionar()) {
     <section class="form-panel" aria-labelledby="form-title">
@@ -80,23 +83,79 @@
         <div class="form-grid">
           <label class="form-field">
             <span>Código del aula</span>
-            <input name="codigo" [(ngModel)]="datosFormulario.codigo" required maxlength="30" placeholder="Ej. A-101">
+            <input
+              #codigoControl="ngModel"
+              name="codigo"
+              [(ngModel)]="datosFormulario.codigo"
+              required
+              pattern=".*\S.*"
+              maxlength="30"
+              placeholder="Ej. A-101"
+              [attr.aria-invalid]="codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)">
+            @if (codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)) {
+              <small class="form-error" role="alert">
+                @if (codigoControl.hasError('required') || codigoControl.hasError('pattern')) {
+                  Ingrese el código; no puede contener solo espacios.
+                } @else if (codigoControl.hasError('maxlength')) {
+                  El código no puede superar 30 caracteres.
+                }
+              </small>
+            }
           </label>
           <label class="form-field">
             <span>Ubicación</span>
-            <input name="ubicacion" [(ngModel)]="datosFormulario.ubicacion" required maxlength="120" placeholder="Pabellón y piso">
+            <input
+              #ubicacionControl="ngModel"
+              name="ubicacion"
+              [(ngModel)]="datosFormulario.ubicacion"
+              required
+              pattern=".*\S.*"
+              maxlength="120"
+              placeholder="Pabellón y piso"
+              [attr.aria-invalid]="ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)">
+            @if (ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)) {
+              <small class="form-error" role="alert">
+                @if (ubicacionControl.hasError('required') || ubicacionControl.hasError('pattern')) {
+                  Ingrese la ubicación; no puede contener solo espacios.
+                } @else if (ubicacionControl.hasError('maxlength')) {
+                  La ubicación no puede superar 120 caracteres.
+                }
+              </small>
+            }
           </label>
           <label class="form-field">
             <span>Capacidad</span>
-            <input name="capacidad" type="number" [(ngModel)]="datosFormulario.capacidad" required min="1" max="200">
+            <input
+              #capacidadControl="ngModel"
+              name="capacidad"
+              type="number"
+              [(ngModel)]="datosFormulario.capacidad"
+              required
+              min="1"
+              max="200"
+              step="1"
+              [attr.aria-invalid]="capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)">
+            @if (capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)) {
+              <small class="form-error" role="alert">
+                @if (capacidadControl.hasError('required')) {
+                  Ingrese la capacidad del aula.
+                } @else if (capacidadControl.hasError('min') || capacidadControl.hasError('max')) {
+                  La capacidad debe estar entre 1 y 200 personas.
+                }
+              </small>
+            }
+            <small class="form-hint">Use un número entero entre 1 y 200.</small>
           </label>
           <label class="form-field">
             <span>Estado operativo</span>
-            <select name="estado" [(ngModel)]="datosFormulario.estado" required>
+            <select #estadoControl="ngModel" name="estado" [(ngModel)]="datosFormulario.estado" required>
               <option value="Disponible">Disponible</option>
               <option value="Ocupada">Ocupada</option>
               <option value="Mantenimiento">Mantenimiento</option>
             </select>
+            @if (estadoControl.invalid && (estadoControl.dirty || estadoControl.touched)) {
+              <small class="form-error" role="alert">Seleccione un estado válido.</small>
+            }
           </label>
         </div>
         @if (errorFormulario) {
@@ -213,7 +272,7 @@
     <section class="dialog-card dialog-card--confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" (click)="$event.stopPropagation()">
       <span class="dialog-icon dialog-icon--danger"><mat-icon>delete_outline</mat-icon></span>
       <h2 id="delete-title">¿Eliminar el aula {{ aula.codigo }}?</h2>
-      <p>Esta acción no se puede deshacer. No será posible eliminarla si tiene reportes pendientes o en atención.</p>
+      <p>Esta acción no se puede deshacer. No será posible eliminarla mientras tenga reportes asociados, incluidos los resueltos.</p>
       <div class="dialog-actions">
         <button type="button" class="button button--quiet" (click)="aulaAEliminar.set(null)">Cancelar</button>
         <button type="button" class="button button--danger" (click)="eliminarAula()">Sí, eliminar</button>

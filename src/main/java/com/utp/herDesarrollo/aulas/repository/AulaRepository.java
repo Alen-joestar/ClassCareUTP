@@ -13,6 +13,10 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
 
     boolean existsByCodigo(String codigo);
 
+    boolean existsByCodigoIgnoreCase(String codigo);
+
+    boolean existsByCodigoIgnoreCaseAndIdNot(String codigo, Long id);
+
     Optional<Aula> findByCodigo(String codigo);
 
     Optional<Aula> findByCodigoIgnoreCase(String codigo);

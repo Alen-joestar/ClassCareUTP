@@ -16,6 +16,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -98,6 +100,27 @@ class AulaControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.codigo").value("A-102"));
+    }
+
+    @Test
+    void debeRechazarCapacidadDecimalConMensajeClaro() throws Exception {
+        mockMvc.perform(post("/api/aulas")
+                        .with(SecurityMockMvcRequestPostProcessors.user("tecnico")
+                                .roles("TECNICO"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "codigo": "A-104",
+                                    "ubicacion": "Pabellon A - Cuarto piso",
+                                    "capacidad": 20.5,
+                                    "estado": "Disponible"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "La capacidad debe ser un número entero entre 1 y 200"));
+
+        verify(aulaService, never()).registrarAula(any(Aula.class));
     }
 
     @Test

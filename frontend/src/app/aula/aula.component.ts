@@ -27,7 +27,7 @@ export class AulaComponent implements OnInit {
   readonly aulas = signal<Aula[]>([]);
   readonly busqueda = signal('');
   readonly estadoSeleccionado = signal('');
-  readonly capacidadMinima = signal('');
+  readonly capacidadMinima = signal<number | null>(null);
   readonly cargando = signal(false);
   readonly errorCarga = signal('');
   readonly mensaje = signal('');
@@ -38,11 +38,23 @@ export class AulaComponent implements OnInit {
   readonly puedeGestionar = computed(() =>
     this.sesion()?.roles.some(rol => rol === 'ROLE_TECNICO' || rol === 'ROLE_ADMIN') ?? false
   );
+  readonly errorCapacidadMinima = computed(() => {
+    const capacidad = this.capacidadMinima();
+    if (capacidad === null) {
+      return '';
+    }
+
+    return Number.isInteger(capacidad) && capacidad >= 0
+      ? ''
+      : 'La capacidad mínima debe ser un número entero igual o mayor que 0.';
+  });
 
   readonly aulasFiltradas = computed(() => {
     const query = this.normalizar(this.busqueda());
     const estado = this.normalizar(this.estadoSeleccionado());
-    const capacidad = Number(this.capacidadMinima()) || 0;
+    const capacidad = this.errorCapacidadMinima()
+      ? 0
+      : this.capacidadMinima() ?? 0;
 
     return this.aulas().filter(aula => {
       const coincideTexto =
@@ -120,7 +132,7 @@ export class AulaComponent implements OnInit {
   restablecerFiltros(): void {
     this.busqueda.set('');
     this.estadoSeleccionado.set('');
-    this.capacidadMinima.set('');
+    this.capacidadMinima.set(null);
     this.paginaActual.set(1);
   }
 
@@ -134,7 +146,7 @@ export class AulaComponent implements OnInit {
     this.paginaActual.set(1);
   }
 
-  cambiarCapacidadMinima(valor: string): void {
+  cambiarCapacidadMinima(valor: number | null): void {
     this.capacidadMinima.set(valor);
     this.paginaActual.set(1);
   }
@@ -178,13 +190,19 @@ export class AulaComponent implements OnInit {
 
   async guardarAula(): Promise<void> {
     this.errorFormulario = '';
-    this.guardando = true;
     const datos = {
       ...this.datosFormulario,
       codigo: this.datosFormulario.codigo.trim(),
-      ubicacion: this.datosFormulario.ubicacion.trim()
+      ubicacion: this.datosFormulario.ubicacion.trim(),
+      capacidad: Number(this.datosFormulario.capacidad)
     };
+    const errorValidacion = this.validarDatos(datos);
+    if (errorValidacion) {
+      this.errorFormulario = errorValidacion;
+      return;
+    }
 
+    this.guardando = true;
     try {
       if (this.aulaEnEdicion === null) {
         await this.aulaService.registrar(datos);
@@ -251,6 +269,32 @@ export class AulaComponent implements OnInit {
     this.datosFormulario = { ...NUEVA_AULA };
     this.aulaEnEdicion = null;
     this.errorFormulario = '';
+  }
+
+  private validarDatos(datos: AulaFormData): string | null {
+    if (!datos.codigo) {
+      return 'Ingrese el código del aula; no puede contener solo espacios.';
+    }
+    if (datos.codigo.length > 30) {
+      return 'El código del aula no puede superar 30 caracteres.';
+    }
+    if (!datos.ubicacion) {
+      return 'Ingrese la ubicación del aula; no puede contener solo espacios.';
+    }
+    if (datos.ubicacion.length > 120) {
+      return 'La ubicación no puede superar 120 caracteres.';
+    }
+
+    const capacidad = Number(datos.capacidad);
+    if (!Number.isInteger(capacidad) || capacidad < 1 || capacidad > 200) {
+      return 'La capacidad debe ser un número entero entre 1 y 200.';
+    }
+
+    const estado = this.normalizar(datos.estado);
+    if (!['disponible', 'ocupada', 'mantenimiento'].includes(estado)) {
+      return 'Seleccione un estado válido: Disponible, Ocupada o Mantenimiento.';
+    }
+    return null;
   }
 
   private ajustarPagina(): void {

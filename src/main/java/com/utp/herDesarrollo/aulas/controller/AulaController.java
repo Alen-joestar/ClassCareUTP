@@ -38,8 +38,9 @@ public class AulaController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('TECNICO', 'ADMIN')")
-    public ResponseEntity<Aula> registrarAula(@RequestBody Aula aula) {
-        Aula nuevaAula = aulaService.registrarAula(aula);
+    public ResponseEntity<Aula> registrarAula(
+            @RequestBody AulaRequestDTO solicitud) {
+        Aula nuevaAula = aulaService.registrarAula(convertirSolicitud(solicitud));
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaAula);
     }
 
@@ -47,8 +48,8 @@ public class AulaController {
     @PreAuthorize("hasAnyRole('TECNICO', 'ADMIN')")
     public Aula actualizarAula(
             @PathVariable Long id,
-            @RequestBody Aula aula) {
-        return aulaService.actualizarAula(id, aula);
+            @RequestBody AulaRequestDTO solicitud) {
+        return aulaService.actualizarAula(id, convertirSolicitud(solicitud));
     }
 
     @DeleteMapping("/{id}")
@@ -77,5 +78,9 @@ public class AulaController {
     @GetMapping("/disponibles")
     public List<Aula> listarAulasDisponibles() {
         return aulaService.listarAulasDisponibles();
-}
+    }
+
+    private Aula convertirSolicitud(AulaRequestDTO solicitud) {
+        return solicitud == null ? null : solicitud.toEntity();
+    }
 }
