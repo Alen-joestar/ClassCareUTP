@@ -70,7 +70,28 @@ export class AtencionListComponent {
   // Usuario técnico en sesión actual (obtenido dinámicamente desde AuthService / JWT)
   readonly tecnicoLogueado = computed(() => {
     const sesion = this.authService.sesion();
-    return sesion ? sesion.username : 'tecnico01';
+    if (!sesion) return 'tecnico01';
+    return sesion.nombreCompleto || sesion.username;
+  });
+
+  // Opciones de técnicos para el modal de Derivar / Nueva Atención (combina BD + técnicos base)
+  readonly opcionesTecnicosModal = computed(() => {
+    const registrados = this.authService.tecnicosRegistrados();
+    const mapa = new Map<string, string>();
+
+    for (const t of registrados) {
+      const clave = t.nombreCompleto || t.username;
+      const etiqueta = `${t.nombreCompleto} (@${t.username} • ${t.especialidad || 'Soporte Técnico'})`;
+      mapa.set(clave, etiqueta);
+    }
+
+    for (const a of this.atenciones()) {
+      if (a.tecnicoEncargado && !mapa.has(a.tecnicoEncargado)) {
+        mapa.set(a.tecnicoEncargado, `${a.tecnicoEncargado} (Especialista en Turno)`);
+      }
+    }
+
+    return Array.from(mapa.entries()).map(([valor, etiqueta]) => ({ valor, etiqueta }));
   });
 
   // Permisos según rol RBAC (ROLE_TECNICO o ROLE_ADMIN)
@@ -113,9 +134,15 @@ export class AtencionListComponent {
     return Math.round((this.totalResueltos() / total) * 100);
   });
 
-  // Lista de técnicos disponibles con carga activa
+  // Lista de técnicos disponibles con carga activa (incluye técnicos registrados en BD)
   readonly tecnicosDisponibles = computed(() => {
     const map = new Map<string, number>();
+    for (const t of this.authService.tecnicosRegistrados()) {
+      const nombre = t.nombreCompleto || t.username;
+      if (!map.has(nombre)) {
+        map.set(nombre, 0);
+      }
+    }
     for (const atencion of this.atenciones()) {
       const count = map.get(atencion.tecnicoEncargado) || 0;
       map.set(atencion.tecnicoEncargado, count + 1);

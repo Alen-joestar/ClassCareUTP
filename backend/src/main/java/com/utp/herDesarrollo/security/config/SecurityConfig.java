@@ -1,7 +1,6 @@
 package com.utp.herDesarrollo.security.config;
 
 import com.utp.herDesarrollo.security.jwt.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,21 +11,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Configuración central de seguridad y control de acceso basado en roles (RBAC).
- * Unifica las políticas de acceso para los tres módulos:
- * - Reportes: consulta pública, registro libre, actualización restringida (TECNICO, ADMIN) y eliminación exclusiva (ADMIN).
- * - Aulas: consulta pública y gestión restringida (POST, PUT, DELETE para TECNICO, ADMIN).
- * - Atenciones: consulta y registro libre, actualización restringida (TECNICO, ADMIN).
+ * Unifica las políticas de acceso para los tres módulos y delega la gestión de usuarios
+ * al servicio persistente UsuarioAuthService (JPA).
  */
 @Configuration
 @EnableWebSecurity
@@ -46,14 +39,14 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Vistas estáticas de los tres módulos
+                        // Vistas estáticas de los módulos y login
                         .requestMatchers(
                                 "/", "/index.html", "/css/**",
                                 "/js/**", "/images/**", "/error",
-                                "/aulas/**", "/atenciones/**"
+                                "/aulas/**", "/atenciones/**", "/login/**"
                         ).permitAll()
 
-                        // Autenticación JWT
+                        // Autenticación JWT, registro de usuarios y directorio de técnicos
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // Módulo de Aulas: consultas públicas
@@ -103,32 +96,5 @@ public class SecurityConfig {
             AuthenticationConfiguration authenticationConfiguration
     ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(
-            PasswordEncoder passwordEncoder,
-            @Value("${app.security.tecnico.password}") String passwordTecnico,
-            @Value("${app.security.admin.password}") String passwordAdmin
-    ) {
-        UserDetails tecnico = User.builder()
-                .username("tecnico")
-                .password(passwordEncoder.encode(passwordTecnico))
-                .roles("TECNICO")
-                .build();
-
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode(passwordAdmin))
-                .roles("ADMIN")
-                .build();
-
-        UserDetails alumno = User.builder()
-                .username("alumno")
-                .password(passwordEncoder.encode("alumno123"))
-                .roles("ALUMNO")
-                .build();
-
-        return new InMemoryUserDetailsManager(tecnico, admin, alumno);
     }
 }

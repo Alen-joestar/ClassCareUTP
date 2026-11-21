@@ -60,13 +60,32 @@
             @if (authService.sesion(); as sesionActual) {
               <div class="jwt-active-card">
                 <div class="jwt-active-row">
-                  <span>Usuario: <strong>{{ sesionActual.username }}</strong></span>
+                  <span><strong>{{ sesionActual.nombreCompleto || sesionActual.username }}</strong> (@{{ sesionActual.username }})</span>
                   <span class="jwt-origin-tag">{{ sesionActual.origen }}</span>
                 </div>
-                <span class="jwt-role-line">Roles: {{ sesionActual.roles.join(', ') }}</span>
+                <span class="jwt-role-line">{{ sesionActual.correo || (sesionActual.username + '@utp.edu.pe') }} &bull; {{ sesionActual.roles.join(', ') }}</span>
                 <code class="jwt-token-preview">Bearer {{ sesionActual.token.slice(0, 34) }}...</code>
               </div>
             }
+
+            <div class="jwt-portal-links">
+              <a
+                routerLink="/login"
+                [queryParams]="{ modo: 'login' }"
+                class="jwt-portal-btn"
+                (click)="cerrarPanelJwt()">
+                <mat-icon>login</mat-icon>
+                <span>Portal de Login</span>
+              </a>
+              <a
+                routerLink="/login"
+                [queryParams]="{ modo: 'registro' }"
+                class="jwt-portal-btn jwt-portal-btn--register"
+                (click)="cerrarPanelJwt()">
+                <mat-icon>person_add</mat-icon>
+                <span>Crear Usuario</span>
+              </a>
+            </div>
 
             <div class="jwt-quick-section">
               <span class="jwt-caption">Cambio rápido de rol (1 clic):</span>

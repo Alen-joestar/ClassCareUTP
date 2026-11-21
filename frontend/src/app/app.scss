@@ -254,6 +254,46 @@
   white-space: nowrap;
 }
 
+.jwt-portal-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.jwt-portal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.48rem 0.6rem;
+  border-radius: 0 9px 3px 9px;
+  background-color: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38BDF8;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s ease;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &--register {
+    background-color: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.45);
+    color: #34D399;
+  }
+
+  &:hover {
+    background-color: rgba(56, 189, 248, 0.24);
+    color: #FFFFFF;
+  }
+}
+
 .jwt-caption {
   font-family: var(--font-display);
   font-size: 0.72rem;
