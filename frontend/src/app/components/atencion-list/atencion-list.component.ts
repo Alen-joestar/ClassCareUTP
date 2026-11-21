@@ -37,6 +37,7 @@ export class AtencionListComponent {
   readonly searchQuery = signal<string>('');
   readonly selectedEstado = signal<string>('');
   readonly selectedTecnico = signal<string>('');
+  readonly mostrarMenuTecnico = signal<boolean>(false);
 
   // Notificaciones y retroalimentación para el usuario
   readonly mensajeExito = signal<string | null>(null);
@@ -135,13 +136,23 @@ export class AtencionListComponent {
   }
 
   filterByTecnico(tecnico: string): void {
-    this.selectedTecnico.update(current => (current === tecnico ? '' : tecnico));
+    this.selectedTecnico.set(tecnico);
+    this.mostrarMenuTecnico.set(false);
+  }
+
+  toggleMenuTecnico(): void {
+    this.mostrarMenuTecnico.update(v => !v);
+  }
+
+  cerrarMenuTecnico(): void {
+    this.mostrarMenuTecnico.set(false);
   }
 
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedEstado.set('');
     this.selectedTecnico.set('');
+    this.mostrarMenuTecnico.set(false);
   }
 
   // --- Acciones de Cambio de Estado (Semana 13 y 14) ---

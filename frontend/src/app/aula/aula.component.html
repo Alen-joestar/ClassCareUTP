@@ -1,225 +1,431 @@
-<section class="aula-page" aria-labelledby="aula-title">
-  <header class="aula-hero">
+<section class="m3-aulas-page" aria-labelledby="aula-title">
+
+  <!-- Bloque Hero Marino Institucional con KPIs Interactivos (Unificado con Reportes) -->
+  <header class="hero-banner">
     <div class="hero-copy">
-      <span class="eyebrow"><mat-icon>meeting_room</mat-icon> Infraestructura académica</span>
-      <h2 id="aula-title">Catálogo de aulas</h2>
-      <p>Consulte la disponibilidad de los espacios, su ubicación y capacidad. El personal técnico puede administrar el catálogo.</p>
-    </div>
-    <div class="hero-actions">
-      @if (puedeGestionar()) {
-        <button type="button" class="button button--primary" (click)="nuevaAula()">
-          <mat-icon>add</mat-icon><span>Nueva aula</span>
-        </button>
-        <div class="session-chip">
-          <mat-icon>verified_user</mat-icon><span>{{ sesion()?.username }}</span>
-          <button type="button" class="icon-button" aria-label="Cerrar sesión" title="Cerrar sesión" (click)="cerrarSesion()">
-            <mat-icon>logout</mat-icon>
-          </button>
-        </div>
-      } @else {
-        <button type="button" class="button button--outline" (click)="abrirAcceso()">
-          <mat-icon>lock_open</mat-icon><span>{{ sesion() ? 'Cambiar cuenta' : 'Iniciar sesión' }}</span>
-        </button>
-      }
+      <h2 id="aula-title" class="hero-title">Catálogo de Aulas y Laboratorios</h2>
+      <p class="hero-subtitle">
+        Supervisión de infraestructura académica, aforo y disponibilidad operativa en tiempo real. Haz clic en cualquier indicador para filtrar por estado.
+      </p>
     </div>
 
-    <div class="metrics" aria-label="Resumen de aulas">
-      <div class="metric"><span class="metric__value">{{ totalAulas() }}</span><span class="metric__label">Aulas registradas</span></div>
-      <div class="metric"><span class="metric__value">{{ aulasDisponibles() }}</span><span class="metric__label">Disponibles</span></div>
-      <div class="metric"><span class="metric__value">{{ aulasOcupadas() }}</span><span class="metric__label">Ocupadas</span></div>
-      <div class="metric"><span class="metric__value">{{ aulasMantenimiento() }}</span><span class="metric__label">Mantenimiento</span></div>
+    <div class="kpi-strip" role="toolbar" aria-label="Resumen y filtro rápido de aulas">
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="estadoSeleccionado() === ''"
+        (click)="cambiarEstado('')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(totalAulas()) }}</span>
+          <span class="kpi-lbl">Total Aulas</span>
+        </div>
+        <span class="kpi-dot" style="background: #94A3B8" aria-hidden="true"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="estadoSeleccionado() === 'Disponible'"
+        (click)="cambiarEstado('Disponible')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(aulasDisponibles()) }}</span>
+          <span class="kpi-lbl">Disponibles</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-resuelto-main)" aria-hidden="true"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="estadoSeleccionado() === 'Ocupada'"
+        (click)="cambiarEstado('Ocupada')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(aulasOcupadas()) }}</span>
+          <span class="kpi-lbl">Ocupadas</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-pendiente-main)" aria-hidden="true"></span>
+      </button>
+
+      <button
+        type="button"
+        class="kpi-tile"
+        [class.active-kpi]="estadoSeleccionado() === 'Mantenimiento'"
+        (click)="cambiarEstado('Mantenimiento')">
+        <div class="kpi-data">
+          <span class="kpi-num">{{ formatCount(aulasMantenimiento()) }}</span>
+          <span class="kpi-lbl">Mantenimiento</span>
+        </div>
+        <span class="kpi-dot" style="background: var(--st-atencion-main)" aria-hidden="true"></span>
+      </button>
     </div>
   </header>
 
-  @if (mensaje()) {
-    <p class="notice notice--success" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje() }}</p>
-  }
   @if (errorCarga()) {
     <div class="notice notice--error" role="alert">
-      <mat-icon>error_outline</mat-icon><span>{{ errorCarga() }}</span>
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorCarga() }}</span>
       <button type="button" class="text-button" (click)="cargarAulas()">Reintentar</button>
     </div>
   }
 
-  <section class="filter-panel" aria-label="Filtros de aulas">
-    <label class="filter-control filter-control--search">
-      <mat-icon>search</mat-icon>
-      <input type="search" placeholder="Buscar por código o ubicación" [ngModel]="busqueda()" (ngModelChange)="cambiarBusqueda($event)" aria-label="Buscar por código o ubicación">
-    </label>
-    <label class="filter-control">
-      <mat-icon>filter_list</mat-icon>
-      <select [ngModel]="estadoSeleccionado()" (ngModelChange)="cambiarEstado($event)" aria-label="Filtrar por estado">
+  <!-- Barra de Filtros Tonal M3 Unificada -->
+  <section class="filter-bar" aria-label="Filtros de aulas">
+    <div class="m3-input-box">
+      <mat-icon class="filter-icon">search</mat-icon>
+      <input
+        type="search"
+        placeholder="Buscar por código de aula (A-101, LAB-302) o pabellón..."
+        [ngModel]="busqueda()"
+        (ngModelChange)="cambiarBusqueda($event)"
+        aria-label="Buscar por código o ubicación"
+      />
+    </div>
+
+    <div class="m3-select-box">
+      <mat-icon class="filter-icon">filter_list</mat-icon>
+      <select
+        [ngModel]="estadoSeleccionado()"
+        (ngModelChange)="cambiarEstado($event)"
+        aria-label="Filtrar por estado">
         <option value="">Todos los estados</option>
         <option value="Disponible">Disponible</option>
         <option value="Ocupada">Ocupada</option>
         <option value="Mantenimiento">En mantenimiento</option>
       </select>
-    </label>
-    <label class="filter-control filter-control--capacity">
-      <mat-icon>groups</mat-icon>
-      <input type="number" min="0" step="1" placeholder="Capacidad mínima" [ngModel]="capacidadMinima()" (ngModelChange)="cambiarCapacidadMinima($event)" [attr.aria-invalid]="!!errorCapacidadMinima()" aria-label="Capacidad mínima">
-    </label>
-    <button type="button" class="button button--quiet" (click)="restablecerFiltros()">
-      <mat-icon>restart_alt</mat-icon><span>Limpiar</span>
+    </div>
+
+    <div class="m3-capacity-box">
+      <mat-icon class="filter-icon">groups</mat-icon>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        placeholder="Aforo mín."
+        [ngModel]="capacidadMinima()"
+        (ngModelChange)="cambiarCapacidadMinima($event)"
+        [attr.aria-invalid]="!!errorCapacidadMinima()"
+        aria-label="Capacidad mínima"
+      />
+    </div>
+
+    <button type="button" class="m3-btn-reset" (click)="restablecerFiltros()">
+      <mat-icon>restart_alt</mat-icon>
+      <span>Restablecer</span>
     </button>
-    <span class="results-count">{{ aulasFiltradas().length }} espacios</span>
+
+    <button type="button" class="m3-btn-new" (click)="nuevaAula()">
+      <mat-icon>add_circle</mat-icon>
+      <span>Nueva Aula</span>
+    </button>
   </section>
+
   @if (errorCapacidadMinima()) {
     <p class="filter-error" role="alert">{{ errorCapacidadMinima() }}</p>
   }
 
+  <!-- Panel de Administración de Aula (Misma Geometría de Placa Arquitectónica en Relieve 22px 4px 22px 4px) -->
   @if (formularioVisible() && puedeGestionar()) {
-    <section class="form-panel" aria-labelledby="form-title">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow eyebrow--dark">Administración</span>
-          <h3 id="form-title">{{ aulaEnEdicion === null ? 'Registrar nueva aula' : 'Editar aula' }}</h3>
-        </div>
-        <button type="button" class="icon-button icon-button--light" aria-label="Cerrar formulario" (click)="cancelarFormulario()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-      <form #aulaForm="ngForm" (ngSubmit)="guardarAula()">
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Código del aula</span>
-            <input
-              #codigoControl="ngModel"
-              name="codigo"
-              [(ngModel)]="datosFormulario.codigo"
-              required
-              pattern=".*\S.*"
-              maxlength="30"
-              placeholder="Ej. A-101"
-              [attr.aria-invalid]="codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)">
-            @if (codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)) {
-              <small class="form-error" role="alert">
-                @if (codigoControl.hasError('required') || codigoControl.hasError('pattern')) {
-                  Ingrese el código; no puede contener solo espacios.
-                } @else if (codigoControl.hasError('maxlength')) {
-                  El código no puede superar 30 caracteres.
-                }
-              </small>
-            }
-          </label>
-          <label class="form-field">
-            <span>Ubicación</span>
-            <input
-              #ubicacionControl="ngModel"
-              name="ubicacion"
-              [(ngModel)]="datosFormulario.ubicacion"
-              required
-              pattern=".*\S.*"
-              maxlength="120"
-              placeholder="Pabellón y piso"
-              [attr.aria-invalid]="ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)">
-            @if (ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)) {
-              <small class="form-error" role="alert">
-                @if (ubicacionControl.hasError('required') || ubicacionControl.hasError('pattern')) {
-                  Ingrese la ubicación; no puede contener solo espacios.
-                } @else if (ubicacionControl.hasError('maxlength')) {
-                  La ubicación no puede superar 120 caracteres.
-                }
-              </small>
-            }
-          </label>
-          <label class="form-field">
-            <span>Capacidad</span>
-            <input
-              #capacidadControl="ngModel"
-              name="capacidad"
-              type="number"
-              [(ngModel)]="datosFormulario.capacidad"
-              required
-              min="1"
-              max="200"
-              step="1"
-              [attr.aria-invalid]="capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)">
-            @if (capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)) {
-              <small class="form-error" role="alert">
-                @if (capacidadControl.hasError('required')) {
-                  Ingrese la capacidad del aula.
-                } @else if (capacidadControl.hasError('min') || capacidadControl.hasError('max')) {
-                  La capacidad debe estar entre 1 y 200 personas.
-                }
-              </small>
-            }
-            <small class="form-hint">Use un número entero entre 1 y 200.</small>
-          </label>
-          <label class="form-field">
-            <span>Estado operativo</span>
-            <select #estadoControl="ngModel" name="estado" [(ngModel)]="datosFormulario.estado" required>
-              <option value="Disponible">Disponible</option>
-              <option value="Ocupada">Ocupada</option>
-              <option value="Mantenimiento">Mantenimiento</option>
-            </select>
-            @if (estadoControl.invalid && (estadoControl.dirty || estadoControl.touched)) {
-              <small class="form-error" role="alert">Seleccione un estado válido.</small>
-            }
-          </label>
-        </div>
-        @if (errorFormulario) {
-          <p class="form-error" role="alert">{{ errorFormulario }}</p>
-        }
-        <div class="form-actions">
-          <button type="button" class="button button--quiet" (click)="cancelarFormulario()">Cancelar</button>
-          <button type="submit" class="button button--primary" [disabled]="aulaForm.invalid || guardando">
-            <mat-icon>{{ guardando ? 'hourglass_top' : 'save' }}</mat-icon>
-            <span>{{ guardando ? 'Guardando…' : (aulaEnEdicion === null ? 'Registrar aula' : 'Guardar cambios') }}</span>
+    <div
+      id="panel-formulario-aula"
+      class="aula-editor-wrap"
+      [attr.data-estado]="claveEstado(datosFormulario.estado)">
+      <section class="aula-editor-surface" aria-labelledby="form-title">
+        <!-- Cabecera Tonal con Placa en Vivo del Aula -->
+        <header class="aula-editor-header">
+          <div class="editor-header-left">
+            <div class="room-door-plaque">
+              <span>{{ (datosFormulario.codigo.trim() || 'AULA').toUpperCase() }}</span>
+            </div>
+            <div class="editor-titles">
+              <span class="editor-overline">
+                {{ aulaEnEdicion === null ? 'REGISTRO DE NUEVO RECINTO • CATÁLOGO UTP' : 'EDICIÓN TÉCNICA DE RECINTO • #' + formatCount(aulaEnEdicion) }}
+              </span>
+              <h3 id="form-title" class="editor-heading">
+                {{ aulaEnEdicion === null ? 'Registrar Nuevo Ambiente Académico' : 'Actualizar Especificaciones del Aula' }}
+              </h3>
+            </div>
+          </div>
+
+          <button type="button" class="editor-close-btn" aria-label="Cerrar formulario" (click)="cancelarFormulario()">
+            <mat-icon>close</mat-icon>
           </button>
-        </div>
-      </form>
-    </section>
+        </header>
+
+        <form #aulaForm="ngForm" (ngSubmit)="guardarAula()" class="aula-editor-form">
+          <div class="editor-body">
+            <!-- Fila Superior: 3 Campos de Identificación y Aforo con Íconos M3 -->
+            <div class="editor-fields-grid">
+              <div class="editor-field">
+                <label for="aula-codigo-input" class="editor-label">1. Código del Ambiente *</label>
+                <div
+                  class="m3-aula-input-box"
+                  [class.is-invalid]="codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)">
+                  <mat-icon>meeting_room</mat-icon>
+                  <input
+                    id="aula-codigo-input"
+                    #codigoControl="ngModel"
+                    name="codigo"
+                    [(ngModel)]="datosFormulario.codigo"
+                    required
+                    pattern=".*\S.*"
+                    maxlength="30"
+                    placeholder="Ej. A-101, B-204, LAB-302"
+                    autocomplete="off"
+                    [attr.aria-invalid]="codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)">
+                </div>
+                @if (codigoControl.invalid && (codigoControl.dirty || codigoControl.touched)) {
+                  <small class="form-error" role="alert">
+                    @if (codigoControl.hasError('required') || codigoControl.hasError('pattern')) {
+                      Ingrese el código del aula; no puede estar vacío.
+                    } @else if (codigoControl.hasError('maxlength')) {
+                      Máximo 30 caracteres permitidos.
+                    }
+                  </small>
+                }
+              </div>
+
+              <div class="editor-field">
+                <label for="aula-ubicacion-input" class="editor-label">2. Ubicación (Pabellón y Piso) *</label>
+                <div
+                  class="m3-aula-input-box"
+                  [class.is-invalid]="ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)">
+                  <mat-icon>place</mat-icon>
+                  <input
+                    id="aula-ubicacion-input"
+                    #ubicacionControl="ngModel"
+                    name="ubicacion"
+                    [(ngModel)]="datosFormulario.ubicacion"
+                    required
+                    pattern=".*\S.*"
+                    maxlength="120"
+                    placeholder="Ej. Pabellón A • Piso 1"
+                    autocomplete="off"
+                    [attr.aria-invalid]="ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)">
+                </div>
+                @if (ubicacionControl.invalid && (ubicacionControl.dirty || ubicacionControl.touched)) {
+                  <small class="form-error" role="alert">
+                    @if (ubicacionControl.hasError('required') || ubicacionControl.hasError('pattern')) {
+                      Ingrese el pabellón y piso del ambiente.
+                    } @else if (ubicacionControl.hasError('maxlength')) {
+                      Máximo 120 caracteres permitidos.
+                    }
+                  </small>
+                }
+              </div>
+
+              <div class="editor-field">
+                <label for="aula-capacidad-input" class="editor-label">3. Aforo Autorizado (1–200) *</label>
+                <div
+                  class="m3-aula-input-box"
+                  [class.is-invalid]="capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)">
+                  <mat-icon>groups</mat-icon>
+                  <input
+                    id="aula-capacidad-input"
+                    #capacidadControl="ngModel"
+                    name="capacidad"
+                    type="number"
+                    [(ngModel)]="datosFormulario.capacidad"
+                    required
+                    min="1"
+                    max="200"
+                    step="1"
+                    [attr.aria-invalid]="capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)">
+                  <span class="input-unit-tag">Estudiantes</span>
+                </div>
+                @if (capacidadControl.invalid && (capacidadControl.dirty || capacidadControl.touched)) {
+                  <small class="form-error" role="alert">
+                    La capacidad debe estar entre 1 y 200 estudiantes.
+                  </small>
+                }
+              </div>
+            </div>
+
+            <!-- Fila Inferior: Selector Visual de Estado Operativo en 3 Tarjetas Semánticas -->
+            <div class="editor-field">
+              <span class="editor-label">4. Condición y Estado Operativo del Ambiente *</span>
+              <input type="hidden" name="estado" [(ngModel)]="datosFormulario.estado" required />
+
+              <div class="status-selector-grid" role="radiogroup" aria-label="Estado operativo del aula">
+                <button
+                  type="button"
+                  class="status-option-card"
+                  data-estado="disponible"
+                  [class.active]="claveEstado(datosFormulario.estado) === 'disponible'"
+                  (click)="datosFormulario.estado = 'Disponible'">
+                  <div class="status-opt-head">
+                    <span class="room-status-dot"></span>
+                    <strong>Disponible</strong>
+                  </div>
+                  <span class="status-opt-desc">Ambiente 100% operativo y habilitado para clases</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="status-option-card"
+                  data-estado="ocupada"
+                  [class.active]="claveEstado(datosFormulario.estado) === 'ocupada'"
+                  (click)="datosFormulario.estado = 'Ocupada'">
+                  <div class="status-opt-head">
+                    <span class="room-status-dot"></span>
+                    <strong>Ocupada</strong>
+                  </div>
+                  <span class="status-opt-desc">Sesión académica o actividad lectiva en curso</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="status-option-card"
+                  data-estado="mantenimiento"
+                  [class.active]="claveEstado(datosFormulario.estado) === 'mantenimiento'"
+                  (click)="datosFormulario.estado = 'Mantenimiento'">
+                  <div class="status-opt-head">
+                    <span class="room-status-dot"></span>
+                    <strong>En mantenimiento</strong>
+                  </div>
+                  <span class="status-opt-desc">En intervención o revisión por soporte técnico</span>
+                </button>
+              </div>
+            </div>
+
+            @if (errorFormulario) {
+              <div class="editor-error-banner" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorFormulario }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Pie Tonal del Editor con Resumen en Vivo y Acciones -->
+          <footer class="aula-editor-footer">
+            <span class="editor-live-summary">
+              VISTA PREVIA: <strong>{{ (datosFormulario.codigo.trim() || 'SIN CÓDIGO').toUpperCase() }}</strong> &bull;
+              {{ datosFormulario.ubicacion.trim() || 'Pabellón por definir' }} &bull;
+              {{ datosFormulario.capacidad || 0 }} Estudiantes
+            </span>
+
+            <div class="editor-actions">
+              <button type="button" class="m3-btn-reset" (click)="cancelarFormulario()">
+                <mat-icon>close</mat-icon>
+                <span>Cancelar</span>
+              </button>
+              <button type="submit" class="m3-btn-new" [disabled]="aulaForm.invalid || guardando">
+                <mat-icon>{{ guardando ? 'hourglass_top' : 'save' }}</mat-icon>
+                <span>{{ guardando ? 'Guardando...' : (aulaEnEdicion === null ? 'Registrar Aula' : 'Guardar Cambios') }}</span>
+              </button>
+            </div>
+          </footer>
+        </form>
+      </section>
+    </div>
   }
 
+  <!-- Cuadrícula de Aulas en Formato Placa Arquitectónica de Ambiente M3 -->
   @if (cargando() && aulas().length === 0) {
-    <div class="empty-state" role="status"><mat-icon>sync</mat-icon><h3>Cargando aulas</h3><p>Consultando el catálogo del campus…</p></div>
+    <div class="empty-state-box" role="status">
+      <mat-icon class="empty-icon">sync</mat-icon>
+      <h3 class="empty-title">Cargando catálogo de aulas...</h3>
+      <p class="empty-desc">Sincronizando ambientes académicos con PostgreSQL y Spring Boot.</p>
+    </div>
   } @else if (aulasFiltradas().length > 0) {
-    <section class="aula-grid" aria-label="Aulas registradas" aria-live="polite">
+    <section class="cards-grid" aria-label="Aulas registradas" aria-live="polite">
       @for (aula of aulasPaginadas(); track aula.id) {
-        <article class="aula-card" [attr.data-estado]="claveEstado(aula.estado)">
-          <div class="card-topline">
-            <span class="status-pill"><span class="status-dot"></span>{{ etiquetaEstado(aula.estado) }}</span>
-            <span class="room-mark"><mat-icon>meeting_room</mat-icon></span>
-          </div>
-          <h3 class="room-code">{{ aula.codigo }}</h3>
-          <p class="room-location"><mat-icon>location_on</mat-icon>{{ aula.ubicacion }}</p>
-          <div class="room-capacity"><mat-icon>groups</mat-icon><span><strong>{{ aula.capacidad }}</strong> personas</span></div>
-          <div class="card-actions">
-            @if (claveEstado(aula.estado) === 'mantenimiento') {
-              <a
-                class="button button--outline"
-                [routerLink]="['/reportes']"
-                [queryParams]="{ aula: aula.codigo }">
-                <mat-icon>folder_open</mat-icon><span>Ver reportes</span>
-              </a>
-            } @else {
-              <a
-                class="button button--outline"
-                [routerLink]="['/reportes/nuevo']"
-                [queryParams]="{ aula: aula.codigo }">
-                <mat-icon>report_problem</mat-icon><span>Reportar falla</span>
-              </a>
-            }
-            @if (puedeGestionar()) {
-              <button type="button" class="button button--quiet" (click)="editarAula(aula)">
-                <mat-icon>edit</mat-icon><span>Editar</span>
-              </button>
-              <button type="button" class="button button--danger-quiet" (click)="confirmarEliminacion(aula)">
-                <mat-icon>delete_outline</mat-icon><span>Eliminar</span>
-              </button>
-            }
+        <article class="room-arch-card" [attr.data-estado]="claveEstado(aula.estado)">
+          <div class="room-arch-surface">
+            <!-- Franja Arquitectónica Superior e Identidad de Puerta de Ambiente -->
+            <header class="room-arch-header">
+              <div class="room-door-identity">
+                <div class="room-door-plaque">
+                  <span>{{ aula.codigo }}</span>
+                </div>
+                <div class="room-arch-titles">
+                  <span class="room-type-overline">
+                    {{ aula.codigo.startsWith('LAB') ? 'LABORATORIO ESPECIALIZADO' : 'AULA ACADÉMICA' }}
+                  </span>
+                  <span class="room-location-line">
+                    <span>{{ aula.ubicacion }}</span>
+                  </span>
+                </div>
+              </div>
+
+              <span class="ticket-id-tag">#{{ formatCount(aula.id) }}</span>
+            </header>
+
+            <!-- Cuerpo de Especificaciones Físicas del Ambiente -->
+            <div class="room-arch-body">
+              <div class="room-aforo-row">
+                <span class="aforo-left">
+                  <mat-icon aria-hidden="true">groups</mat-icon>
+                  <span>Aforo autorizado:</span>
+                </span>
+                <strong class="aforo-value">{{ aula.capacidad }} Estudiantes</strong>
+              </div>
+
+              <div class="room-spec-bar room-spec-bar--status" [attr.data-estado]="claveEstado(aula.estado)">
+                <span class="spec-bar-left">
+                  <mat-icon aria-hidden="true">{{ claveEstado(aula.estado) === 'mantenimiento' ? 'engineering' : (claveEstado(aula.estado) === 'ocupada' ? 'schedule' : 'check_circle') }}</mat-icon>
+                  <span>Estado operativo</span>
+                </span>
+                <strong class="spec-bar-value spec-bar-value--status">
+                  <span class="room-status-dot" aria-hidden="true"></span>
+                  <span>{{ etiquetaEstado(aula.estado) }}</span>
+                </strong>
+              </div>
+            </div>
+
+            <!-- Pie de Tarjeta Unificado -->
+            <footer class="card-footer">
+              <div class="admin-Quick-btns">
+                <button
+                  type="button"
+                  class="m3-icon-action"
+                  title="Editar datos del aula"
+                  (click)="editarAula(aula)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Editar</span>
+                </button>
+                <button
+                  type="button"
+                  class="m3-icon-action m3-icon-action--danger"
+                  title="Eliminar aula del catálogo"
+                  (click)="confirmarEliminacion(aula)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+
+              @if (claveEstado(aula.estado) === 'mantenimiento') {
+                <a
+                  class="m3-btn-inspect"
+                  [routerLink]="['/reportes']"
+                  [queryParams]="{ aula: aula.codigo }">
+                  <span>Ver reportes</span>
+                  <mat-icon>arrow_forward</mat-icon>
+                </a>
+              } @else {
+                <a
+                  class="m3-btn-inspect"
+                  [routerLink]="['/reportes/nuevo']"
+                  [queryParams]="{ aula: aula.codigo }">
+                  <span>Reportar falla</span>
+                  <mat-icon>arrow_forward</mat-icon>
+                </a>
+              }
+            </footer>
           </div>
         </article>
       }
     </section>
   } @else if (!cargando() && !errorCarga()) {
-    <div class="empty-state">
-      <mat-icon>{{ aulas().length ? 'search_off' : 'meeting_room' }}</mat-icon>
-      <h3>{{ aulas().length ? 'No se encontraron aulas' : 'Aún no hay aulas registradas' }}</h3>
-      <p>{{ aulas().length ? 'Pruebe con otros filtros o restablezca la búsqueda.' : 'Cuando se registren espacios aparecerán en este catálogo.' }}</p>
+    <div class="empty-state-box">
+      <mat-icon class="empty-icon">{{ aulas().length ? 'search_off' : 'meeting_room' }}</mat-icon>
+      <h3 class="empty-title">{{ aulas().length ? 'No se encontraron aulas con esos filtros' : 'Aún no hay aulas registradas' }}</h3>
+      <p class="empty-desc">
+        {{ aulas().length ? 'Prueba modificando el término de búsqueda, estado o capacidad mínima.' : 'Cuando se registren ambientes aparecerán en este tablero.' }}
+      </p>
       @if (aulas().length) {
-        <button type="button" class="button button--outline" (click)="restablecerFiltros()">Restablecer filtros</button>
+        <button type="button" class="m3-btn-reset" (click)="restablecerFiltros()">
+          <mat-icon>restart_alt</mat-icon>
+          <span>Mostrar todas las aulas</span>
+        </button>
       }
     </div>
   }
@@ -227,7 +433,7 @@
   @if (aulasFiltradas().length > 0) {
     <nav class="pagination" aria-label="Paginación del catálogo de aulas">
       <p class="pagination__summary">
-        Mostrando {{ primerResultado() }}–{{ ultimoResultado() }} de {{ aulasFiltradas().length }} aulas
+        Mostrando {{ primerResultado() }}–{{ ultimoResultado() }} de {{ aulasFiltradas().length }} ambientes
       </p>
       @if (totalPaginas() > 1) {
         <div class="pagination__controls">
@@ -239,33 +445,14 @@
             aria-label="Página anterior">
             <mat-icon>chevron_left</mat-icon><span>Anterior</span>
           </button>
-          @if (paginasVisibles()[0] > 1) {
-            <button type="button" class="pagination__button" (click)="irPagina(1)" aria-label="Página 1">1</button>
-            @if (paginasVisibles()[0] > 2) {
-              <span class="pagination__ellipsis" aria-hidden="true">…</span>
-            }
-          }
           @for (pagina of paginasVisibles(); track pagina) {
             <button
               type="button"
               class="pagination__button"
               [class.pagination__button--active]="pagina === paginaActualVisible()"
               [attr.aria-current]="pagina === paginaActualVisible() ? 'page' : null"
-              [attr.aria-label]="'Página ' + pagina"
               (click)="irPagina(pagina)">
               {{ pagina }}
-            </button>
-          }
-          @if (paginasVisibles()[paginasVisibles().length - 1] < totalPaginas()) {
-            @if (paginasVisibles()[paginasVisibles().length - 1] < totalPaginas() - 1) {
-              <span class="pagination__ellipsis" aria-hidden="true">…</span>
-            }
-            <button
-              type="button"
-              class="pagination__button"
-              [attr.aria-label]="'Página ' + totalPaginas()"
-              (click)="irPagina(totalPaginas())">
-              {{ totalPaginas() }}
             </button>
           }
           <button
@@ -287,10 +474,10 @@
     <section class="dialog-card dialog-card--confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" (click)="$event.stopPropagation()">
       <span class="dialog-icon dialog-icon--danger"><mat-icon>delete_outline</mat-icon></span>
       <h2 id="delete-title">¿Eliminar el aula {{ aula.codigo }}?</h2>
-      <p>Esta acción no se puede deshacer. No será posible eliminarla mientras tenga reportes asociados, incluidos los resueltos.</p>
+      <p>Esta acción no se puede deshacer. No será posible eliminarla mientras mantenga reportes pendientes o en atención.</p>
       <div class="dialog-actions">
-        <button type="button" class="button button--quiet" (click)="aulaAEliminar.set(null)">Cancelar</button>
-        <button type="button" class="button button--danger" (click)="eliminarAula()">Sí, eliminar</button>
+        <button type="button" class="m3-btn-reset" (click)="aulaAEliminar.set(null)">Cancelar</button>
+        <button type="button" class="button--danger" (click)="eliminarAula()">Sí, eliminar aula</button>
       </div>
     </section>
   </div>

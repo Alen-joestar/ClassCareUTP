@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { Aula, AulaFormData } from './aula.model';
@@ -17,21 +18,24 @@ const AULAS_POR_PAGINA = 8;
 
 @Component({
   selector: 'app-aula',
-  imports: [FormsModule, MatIconModule, RouterLink],
+  imports: [FormsModule, MatIconModule, MatSnackBarModule, RouterLink],
   templateUrl: './aula.component.html',
   styleUrl: './aula.component.scss'
 })
 export class AulaComponent implements OnInit {
   private readonly aulaService = inject(AulaService);
   private readonly authService = inject(AuthService);
+  private readonly snackBar = inject(MatSnackBar);
 
-  readonly aulas = signal<Aula[]>([]);
+  readonly aulas = this.aulaService.aulas;
   readonly busqueda = signal('');
   readonly estadoSeleccionado = signal('');
   readonly capacidadMinima = signal<number | null>(null);
   readonly cargando = signal(false);
   readonly errorCarga = signal('');
   readonly mensaje = signal('');
+  readonly tipoMensaje = signal<'exito' | 'error'>('exito');
+  private mensajeTimer: ReturnType<typeof setTimeout> | null = null;
   readonly formularioVisible = signal(false);
   readonly aulaAEliminar = signal<Aula | null>(null);
   readonly sesion = this.authService.sesion;
@@ -106,6 +110,10 @@ export class AulaComponent implements OnInit {
     this.aulas().filter(aula => this.esMantenimiento(aula.estado)).length
   );
 
+  formatCount(count: number): string {
+    return String(count).padStart(2, '0');
+  }
+
   datosFormulario: AulaFormData = { ...NUEVA_AULA };
   errorFormulario = '';
   guardando = false;
@@ -116,15 +124,19 @@ export class AulaComponent implements OnInit {
   }
 
   async cargarAulas(): Promise<void> {
-    this.cargando.set(true);
+    if (this.aulas().length === 0) {
+      this.cargando.set(true);
+    }
     this.errorCarga.set('');
     try {
-      this.aulas.set(await this.aulaService.listar());
+      await this.aulaService.listar();
       this.ajustarPagina();
     } catch (error) {
-      this.errorCarga.set(
-        this.aulaService.mensajeError(error, 'No se pudieron cargar las aulas.')
-      );
+      if (this.aulas().length === 0) {
+        this.errorCarga.set(
+          this.aulaService.mensajeError(error, 'No se pudieron cargar las aulas.')
+        );
+      }
     } finally {
       this.cargando.set(false);
     }
@@ -160,19 +172,69 @@ export class AulaComponent implements OnInit {
     this.authService.logout();
     this.formularioVisible.set(false);
     this.aulaEnEdicion = null;
-    this.mensaje.set('La sesión se cerró correctamente.');
+    this.mostrarNotificacion('La sesión se cerró correctamente.', 'exito');
   }
 
   abrirAcceso(): void {
     this.authService.abrirPanel();
   }
 
+  cerrarMensaje(): void {
+    if (this.mensajeTimer) {
+      clearTimeout(this.mensajeTimer);
+      this.mensajeTimer = null;
+    }
+    this.mensaje.set('');
+  }
+
+  private mostrarNotificacion(texto: string, _tipo: 'exito' | 'error' = 'exito'): void {
+    this.snackBar.open(texto, 'Cerrar', {
+      duration: 4000,
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom'
+    });
+  }
+
+  private notificarPermisoRequerido(accion: () => void): void {
+    this.snackBar
+      .open(
+        'Acceso denegado (401/403): Se requiere rol TECNICO o ADMIN con JWT para gestionar el catálogo de aulas.',
+        'Entrar como Técnico',
+        { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
+      )
+      .onAction()
+      .subscribe(() => {
+        this.authService.loginRapido('tecnico').subscribe(() => accion());
+      });
+  }
+
+  private desplazarAlFormulario(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    setTimeout(() => {
+      const panel = document.getElementById('panel-formulario-aula');
+      panel?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const inputCodigo = document.getElementById('aula-codigo-input') as HTMLInputElement | null;
+      inputCodigo?.focus({ preventScroll: true });
+    }, 50);
+  }
+
   nuevaAula(): void {
+    if (!this.puedeGestionar()) {
+      this.notificarPermisoRequerido(() => this.nuevaAula());
+      return;
+    }
     this.limpiarFormulario();
     this.formularioVisible.set(true);
+    this.desplazarAlFormulario();
   }
 
   editarAula(aula: Aula): void {
+    if (!this.puedeGestionar()) {
+      this.notificarPermisoRequerido(() => this.editarAula(aula));
+      return;
+    }
     this.aulaEnEdicion = aula.id;
     this.datosFormulario = {
       codigo: aula.codigo,
@@ -182,6 +244,7 @@ export class AulaComponent implements OnInit {
     };
     this.errorFormulario = '';
     this.formularioVisible.set(true);
+    this.desplazarAlFormulario();
   }
 
   cancelarFormulario(): void {
@@ -190,6 +253,10 @@ export class AulaComponent implements OnInit {
   }
 
   async guardarAula(): Promise<void> {
+    if (!this.puedeGestionar()) {
+      this.notificarPermisoRequerido(() => void this.guardarAula());
+      return;
+    }
     this.errorFormulario = '';
     const datos = {
       ...this.datosFormulario,
@@ -207,25 +274,31 @@ export class AulaComponent implements OnInit {
     try {
       if (this.aulaEnEdicion === null) {
         await this.aulaService.registrar(datos);
-        this.mensaje.set('El aula se registró correctamente.');
+        this.mostrarNotificacion(`Aula ${datos.codigo} registrada exitosamente [JWT Bearer]`, 'exito');
       } else {
         await this.aulaService.actualizar(this.aulaEnEdicion, datos);
-        this.mensaje.set('Los datos del aula se actualizaron correctamente.');
+        this.mostrarNotificacion(`Datos del aula ${datos.codigo} actualizados exitosamente [JWT Bearer]`, 'exito');
       }
       this.cancelarFormulario();
       await this.cargarAulas();
     } catch (error) {
-      this.errorFormulario = this.aulaService.mensajeError(
+      const msg = this.aulaService.mensajeError(
         error,
         'No se pudieron guardar los datos del aula.'
       );
+      this.errorFormulario = msg;
+      this.mostrarNotificacion(msg, 'error');
     } finally {
       this.guardando = false;
     }
   }
 
   confirmarEliminacion(aula: Aula): void {
-    this.mensaje.set('');
+    if (!this.puedeGestionar()) {
+      this.notificarPermisoRequerido(() => this.confirmarEliminacion(aula));
+      return;
+    }
+    this.cerrarMensaje();
     this.aulaAEliminar.set(aula);
   }
 
@@ -238,11 +311,12 @@ export class AulaComponent implements OnInit {
     try {
       await this.aulaService.eliminar(aula.id);
       this.aulaAEliminar.set(null);
-      this.mensaje.set(`El aula ${aula.codigo} se eliminó correctamente.`);
+      this.mostrarNotificacion(`El aula ${aula.codigo} se eliminó correctamente.`, 'exito');
       await this.cargarAulas();
     } catch (error) {
-      this.mensaje.set(
-        this.aulaService.mensajeError(error, 'No se pudo eliminar el aula.')
+      this.mostrarNotificacion(
+        this.aulaService.mensajeError(error, 'No se pudo eliminar el aula.'),
+        'error'
       );
       this.aulaAEliminar.set(null);
     }

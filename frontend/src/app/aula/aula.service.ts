@@ -1,18 +1,54 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Aula, AulaFormData } from './aula.model';
 
+const AULAS_CACHE_KEY = 'classcare-aulas-cache';
+
 @Injectable({ providedIn: 'root' })
 export class AulaService {
-  constructor(private readonly http: HttpClient) {}
+  private readonly aulasState = signal<Aula[]>(this.cargarCacheInicial());
+  readonly aulas = this.aulasState.asReadonly();
+
+  constructor(private readonly http: HttpClient) {
+    void this.listar().catch(() => {});
+  }
 
   async listar(): Promise<Aula[]> {
     const aulas = await firstValueFrom(this.http.get<Aula[]>('/api/aulas'));
     if (!Array.isArray(aulas)) {
       throw new Error('La respuesta de la API no contiene una lista de aulas válida.');
     }
+    this.aulasState.set(aulas);
+    this.guardarEnCache(aulas);
     return aulas;
+  }
+
+  private cargarCacheInicial(): Aula[] {
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(AULAS_CACHE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            return parsed as Aula[];
+          }
+        } catch {
+          localStorage.removeItem(AULAS_CACHE_KEY);
+        }
+      }
+    }
+    return [];
+  }
+
+  private guardarEnCache(aulas: Aula[]): void {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(AULAS_CACHE_KEY, JSON.stringify(aulas));
+      } catch {
+        // Ignorar errores de cuota de almacenamiento
+      }
+    }
   }
 
   async registrar(datos: AulaFormData): Promise<Aula> {
