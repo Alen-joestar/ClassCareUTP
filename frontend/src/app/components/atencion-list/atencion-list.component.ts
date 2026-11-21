@@ -2,7 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Atencion, EstadoAtencion, ReportePendienteAsignacion, TipoMantenimiento } from '../../models/atencion.model';
 import { AtencionService } from '../../services/atencion.service';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
     DatePipe,
     FormsModule,
     MatIconModule,
+    MatSnackBarModule,
     RouterLink
   ],
   templateUrl: './atencion-list.component.html',
@@ -23,6 +25,8 @@ export class AtencionListComponent {
   readonly atencionService = inject(AtencionService);
   readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
 
   constructor() {
     this.route.queryParamMap.subscribe(params => {
@@ -346,23 +350,24 @@ export class AtencionListComponent {
   }
 
   private mostrarExito(mensaje: string): void {
-    this.mensajeExito.set(mensaje);
-    this.mensajeAlerta.set(null);
-    setTimeout(() => {
-      if (this.mensajeExito() === mensaje) {
-        this.mensajeExito.set(null);
-      }
-    }, 5000);
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 4000,
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom'
+    });
   }
 
   private mostrarAlerta(mensaje: string): void {
-    this.mensajeAlerta.set(mensaje);
-    this.mensajeExito.set(null);
-    setTimeout(() => {
-      if (this.mensajeAlerta() === mensaje) {
-        this.mensajeAlerta.set(null);
-      }
-    }, 6000);
+    this.snackBar
+      .open(mensaje, 'Iniciar sesión', {
+        duration: 5000,
+        horizontalPosition: 'end',
+        verticalPosition: 'bottom'
+      })
+      .onAction()
+      .subscribe(() => {
+        this.router.navigate(['/login'], { queryParams: { returnUrl: '/atenciones' } });
+      });
   }
 
   // Stepper de Ciclo de Vida: 1=Asignado, 2=En Proceso, 3=Certificado

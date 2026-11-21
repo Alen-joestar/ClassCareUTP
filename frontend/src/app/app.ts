@@ -86,9 +86,9 @@ export class App {
       this.loginPassword.set(`${sesion.username}123`);
       this.authService.cerrarPanel();
       this.snackBar.open(
-        `Sesión JWT activa: ${sesion.username} (${sesion.roles.join(', ')}) • Bearer Token listo`,
+        `Sesión iniciada como ${sesion.nombreCompleto || sesion.username}`,
         'Cerrar',
-        { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        { duration: 3000, horizontalPosition: 'end', verticalPosition: 'bottom' }
       );
     });
   }
@@ -97,9 +97,9 @@ export class App {
     this.authService.logout();
     this.authService.cerrarPanel();
     this.snackBar.open(
-      'Sesión cerrada: Peticiones HTTP se enviarán sin cabecera Authorization Bearer.',
+      'Has cerrado sesión correctamente.',
       'Cerrar',
-      { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
+      { duration: 3000, horizontalPosition: 'end', verticalPosition: 'bottom' }
     );
   }
 

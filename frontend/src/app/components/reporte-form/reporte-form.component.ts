@@ -292,13 +292,13 @@ export class ReporteFormComponent {
       if (!this.authService.puedeActualizarReportes()) {
         this.snackBar
           .open(
-            'Acceso denegado (401/403): Se requiere rol TECNICO o ADMIN con JWT para editar un reporte.',
-            'Entrar como Técnico',
+            'Esta operación requiere una cuenta de Soporte Técnico o Administrador.',
+            'Iniciar sesión',
             { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
           )
           .onAction()
           .subscribe(() => {
-            this.authService.loginRapido('tecnico').subscribe(() => this.onSubmit());
+            this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
           });
         return;
       }
@@ -313,7 +313,7 @@ export class ReporteFormComponent {
         .subscribe({
           next: actualizado => {
             this.snackBar.open(
-              `Reporte #${this.formatCount(actualizado.id)} (${actualizado.aulaId}) editado exitosamente [JWT Bearer]`,
+              `Reporte #${this.formatCount(actualizado.id)} (${actualizado.aulaId}) actualizado correctamente`,
               'Cerrar',
               { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
             );

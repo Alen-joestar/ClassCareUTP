@@ -27,6 +27,12 @@ export class LoginComponent implements OnInit {
   readonly modoActivo = signal<'login' | 'registro'>('login');
   readonly returnUrl = signal<string>('/reportes');
 
+  // Solo un Administrador autenticado puede asignar roles de Técnico o Admin y ver el directorio
+  readonly esAdmin = this.authService.puedeEliminarReportes;
+
+  // Selector de perfiles de demostración oculto por defecto
+  readonly mostrarAccesosDemo = signal<boolean>(false);
+
   // Campos de Inicio de Sesión
   readonly loginUsername = signal<string>('');
   readonly loginPassword = signal<string>('');
@@ -39,8 +45,8 @@ export class LoginComponent implements OnInit {
   readonly regUsername = signal<string>('');
   readonly regCorreo = signal<string>('');
   readonly regPassword = signal<string>('');
-  readonly regRol = signal<RolRegistro>('TECNICO');
-  readonly regEspecialidad = signal<string>('Audiovisual y Multimedia');
+  readonly regRol = signal<RolRegistro>('ALUMNO');
+  readonly regEspecialidad = signal<string>('Ingeniería de Sistemas e Informática');
   readonly mostrarPasswordReg = signal<boolean>(false);
   readonly cargandoRegistro = signal<boolean>(false);
   readonly errorRegistro = signal<string | null>(null);
@@ -55,9 +61,9 @@ export class LoginComponent implements OnInit {
     this.route.queryParamMap.subscribe(params => {
       const tab = params.get('modo');
       if (tab === 'registro') {
-        this.modoActivo.set('registro');
+        this.cambiarModo('registro');
       } else if (tab === 'login') {
-        this.modoActivo.set('login');
+        this.cambiarModo('login');
       }
       const next = params.get('returnUrl');
       if (next) {
@@ -73,6 +79,19 @@ export class LoginComponent implements OnInit {
     this.modoActivo.set(modo);
     this.errorLogin.set(null);
     this.errorRegistro.set(null);
+    if (modo === 'registro') {
+      if (this.esAdmin()) {
+        this.regRol.set('TECNICO');
+        this.regEspecialidad.set('Audiovisual y Multimedia');
+      } else {
+        this.regRol.set('ALUMNO');
+        this.regEspecialidad.set('Ingeniería de Sistemas e Informática');
+      }
+    }
+  }
+
+  toggleAccesosDemo(): void {
+    this.mostrarAccesosDemo.update(v => !v);
   }
 
   autocompletarCorreoDesdeUsername(username: string): void {
@@ -84,12 +103,16 @@ export class LoginComponent implements OnInit {
   }
 
   seleccionarRolRegistro(rol: RolRegistro): void {
+    if (!this.esAdmin()) {
+      this.regRol.set('ALUMNO');
+      return;
+    }
     this.regRol.set(rol);
-    if (rol === 'TECNICO' && !this.regEspecialidad()) {
+    if (rol === 'TECNICO') {
       this.regEspecialidad.set('Soporte Técnico de Campus');
     } else if (rol === 'ADMIN') {
       this.regEspecialidad.set('Dirección de Infraestructura');
-    } else if (rol === 'ALUMNO') {
+    } else {
       this.regEspecialidad.set('Comunidad Académica UTP');
     }
   }
@@ -110,7 +133,7 @@ export class LoginComponent implements OnInit {
       next: sesion => {
         this.cargandoLogin.set(false);
         this.snackBar.open(
-          `Bienvenido, ${sesion.nombreCompleto || sesion.username} (${this.obtenerEtiquetaRol(sesion.roles)})`,
+          `Bienvenido, ${sesion.nombreCompleto || sesion.username}`,
           'OK',
           { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
         );
@@ -119,7 +142,7 @@ export class LoginComponent implements OnInit {
       error: () => {
         this.cargandoLogin.set(false);
         this.errorLogin.set(
-          'Credenciales incorrectas (HTTP 401). Verifica tu usuario y contraseña o usa una cuenta registrada.'
+          'El usuario o la contraseña ingresados no son correctos. Verifica tus datos e inténtalo nuevamente.'
         );
       }
     });
@@ -130,11 +153,12 @@ export class LoginComponent implements OnInit {
     const username = this.regUsername().trim().toLowerCase();
     const correo = this.regCorreo().trim().toLowerCase() || `${username}@utp.edu.pe`;
     const password = this.regPassword().trim();
-    const rol = this.regRol();
-    const especialidad = this.regEspecialidad().trim();
+    // Gobernanza de roles: el auto-registro público siempre asigna ALUMNO. Solo un ADMIN puede dar de alta TECNICO o ADMIN.
+    const rol: RolRegistro = this.esAdmin() ? this.regRol() : 'ALUMNO';
+    const especialidad = this.regEspecialidad().trim() || 'Comunidad Académica UTP';
 
     if (nombreCompleto.length < 3) {
-      this.errorRegistro.set('Ingresa el nombre y apellido completo (mínimo 3 caracteres).');
+      this.errorRegistro.set('Ingresa tu nombre y apellido completo (mínimo 3 caracteres).');
       return;
     }
     if (username.length < 3 || /\s/.test(username)) {
@@ -166,9 +190,9 @@ export class LoginComponent implements OnInit {
         next: sesion => {
           this.cargandoRegistro.set(false);
           this.snackBar.open(
-            `Cuenta creada y autenticada: ${sesion.nombreCompleto} (@${sesion.username})`,
-            'Ir al Campus',
-            { duration: 4200, horizontalPosition: 'end', verticalPosition: 'bottom' }
+            `Cuenta registrada correctamente: ${sesion.nombreCompleto} (@${sesion.username})`,
+            'Continuar',
+            { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
           );
           this.regNombreCompleto.set('');
           this.regUsername.set('');
@@ -180,7 +204,7 @@ export class LoginComponent implements OnInit {
           this.cargandoRegistro.set(false);
           const backendMsg = err?.error?.message || err?.error?.detail;
           this.errorRegistro.set(
-            backendMsg || 'No se pudo registrar el usuario. Verifica que el usuario o correo no estén duplicados.'
+            backendMsg || 'No se pudo completar el registro. Verifica que el usuario o correo no estén en uso.'
           );
         }
       });
@@ -191,10 +215,11 @@ export class LoginComponent implements OnInit {
     this.authService.loginRapido(perfil).subscribe({
       next: sesion => {
         this.snackBar.open(
-          `Sesión activa como ${sesion.nombreCompleto || sesion.username} (${this.obtenerEtiquetaRol(sesion.roles)})`,
+          `Sesión iniciada como ${sesion.nombreCompleto || sesion.username}`,
           'OK',
-          { duration: 3200, horizontalPosition: 'end', verticalPosition: 'bottom' }
+          { duration: 3000, horizontalPosition: 'end', verticalPosition: 'bottom' }
         );
+        this.router.navigateByUrl(this.returnUrl());
       }
     });
   }
@@ -202,19 +227,13 @@ export class LoginComponent implements OnInit {
   cargarUsuarioEnFormulario(username: string): void {
     this.modoActivo.set('login');
     this.loginUsername.set(username);
-    if (username === 'admin') {
-      this.loginPassword.set('admin123');
-    } else if (username === 'alumno') {
-      this.loginPassword.set('alumno123');
-    } else {
-      this.loginPassword.set('tecnico123');
-    }
+    this.loginPassword.set('');
     this.errorLogin.set(null);
   }
 
   obtenerEtiquetaRol(roles: string[]): string {
     if (roles.includes('ROLE_ADMIN')) return 'Administrador';
     if (roles.includes('ROLE_TECNICO')) return 'Soporte Técnico';
-    return 'Alumno / Docente';
+    return 'Docente / Estudiante';
   }
 }

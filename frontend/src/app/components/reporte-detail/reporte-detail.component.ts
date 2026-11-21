@@ -73,15 +73,13 @@ export class ReporteDetailComponent {
     if (!this.authService.puedeActualizarReportes()) {
       this.snackBar
         .open(
-          'Acceso restringido (401/403): Solo Soporte Técnico o Admin con JWT pueden editar un reporte.',
-          'Entrar como Técnico',
+          'Inicia sesión como Especialista Técnico o Administrador para editar este expediente.',
+          'Iniciar sesión',
           { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
         )
         .onAction()
         .subscribe(() => {
-          this.authService.loginRapido('tecnico').subscribe(() => {
-            this.router.navigate(['/reportes', actual.id, 'editar']);
-          });
+          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
         });
       return;
     }
@@ -93,15 +91,13 @@ export class ReporteDetailComponent {
     if (!this.authService.puedeEliminarReportes()) {
       this.snackBar
         .open(
-          'Acceso restringido (403): Solo el rol ADMIN con JWT puede eliminar reportes del sistema.',
-          'Entrar como Admin',
+          'Solo un Administrador de Infraestructura puede eliminar expedientes del sistema.',
+          'Iniciar sesión',
           { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
         )
         .onAction()
         .subscribe(() => {
-          this.authService.loginRapido('admin').subscribe(() => {
-            this.confirmandoEliminacion.set(true);
-          });
+          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
         });
       return;
     }
@@ -121,7 +117,7 @@ export class ReporteDetailComponent {
     this.reporteService.eliminarReporte(actual.id).subscribe({
       next: () => {
         this.snackBar.open(
-          `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) eliminado permanentemente [JWT Admin]`,
+          `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) eliminado permanentemente`,
           'Cerrar',
           { duration: 4000, horizontalPosition: 'end', verticalPosition: 'bottom' }
         );
@@ -130,7 +126,7 @@ export class ReporteDetailComponent {
       error: (err: HttpErrorResponse) => {
         const msg =
           err?.error?.message ||
-          `No se pudo eliminar el reporte (${err.status}): Requiere privilegios ADMIN.`;
+          'No se pudo eliminar el reporte. Verifica tus permisos de administrador.';
         this.snackBar.open(msg, 'Cerrar', {
           duration: 4500,
           horizontalPosition: 'end',
@@ -146,19 +142,16 @@ export class ReporteDetailComponent {
       return;
     }
 
-    // Validación RBAC + JWT coherente con SecurityConfig.java (PUT /api/reportes/** requiere TECNICO o ADMIN)
     if (!this.authService.puedeActualizarReportes()) {
       this.snackBar
         .open(
-          'Acceso denegado (401/403): Se requiere sesión JWT con rol TECNICO o ADMIN para actualizar estados.',
-          'Entrar como Técnico',
+          'Se requiere una cuenta de Soporte Técnico o Administrador para actualizar el estado del reporte.',
+          'Iniciar sesión',
           { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
         )
         .onAction()
         .subscribe(() => {
-          this.authService.loginRapido('tecnico').subscribe(() => {
-            this.cambiarEstado(nuevoEstado);
-          });
+          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
         });
       return;
     }
@@ -199,7 +192,7 @@ export class ReporteDetailComponent {
     this.reporteService.actualizarEstado(actual.id, nuevoEstado).subscribe({
       next: () => {
         this.snackBar.open(
-          `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)} [JWT Bearer]`,
+          `Reporte #${this.formatCount(actual.id)} (${actual.aulaId}) actualizado a ${this.getEstadoLabel(nuevoEstado)}`,
           'Cerrar',
           { duration: 3500, horizontalPosition: 'end', verticalPosition: 'bottom' }
         );

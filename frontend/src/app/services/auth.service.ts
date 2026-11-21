@@ -104,10 +104,37 @@ export class AuthService {
     return actual.nombreCompleto || actual.username;
   });
 
+  readonly inicialesUsuario = computed(() => {
+    const actual = this.sesionState();
+    if (!actual) {
+      return 'IN';
+    }
+    const base = (actual.nombreCompleto || actual.username).trim();
+    const partes = base.split(/\s+/).filter(Boolean);
+    if (partes.length >= 2) {
+      return (partes[0][0] + partes[1][0]).toUpperCase();
+    }
+    return base.slice(0, 2).toUpperCase();
+  });
+
+  readonly rolCargo = computed(() => {
+    const actual = this.sesionState();
+    if (!actual) {
+      return 'Acceso de Consulta';
+    }
+    if (actual.roles.includes('ROLE_ADMIN')) {
+      return 'Administrador de Infraestructura';
+    }
+    if (actual.roles.includes('ROLE_TECNICO')) {
+      return 'Especialista de Soporte Técnico';
+    }
+    return 'Docente / Estudiante';
+  });
+
   readonly rolEtiqueta = computed(() => {
     const actual = this.sesionState();
     if (!actual) {
-      return 'Público (Sin JWT)';
+      return 'Iniciar Sesión';
     }
     const nombre = actual.nombreCompleto || actual.username;
     if (actual.roles.includes('ROLE_ADMIN')) {
@@ -116,7 +143,7 @@ export class AuthService {
     if (actual.roles.includes('ROLE_TECNICO')) {
       return `${nombre} • Técnico`;
     }
-    return `${nombre} • Alumno`;
+    return `${nombre} • Académico`;
   });
 
   constructor() {

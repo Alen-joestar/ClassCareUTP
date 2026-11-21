@@ -198,8 +198,8 @@ export class AulaComponent implements OnInit {
   private notificarPermisoRequerido(accion: () => void): void {
     this.snackBar
       .open(
-        'Acceso denegado (401/403): Se requiere rol TECNICO o ADMIN con JWT para gestionar el catálogo de aulas.',
-        'Entrar como Técnico',
+        'Esta operación requiere una cuenta de Soporte Técnico o Administrador.',
+        'Cambiar a Técnico',
         { duration: 5000, horizontalPosition: 'end', verticalPosition: 'bottom' }
       )
       .onAction()
@@ -274,10 +274,10 @@ export class AulaComponent implements OnInit {
     try {
       if (this.aulaEnEdicion === null) {
         await this.aulaService.registrar(datos);
-        this.mostrarNotificacion(`Aula ${datos.codigo} registrada exitosamente [JWT Bearer]`, 'exito');
+        this.mostrarNotificacion(`Aula ${datos.codigo} registrada exitosamente`, 'exito');
       } else {
         await this.aulaService.actualizar(this.aulaEnEdicion, datos);
-        this.mostrarNotificacion(`Datos del aula ${datos.codigo} actualizados exitosamente [JWT Bearer]`, 'exito');
+        this.mostrarNotificacion(`Datos del aula ${datos.codigo} actualizados correctamente`, 'exito');
       }
       this.cancelarFormulario();
       await this.cargarAulas();

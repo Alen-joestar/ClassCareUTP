@@ -10,9 +10,9 @@
     @if (reporte()) {
       <span class="detail-hint">
         @if (authService.puedeActualizarReportes()) {
-          SESIÓN ACTIVA: {{ authService.rolEtiqueta() }} &bull; HAZ CLIC EN CUALQUIER ETAPA PARA ACTUALIZAR EL ESTADO
+          GESTIÓN TÉCNICA HABILITADA &bull; SELECCIONA UNA ETAPA PARA ACTUALIZAR EL PROGRESO
         } @else {
-          MODO CONSULTA ({{ authService.rolEtiqueta() }}) &bull; REQUIERE ROL TÉCNICO O ADMIN PARA CAMBIAR ESTADO
+          VISTA DE CONSULTA &bull; INICIA SESIÓN COMO ESPECIALISTA PARA GESTIONAR ESTE EXPEDIENTE
         }
       </span>
     }
@@ -124,11 +124,11 @@
           </section>
         </div>
 
-        <!-- Barra de Operaciones CRUD (Editar PUT / Eliminar DELETE por Rol) -->
+        <!-- Barra de Operaciones del Expediente -->
         <footer class="detail-crud-footer">
           @if (!confirmandoEliminacion()) {
             <span class="crud-footer-caption">
-              OPERACIONES DEL REPORTE &bull; {{ authService.rolEtiqueta() }}
+              ACCIONES DEL EXPEDIENTE &bull; {{ authService.rolCargo().toUpperCase() }}
             </span>
 
             <div class="crud-btn-group">
@@ -141,20 +141,24 @@
                 <span>Ver en Atenciones</span>
               </a>
 
-              <button
-                type="button"
-                class="m3-btn-edit"
-                [disabled]="item.estado === 'RESUELTO'"
-                [attr.title]="item.estado === 'RESUELTO' ? 'Un reporte resuelto y cerrado no puede ser editado' : 'Editar diagnóstico, categoría o prioridad'"
-                (click)="irAEditarReporte()">
-                <mat-icon>{{ item.estado === 'RESUELTO' ? 'lock' : 'edit_note' }}</mat-icon>
-                <span>{{ item.estado === 'RESUELTO' ? 'Reporte cerrado (No editable)' : 'Editar reporte' }}</span>
-              </button>
+              @if (authService.puedeActualizarReportes()) {
+                <button
+                  type="button"
+                  class="m3-btn-edit"
+                  [disabled]="item.estado === 'RESUELTO'"
+                  [attr.title]="item.estado === 'RESUELTO' ? 'Un reporte resuelto y cerrado no puede ser editado' : 'Editar diagnóstico, categoría o prioridad'"
+                  (click)="irAEditarReporte()">
+                  <mat-icon>{{ item.estado === 'RESUELTO' ? 'lock' : 'edit_note' }}</mat-icon>
+                  <span>{{ item.estado === 'RESUELTO' ? 'Reporte cerrado' : 'Editar reporte' }}</span>
+                </button>
+              }
 
-              <button type="button" class="m3-btn-delete" (click)="solicitarEliminacion()">
-                <mat-icon>delete_outline</mat-icon>
-                <span>Eliminar (Admin)</span>
-              </button>
+              @if (authService.puedeEliminarReportes()) {
+                <button type="button" class="m3-btn-delete" (click)="solicitarEliminacion()">
+                  <mat-icon>delete_outline</mat-icon>
+                  <span>Eliminar reporte</span>
+                </button>
+              }
             </div>
           } @else {
             <div class="delete-confirm-banner" role="alert">
