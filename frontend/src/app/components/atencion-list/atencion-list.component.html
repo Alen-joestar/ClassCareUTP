@@ -25,27 +25,13 @@
     </div>
   }
 
-  <!-- Bloque Hero Marino Institucional con KPIs y Métrica de Efectividad -->
+  <!-- Bloque Hero Marino Institucional con KPIs Interactivos (Unificado con Reportes) -->
   <header class="hero-banner">
-    <div class="hero-top-row">
-      <div class="hero-copy">
-        <div class="hero-pill-badge">
-          <mat-icon aria-hidden="true">build_circle</mat-icon>
-          <span>Mesa de Operaciones y Mantenimiento UTP</span>
-        </div>
-        <h2 class="hero-title">Bandeja de Atenciones Técnicas</h2>
-        <p class="hero-subtitle">
-          Gestión técnica de incidencias en campus. Monitoreo del ciclo de vida, asignaciones por técnico y cumplimiento de acuerdos de nivel de servicio (SLA).
-        </p>
-      </div>
-
-      <!-- Botón de Acción Principal para la Mesa Técnica -->
-      <div class="hero-actions">
-        <button type="button" class="btn-nueva-orden" (click)="abrirModalNueva()" title="Crear una nueva orden técnica de atención">
-          <mat-icon>add_task</mat-icon>
-          <span>Nueva Atención</span>
-        </button>
-      </div>
+    <div class="hero-copy">
+      <h2 class="hero-title">Bandeja de Atenciones Técnicas</h2>
+      <p class="hero-subtitle">
+        Gestión técnica de incidencias en campus, asignaciones por especialista y cumplimiento de SLA. Haz clic en cualquier indicador para filtrar por estado.
+      </p>
     </div>
 
     <!-- Tiras de KPIs Reactivos -->
@@ -87,7 +73,7 @@
         (click)="filterByEstado('EN_ATENCION')">
         <div class="kpi-data">
           <span class="kpi-num">{{ formatCount(totalEnAtencion()) }}</span>
-          <span class="kpi-lbl">En Proceso</span>
+          <span class="kpi-lbl">En Atención</span>
         </div>
         <span class="kpi-dot" style="background: var(--st-atencion-main)" aria-hidden="true"></span>
       </button>
@@ -101,55 +87,53 @@
         (click)="filterByEstado('RESUELTO')">
         <div class="kpi-data">
           <span class="kpi-num">{{ formatCount(totalResueltos()) }}</span>
-          <span class="kpi-lbl">Resueltas</span>
+          <span class="kpi-lbl">Liberadas ({{ tasaResolucion() }}%)</span>
         </div>
         <span class="kpi-dot" style="background: var(--st-resuelto-main)" aria-hidden="true"></span>
       </button>
-
-      <!-- KPI Extra Diferenciador: Tasa de Resolución / Eficiencia Técnica -->
-      <div class="kpi-tile kpi-tile--efficiency" title="Índice de resoluciones sobre el total de órdenes asignadas">
-        <div class="kpi-data">
-          <span class="kpi-num efficiency-num">{{ tasaResolucion() }}%</span>
-          <span class="kpi-lbl">Efectividad SLA</span>
-        </div>
-        <mat-icon class="efficiency-icon" aria-hidden="true">speed</mat-icon>
-      </div>
     </div>
   </header>
 
-  <!-- Bandeja de Entrada / Triaje de Reportes del Campus (Opción B: Asignación Rápida) -->
+  <!-- Bandeja de Entrada / Triaje de Reportes del Campus (Rediseñada con Tickets de Despacho M3) -->
   @if (reportesPendientes().length > 0) {
     <section class="triage-panel" aria-label="Reportes del campus pendientes de asignación técnica">
       <div class="triage-header">
         <div class="triage-title-group">
           <div class="triage-pill">
             <mat-icon>inbox</mat-icon>
-            <span>Bandeja de Entrada Campus</span>
+            <span>Bandeja de Despacho Campus</span>
           </div>
           <h3 class="triage-heading">
-            {{ reportesPendientes().length }} {{ reportesPendientes().length === 1 ? 'Reporte Nuevo esperando asignación' : 'Reportes Nuevos esperando asignación técnica' }}
+            {{ formatCount(reportesPendientes().length) }} {{ reportesPendientes().length === 1 ? 'Reporte entrante esperando asignación técnica' : 'Reportes entrantes esperando asignación técnica' }}
           </h3>
         </div>
-        <span class="triage-subtitle">Toma un caso en 1 clic para asignártelo o derívalo a un compañero técnico.</span>
+        <span class="triage-subtitle">Asume la orden en 1 clic o derívala a un especialista del equipo.</span>
       </div>
 
       <div class="triage-grid">
         @for (rep of reportesPendientes(); track rep.id) {
-          <article class="triage-card">
-            <div class="triage-card-header">
-              <span class="triage-tag">REPORTE #{{ rep.id }}</span>
-              <span class="triage-aula">
-                <mat-icon>meeting_room</mat-icon>
-                Aula {{ rep.aulaId }}
-              </span>
-              <span class="triage-priority" [class.triage-priority--alta]="rep.prioridad === 'ALTA'">
-                {{ rep.prioridad }}
-              </span>
+          <article class="triage-ticket" [attr.data-prio]="rep.prioridad">
+            <header class="triage-ticket__head">
+              <div class="triage-room-group">
+                <span class="triage-room-plaque">{{ rep.aulaId }}</span>
+                <div class="triage-meta-copy">
+                  <span class="triage-cat">{{ rep.tipoProblema }}</span>
+                  <span class="triage-prio-text" [attr.data-prio]="rep.prioridad">
+                    Prioridad {{ rep.prioridad }}
+                  </span>
+                </div>
+              </div>
+
+              <a class="triage-rep-tag" [routerLink]="['/reportes', rep.id]" title="Ver expediente del Reporte #{{ rep.id }}">
+                #{{ formatCount(rep.id) }}
+              </a>
+            </header>
+
+            <div class="triage-ticket__body">
+              <p class="triage-problem">{{ rep.descripcion }}</p>
             </div>
 
-            <p class="triage-problem"><strong>{{ rep.tipoProblema }}:</strong> {{ rep.descripcion }}</p>
-
-            <div class="triage-card-actions">
+            <footer class="triage-ticket__foot">
               <button
                 type="button"
                 class="btn-triage-take"
@@ -164,210 +148,244 @@
                 (click)="abrirModalAsignarReporte(rep)"
                 title="Asignar orden técnica a otro técnico especialista">
                 <mat-icon>tune</mat-icon>
-                <span>Asignar a...</span>
+                <span>Derivar</span>
               </button>
-            </div>
+            </footer>
           </article>
         }
       </div>
     </section>
   }
 
-  <!-- Barra de Filtros y Selector de Carga de Trabajo por Técnico -->
-  <section class="filter-panel" aria-label="Controles de búsqueda y filtros técnicos">
-    <div class="filter-row-top">
-      <div class="filter-field search-field">
-        <mat-icon class="search-icon" aria-hidden="true">search</mat-icon>
-        <input
-          type="search"
-          id="search-atencion"
-          class="filter-input"
-          placeholder="Buscar por técnico, aula, observaciones o #ID..."
-          aria-label="Buscar atenciones por técnico, código de aula, observaciones o número de ticket"
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-        />
-      </div>
-
-      <div class="filter-actions">
-        @if (searchQuery() || selectedEstado() || selectedTecnico()) {
-          <button type="button" class="btn-clear" aria-label="Limpiar todos los filtros aplicados" (click)="resetFilters()">
-            <mat-icon aria-hidden="true">clear_all</mat-icon>
-            <span>Restablecer Filtros</span>
-          </button>
-        }
-      </div>
+  <!-- Barra de Filtros Tonal M3 en 1 Sola Fila con Menú Desplegable de Técnico -->
+  <section class="filter-bar" aria-label="Controles de búsqueda y filtros técnicos">
+    <div class="m3-input-box">
+      <mat-icon class="filter-icon" aria-hidden="true">search</mat-icon>
+      <input
+        type="search"
+        id="search-atencion"
+        placeholder="Buscar por técnico, aula, observaciones o #ID de orden..."
+        aria-label="Buscar atenciones por técnico, código de aula, observaciones o número de ticket"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+      />
     </div>
 
-    <!-- Píldoras de Filtro Rápido por Técnico Asignado (Carga Laboral) -->
-    <div class="tecnico-pills-bar" role="group" aria-label="Filtro rápido por técnico encargado">
-      <span class="pills-label">
-        <mat-icon aria-hidden="true">badge</mat-icon>
-        Filtrar por Técnico:
-      </span>
-
+    <!-- Botón Desplegable para Filtrar por Técnico (Sin generar segunda fila) -->
+    <div class="filter-dropdown-wrapper">
       <button
         type="button"
-        class="tecnico-pill"
-        [class.tecnico-pill--active]="selectedTecnico() === ''"
-        (click)="filterByTecnico('')">
-        Todos ({{ totalAtenciones() }})
-      </button>
-
-      <button
-        type="button"
-        class="tecnico-pill tecnico-pill--my"
-        [class.tecnico-pill--active]="selectedTecnico() === tecnicoLogueado()"
-        (click)="filterByTecnico(tecnicoLogueado())">
-        <mat-icon aria-hidden="true">account_circle</mat-icon>
-        Mis Casos ({{ tecnicoLogueado() }})
-      </button>
-
-      @for (item of tecnicosDisponibles(); track item.tecnico) {
-        @if (item.tecnico !== tecnicoLogueado()) {
-          <button
-            type="button"
-            class="tecnico-pill"
-            [class.tecnico-pill--active]="selectedTecnico() === item.tecnico"
-            (click)="filterByTecnico(item.tecnico)">
-            {{ item.tecnico }} ({{ item.count }})
-          </button>
+        class="m3-btn-filter"
+        [class.has-active]="selectedTecnico() !== ''"
+        (click)="toggleMenuTecnico()">
+        <mat-icon>engineering</mat-icon>
+        <span>{{ selectedTecnico() ? 'Técnico: ' + selectedTecnico() : 'Técnico' }}</span>
+        @if (selectedTecnico()) {
+          <span class="filter-count-badge">1</span>
         }
+        <mat-icon class="chevron-icon">{{ mostrarMenuTecnico() ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+
+      @if (mostrarMenuTecnico()) {
+        <div class="filter-popover" role="dialog" aria-label="Seleccionar técnico encargado">
+          <div class="filter-popover__header">
+            <strong>Filtrar por Especialista</strong>
+            <button type="button" class="popover-close-btn" (click)="cerrarMenuTecnico()" aria-label="Cerrar menú">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="tecnico-popover-list">
+            <button
+              type="button"
+              class="tecnico-option-btn"
+              [class.active]="selectedTecnico() === ''"
+              (click)="filterByTecnico('')">
+              <span class="opt-left">
+                <mat-icon>groups</mat-icon>
+                <span>Todos los técnicos</span>
+              </span>
+              <span class="opt-count">{{ totalAtenciones() }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="tecnico-option-btn"
+              [class.active]="selectedTecnico() === tecnicoLogueado()"
+              (click)="filterByTecnico(tecnicoLogueado())">
+              <span class="opt-left">
+                <mat-icon>account_circle</mat-icon>
+                <span>Mis casos ({{ tecnicoLogueado() }})</span>
+              </span>
+              <span class="opt-tag">Sesión</span>
+            </button>
+
+            @for (item of tecnicosDisponibles(); track item.tecnico) {
+              @if (item.tecnico !== tecnicoLogueado()) {
+                <button
+                  type="button"
+                  class="tecnico-option-btn"
+                  [class.active]="selectedTecnico() === item.tecnico"
+                  (click)="filterByTecnico(item.tecnico)">
+                  <span class="opt-left">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ item.tecnico }}</span>
+                  </span>
+                  <span class="opt-count">{{ item.count }}</span>
+                </button>
+              }
+            }
+          </div>
+        </div>
       }
     </div>
+
+    <button type="button" class="m3-btn-reset" aria-label="Limpiar todos los filtros aplicados" (click)="resetFilters()">
+      <mat-icon aria-hidden="true">restart_alt</mat-icon>
+      <span>Restablecer</span>
+    </button>
+
+    <button type="button" class="m3-btn-new" (click)="abrirModalNueva()" title="Crear una nueva orden técnica de atención">
+      <mat-icon>add_circle</mat-icon>
+      <span>Nueva Atención</span>
+    </button>
   </section>
 
-  <!-- Cuadrícula de Tarjetas Folder-Tab M3 -->
+  <!-- Cuadrícula de Órdenes de Intervención Técnica (Chasis Articulado en 2 Módulos con Cintura Retraída y Pinza Superior) -->
   <section class="cards-grid" aria-live="polite">
     @for (atencion of filteredAtenciones(); track atencion.id) {
       <article
-        class="folder-card"
-        [class.folder-card--pendiente]="atencion.estado === 'PENDIENTE'"
-        [class.folder-card--atencion]="atencion.estado === 'EN_ATENCION'"
-        [class.folder-card--resuelto]="atencion.estado === 'RESUELTO'">
+        class="workorder-card"
+        [attr.data-estado]="atencion.estado">
 
-        <!-- Solapa Sólida Superior con Estado e ID -->
-        <div class="folder-tab">
-          <span class="tab-tag">ORDEN #{{ atencion.id }}</span>
-          <span class="tab-status">
-            <mat-icon class="tab-icon" aria-hidden="true">{{ getEstadoIcon(atencion.estado) }}</mat-icon>
-            {{ getEstadoLabel(atencion.estado) }}
-          </span>
+        <!-- Pinza Superior de Portapapeles Técnico -->
+        <div class="clipboard-clamp-row" aria-hidden="true">
+          <div class="clipboard-clamp">
+            <span class="clamp-bar"></span>
+          </div>
         </div>
 
-        <div class="folder-body">
-          <header class="card-head">
-            <div class="aula-badge">
-              <mat-icon aria-hidden="true">meeting_room</mat-icon>
-              <span>Aula {{ atencion.aulaCodigo || 'N/A' }}</span>
-            </div>
-
-            <span class="mantenimiento-chip" [class.mantenimiento-chip--correctivo]="atencion.tipoMantenimiento === 'CORRECTIVO'">
-              <mat-icon aria-hidden="true">{{ atencion.tipoMantenimiento === 'CORRECTIVO' ? 'warning' : 'verified' }}</mat-icon>
-              {{ getMantenimientoLabel(atencion.tipoMantenimiento) }}
+        <!-- MÓDULO SUPERIOR: Cabezal de Despacho de la Orden -->
+        <header class="workorder-upper-block">
+          <div class="workorder-id-group">
+            <span class="workorder-badge">
+              <span>ORDEN #{{ formatCount(atencion.id) }}</span>
             </span>
-          </header>
-
-          <!-- Stepper de Ciclo de Vida Visual (Progreso de la Atención) -->
-          <div class="stepper-track" role="region" aria-label="Progreso de la atención">
-            <div class="stepper-step" [class.stepper-step--done]="getPasoActivo(atencion.estado) >= 1" [class.stepper-step--current]="getPasoActivo(atencion.estado) === 1">
-              <span class="step-circle">1</span>
-              <span class="step-text">Asignado</span>
-            </div>
-
-            <div class="stepper-connector" [class.stepper-connector--done]="getPasoActivo(atencion.estado) >= 2"></div>
-
-            <div class="stepper-step" [class.stepper-step--done]="getPasoActivo(atencion.estado) >= 2" [class.stepper-step--current]="getPasoActivo(atencion.estado) === 2">
-              <span class="step-circle">2</span>
-              <span class="step-text">En Proceso</span>
-            </div>
-
-            <div class="stepper-connector" [class.stepper-connector--done]="getPasoActivo(atencion.estado) >= 3"></div>
-
-            <div class="stepper-step" [class.stepper-step--done]="getPasoActivo(atencion.estado) >= 3" [class.stepper-step--current]="getPasoActivo(atencion.estado) === 3">
-              <span class="step-circle">3</span>
-              <span class="step-text">Solucionado</span>
+            <div class="workorder-titles">
+              <span class="workorder-type">
+                {{ getMantenimientoLabel(atencion.tipoMantenimiento).toUpperCase() }}
+              </span>
+              <span class="workorder-room-line">
+                Aula {{ atencion.aulaCodigo || 'N/A' }}
+              </span>
             </div>
           </div>
 
-          <div class="meta-row">
-            <div class="meta-item">
-              <mat-icon class="meta-icon" aria-hidden="true">person</mat-icon>
-              <div class="meta-content">
-                <span class="meta-label">Técnico a Cargo</span>
-                <span class="meta-val" [class.meta-val--highlight]="atencion.tecnicoEncargado === tecnicoLogueado()">
-                  {{ atencion.tecnicoEncargado }}
-                  @if (atencion.tecnicoEncargado === tecnicoLogueado()) {
-                    <span class="tag-me">(Tú)</span>
-                  }
+          <div class="workorder-header-right">
+            <span class="workorder-state-pill">
+              <span class="state-diamond" aria-hidden="true"></span>
+              <span>{{ getEstadoLabel(atencion.estado) }}</span>
+            </span>
+            <a class="origin-ticket-pill" [routerLink]="['/reportes', atencion.reporteId]" title="Abrir expediente del Reporte #{{ atencion.reporteId }}">
+              <span>REPORTE #{{ formatCount(atencion.reporteId) }}</span>
+            </a>
+          </div>
+        </header>
+
+        <!-- CINTURA RETRAÍDA (PUENTE ARTICULADO): Trazabilidad de 3 Pasos -->
+        <div class="workorder-recessed-neck" role="region" aria-label="Trazabilidad de 3 etapas">
+          <div class="trace-steps-pill">
+            <span class="trace-node" [class.done]="getPasoActivo(atencion.estado) >= 1" [class.current]="getPasoActivo(atencion.estado) === 1">
+              1. Asignado
+            </span>
+            <span class="trace-sep" aria-hidden="true">&bull;</span>
+            <span class="trace-node" [class.done]="getPasoActivo(atencion.estado) >= 2" [class.current]="getPasoActivo(atencion.estado) === 2">
+              2. En Sitio
+            </span>
+            <span class="trace-sep" aria-hidden="true">&bull;</span>
+            <span class="trace-node" [class.done]="getPasoActivo(atencion.estado) >= 3" [class.current]="getPasoActivo(atencion.estado) === 3">
+              3. Certificado
+            </span>
+          </div>
+
+          <span class="phase-counter-tag">FASE {{ getPasoActivo(atencion.estado) }}/3</span>
+        </div>
+
+        <!-- MÓDULO INFERIOR: Especialista, Bitácora y Acciones -->
+        <div class="workorder-lower-block">
+          <div class="workorder-body">
+            <!-- Ficha de Especialista Asignado -->
+            <div class="specialist-bar">
+              <div class="specialist-box">
+                <span class="specialist-avatar">
+                  <mat-icon aria-hidden="true">engineering</mat-icon>
+                </span>
+                <div class="specialist-copy">
+                  <span class="specialist-label">ESPECIALISTA RESPONSABLE</span>
+                  <strong class="specialist-name" [class.is-me]="atencion.tecnicoEncargado === tecnicoLogueado()">
+                    {{ atencion.tecnicoEncargado }}
+                    @if (atencion.tecnicoEncargado === tecnicoLogueado()) {
+                      <span class="tag-me">(Tú)</span>
+                    }
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bitácora Técnica de Campo (Logbook) -->
+            <div class="workorder-logbook">
+              <div class="logbook-header">
+                <span class="logbook-title">
+                  <mat-icon aria-hidden="true">assignment</mat-icon>
+                  <span>BITÁCORA DE INTERVENCIÓN TÉCNICA</span>
                 </span>
               </div>
-            </div>
-
-            <div class="meta-item">
-              <mat-icon class="meta-icon" aria-hidden="true">alt_route</mat-icon>
-              <div class="meta-content">
-                <span class="meta-label">Ticket Origen</span>
-                <span class="meta-val">Reporte #{{ atencion.reporteId }}</span>
-              </div>
+              <p class="logbook-text">{{ atencion.observaciones || 'Sin observaciones técnicas registradas.' }}</p>
             </div>
           </div>
 
-          <!-- Impacto en Aula / Diagnóstico Preliminar -->
-          @if (atencion.impactoAcademico) {
-            <div class="impacto-box">
-              <mat-icon class="impacto-icon" aria-hidden="true">info</mat-icon>
-              <span class="impacto-text">{{ atencion.impactoAcademico }}</span>
-            </div>
-          }
-
-          <div class="obs-box">
-            <span class="obs-label">Diagnóstico y Solución Técnica:</span>
-            <p class="obs-text">{{ atencion.observaciones || 'Sin observaciones registradas.' }}</p>
-          </div>
-
-          <!-- Acciones de Técnico (Semana 13 & 14): Iniciar Atención y Resolver Caso -->
-          <div class="card-action-bar">
-            @if (atencion.estado === 'PENDIENTE') {
-              <button
-                type="button"
-                class="btn-action btn-action--start"
-                (click)="iniciarAtencion(atencion)"
-                title="Comenzar inspección técnica y cambiar estado a En Atención">
-                <mat-icon>engineering</mat-icon>
-                <span>Iniciar Atención</span>
-              </button>
-            }
-
-            @if (atencion.estado === 'EN_ATENCION') {
-              <button
-                type="button"
-                class="btn-action btn-action--resolve"
-                (click)="abrirModalResolucion(atencion)"
-                title="Registrar diagnóstico de solución y dar por resuelta la atención">
-                <mat-icon>task_alt</mat-icon>
-                <span>Resolver Caso</span>
-              </button>
-            }
-
-            @if (atencion.estado === 'RESUELTO') {
-              <div class="resolved-badge">
-                <mat-icon>verified</mat-icon>
-                <span>Certificado &bull; 100% Operativo</span>
-              </div>
-            }
-          </div>
-
-          <footer class="card-foot">
+          <!-- Pie de Orden Técnica: Tiempos de Intervención + Botón de Protocolo -->
+          <footer class="workorder-footer">
             <div class="time-track">
               <span class="time-entry">
                 <mat-icon aria-hidden="true">schedule</mat-icon>
-                <span>Inicio: {{ atencion.fechaRegistro | date:'short' }}</span>
+                <span>Apertura: {{ atencion.fechaRegistro | date:'dd MMM, HH:mm' }}</span>
               </span>
               @if (atencion.fechaResolucion) {
                 <span class="time-entry time-entry--done">
-                  <mat-icon aria-hidden="true">task_alt</mat-icon>
-                  <span>Cierre: {{ atencion.fechaResolucion | date:'short' }}</span>
+                  <mat-icon aria-hidden="true">verified</mat-icon>
+                  <span>Cierre: {{ atencion.fechaResolucion | date:'dd MMM, HH:mm' }}</span>
+                </span>
+              }
+            </div>
+
+            <div class="workorder-action">
+              @if (atencion.estado === 'PENDIENTE') {
+                <button
+                  type="button"
+                  class="btn-action btn-action--start"
+                  (click)="iniciarAtencion(atencion)"
+                  title="Comenzar inspección técnica en el aula">
+                  <mat-icon>play_arrow</mat-icon>
+                  <span>Iniciar Atención</span>
+                </button>
+              }
+
+              @if (atencion.estado === 'EN_ATENCION') {
+                <button
+                  type="button"
+                  class="btn-action btn-action--resolve"
+                  (click)="abrirModalResolucion(atencion)"
+                  title="Registrar diagnóstico de solución y certificar aula">
+                  <mat-icon>task_alt</mat-icon>
+                  <span>Resolver Caso</span>
+                </button>
+              }
+
+              @if (atencion.estado === 'RESUELTO') {
+                <span class="resolved-seal">
+                  <mat-icon>verified</mat-icon>
+                  <span>Certificado</span>
                 </span>
               }
             </div>
@@ -388,210 +406,292 @@
     }
   </section>
 
-  <!-- Modal Diálogo de Resolución Técnica (Semana 13) -->
+  <!-- Modal Diálogo de Resolución Técnica (Chasis Articulado con Pinza Superior y Cintura Retraída) -->
   @if (mostrarModalResolucion()) {
-    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-res-title">
-      <div class="modal-card">
-        <header class="modal-header">
-          <div class="modal-header-info">
-            <div class="modal-badge">
-              <mat-icon>task_alt</mat-icon>
-              <span>Resolución Técnica</span>
+    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-res-title" (click)="cerrarModalResolucion()">
+      <div class="modal-workorder-wrap" data-modal-theme="resolve" (click)="$event.stopPropagation()">
+        <!-- Pinza Superior de Portapapeles Técnico -->
+        <div class="clipboard-clamp-row" aria-hidden="true">
+          <div class="clipboard-clamp">
+            <span class="clamp-bar"></span>
+          </div>
+        </div>
+
+        <!-- Módulo Superior del Modal -->
+        <header class="workorder-upper-block modal-upper-block">
+          <div class="modal-header-left">
+            <span class="workorder-badge">
+              ORDEN #{{ formatCount(atencionSeleccionada()?.id || 0) }}
+            </span>
+            <div class="modal-header-info">
+              <h3 id="modal-res-title" class="modal-title">Certificar Solución y Liberar Aula</h3>
+              <p class="modal-sub">
+                Ambiente: <strong>Aula {{ atencionSeleccionada()?.aulaCodigo }}</strong> &bull; Especialista: <strong>{{ atencionSeleccionada()?.tecnicoEncargado }}</strong>
+              </p>
             </div>
-            <h3 id="modal-res-title" class="modal-title">Certificar Solución de Orden #{{ atencionSeleccionada()?.id }}</h3>
-            <p class="modal-sub">
-              Aula: <strong>{{ atencionSeleccionada()?.aulaCodigo }}</strong> &bull; Técnico: <strong>{{ atencionSeleccionada()?.tecnicoEncargado }}</strong>
-            </p>
           </div>
           <button type="button" class="btn-close-modal" (click)="cerrarModalResolucion()" aria-label="Cerrar ventana">
             <mat-icon>close</mat-icon>
           </button>
         </header>
 
-        <div class="modal-body">
-          @if (errorResolucion()) {
-            <div class="modal-error-box">
-              <mat-icon>error_outline</mat-icon>
-              <span>{{ errorResolucion() }}</span>
-            </div>
-          }
-
-          <div class="form-group">
-            <label for="resolucion-tipo" class="form-label">Tipo de Solución Aplicada *</label>
-            <select
-              id="resolucion-tipo"
-              class="form-select"
-              [ngModel]="resolucionTipoSolucion()"
-              (ngModelChange)="resolucionTipoSolucion.set($event)">
-              <option value="Reemplazo de componente">Reemplazo de componente / repuesto</option>
-              <option value="Ajuste y fijación de soportes">Ajuste y fijación de soportes</option>
-              <option value="Calibración y configuración lógica">Calibración y configuración lógica</option>
-              <option value="Reparación de cableado y conectores">Reparación de cableado y conectores</option>
-              <option value="Mantenimiento preventivo y limpieza">Mantenimiento preventivo y limpieza técnica</option>
-            </select>
+        <!-- Cintura Retraída del Modal: Trazabilidad de 3 Pasos -->
+        <div class="workorder-recessed-neck">
+          <div class="trace-steps-pill">
+            <span class="trace-node done">1. Asignado</span>
+            <span class="trace-sep">&bull;</span>
+            <span class="trace-node done">2. En Sitio</span>
+            <span class="trace-sep">&bull;</span>
+            <span class="trace-node current">3. Certificación</span>
           </div>
-
-          <div class="form-group">
-            <label for="resolucion-repuesto" class="form-label">Pieza / Repuesto Utilizado (opcional)</label>
-            <input
-              type="text"
-              id="resolucion-repuesto"
-              class="form-input"
-              placeholder="Ej.: Cable HDMI 5m, Lámpara 240W, Bornera eléctrica..."
-              [ngModel]="resolucionRepuesto()"
-              (ngModelChange)="resolucionRepuesto.set($event)"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="resolucion-obs" class="form-label">Diagnóstico Final y Acciones Realizadas *</label>
-            <textarea
-              id="resolucion-obs"
-              class="form-textarea"
-              rows="3"
-              placeholder="Detalla minuciosamente el procedimiento técnico ejecutado y las pruebas de funcionamiento realizadas..."
-              [ngModel]="resolucionObservaciones()"
-              (ngModelChange)="resolucionObservaciones.set($event)">
-            </textarea>
-            <span class="form-hint">Mínimo 10 caracteres. Caracteres actuales: {{ resolucionObservaciones().length }}</span>
-          </div>
-
-          <label class="form-checkbox-label">
-            <input
-              type="checkbox"
-              class="form-checkbox"
-              [ngModel]="resolucionConfirmacion()"
-              (ngModelChange)="resolucionConfirmacion.set($event)"
-            />
-            <span class="checkbox-text">
-              Certifico que el aula e infraestructura quedan <strong>100% operativas</strong> y probadas para actividades docentes.
-            </span>
-          </label>
+          <span class="phase-counter-tag">FASE 3/3 &bull; RESOLUCIÓN</span>
         </div>
 
-        <footer class="modal-footer">
-          <button type="button" class="btn-modal-cancel" (click)="cerrarModalResolucion()">
-            Cancelar
-          </button>
-          <button
-            type="button"
-            class="btn-modal-submit"
-            [disabled]="resolucionObservaciones().length < 10 || !resolucionConfirmacion()"
-            (click)="guardarResolucion()">
-            <mat-icon>verified</mat-icon>
-            <span>Finalizar y Cerrar Ticket</span>
-          </button>
-        </footer>
+        <!-- Módulo Inferior del Modal -->
+        <div class="workorder-lower-block modal-lower-block">
+          <div class="modal-body">
+            @if (errorResolucion()) {
+              <div class="modal-error-box" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorResolucion() }}</span>
+              </div>
+            }
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="resolucion-tipo" class="form-label">Tipo de Solución Aplicada *</label>
+                <div class="m3-modal-field">
+                  <mat-icon>build_circle</mat-icon>
+                  <select
+                    id="resolucion-tipo"
+                    class="form-select"
+                    [ngModel]="resolucionTipoSolucion()"
+                    (ngModelChange)="resolucionTipoSolucion.set($event)">
+                    <option value="Reemplazo de componente">Reemplazo de componente / repuesto</option>
+                    <option value="Ajuste y fijación de soportes">Ajuste y fijación de soportes</option>
+                    <option value="Calibración y configuración lógica">Calibración y configuración lógica</option>
+                    <option value="Reparación de cableado y conectores">Reparación de cableado y conectores</option>
+                    <option value="Mantenimiento preventivo y limpieza">Mantenimiento preventivo y limpieza</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="resolucion-repuesto" class="form-label">Pieza / Repuesto Utilizado</label>
+                <div class="m3-modal-field">
+                  <mat-icon>memory</mat-icon>
+                  <input
+                    type="text"
+                    id="resolucion-repuesto"
+                    class="form-input"
+                    placeholder="Ej.: Cable HDMI 5m, Módulo láser..."
+                    [ngModel]="resolucionRepuesto()"
+                    (ngModelChange)="resolucionRepuesto.set($event)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="resolucion-obs" class="form-label">Diagnóstico Final y Acciones Realizadas *</label>
+                <span class="form-hint" [class.hint-ok]="resolucionObservaciones().trim().length >= 10">
+                  {{ resolucionObservaciones().trim().length }} / mín. 10 caracteres
+                </span>
+              </div>
+              <div class="m3-modal-textarea">
+                <textarea
+                  id="resolucion-obs"
+                  class="form-textarea"
+                  rows="3"
+                  placeholder="Detalla el procedimiento técnico ejecutado y las pruebas de funcionamiento realizadas en el aula..."
+                  [ngModel]="resolucionObservaciones()"
+                  (ngModelChange)="resolucionObservaciones.set($event)">
+                </textarea>
+              </div>
+            </div>
+
+            <label class="form-checkbox-label" [class.is-checked]="resolucionConfirmacion()">
+              <input
+                type="checkbox"
+                class="form-checkbox"
+                [ngModel]="resolucionConfirmacion()"
+                (ngModelChange)="resolucionConfirmacion.set($event)"
+              />
+              <span class="checkbox-icon">
+                <mat-icon>{{ resolucionConfirmacion() ? 'verified' : 'radio_button_unchecked' }}</mat-icon>
+              </span>
+              <span class="checkbox-text">
+                Certifico que el <strong>Aula {{ atencionSeleccionada()?.aulaCodigo }}</strong> queda <strong>100% operativa</strong>; al confirmar, el reporte pasará a <strong>Resuelto</strong> y el aula a <strong>Disponible</strong>.
+              </span>
+            </label>
+          </div>
+
+          <footer class="modal-footer">
+            <button type="button" class="m3-btn-reset" (click)="cerrarModalResolucion()">
+              <mat-icon>close</mat-icon>
+              <span>Cancelar</span>
+            </button>
+            <button
+              type="button"
+              class="btn-modal-submit btn-modal-submit--resolve"
+              [disabled]="resolucionObservaciones().trim().length < 10 || !resolucionConfirmacion()"
+              (click)="guardarResolucion()">
+              <mat-icon>verified</mat-icon>
+              <span>Finalizar y Liberar Aula</span>
+            </button>
+          </footer>
+        </div>
       </div>
     </div>
   }
 
-  <!-- Modal Diálogo de Nueva Orden de Atención (Semana 13) -->
+  <!-- Modal Diálogo de Nueva Orden de Atención (Chasis Articulado con Pinza Superior y Cintura Retraída) -->
   @if (mostrarModalNueva()) {
-    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-nueva-title">
-      <div class="modal-card">
-        <header class="modal-header">
-          <div class="modal-header-info">
-            <div class="modal-badge">
-              <mat-icon>add_task</mat-icon>
-              <span>Mesa Técnica UTP</span>
+    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-nueva-title" (click)="cerrarModalNueva()">
+      <div class="modal-workorder-wrap" data-modal-theme="new" (click)="$event.stopPropagation()">
+        <!-- Pinza Superior de Portapapeles Técnico -->
+        <div class="clipboard-clamp-row" aria-hidden="true">
+          <div class="clipboard-clamp">
+            <span class="clamp-bar"></span>
+          </div>
+        </div>
+
+        <!-- Módulo Superior del Modal -->
+        <header class="workorder-upper-block modal-upper-block">
+          <div class="modal-header-left">
+            <span class="workorder-badge">
+              DESPACHO
+            </span>
+            <div class="modal-header-info">
+              <h3 id="modal-nueva-title" class="modal-title">Generar Orden de Atención Técnica</h3>
+              <p class="modal-sub">Asigna un especialista para atender un reporte de incidencia activo en el campus.</p>
             </div>
-            <h3 id="modal-nueva-title" class="modal-title">Generar Orden de Atención Técnica</h3>
-            <p class="modal-sub">Asigna una intervención técnica a partir de un reporte de incidencia en campus.</p>
           </div>
           <button type="button" class="btn-close-modal" (click)="cerrarModalNueva()" aria-label="Cerrar ventana">
             <mat-icon>close</mat-icon>
           </button>
         </header>
 
-        <div class="modal-body">
-          @if (errorNueva()) {
-            <div class="modal-error-box">
-              <mat-icon>error_outline</mat-icon>
-              <span>{{ errorNueva() }}</span>
-            </div>
-          }
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label for="nueva-rep-id" class="form-label">ID de Reporte Origen *</label>
-              <input
-                type="number"
-                id="nueva-rep-id"
-                class="form-input"
-                placeholder="Ej.: 1, 2, 3..."
-                [ngModel]="nuevoReporteId()"
-                (ngModelChange)="nuevoReporteId.set($event)"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="nueva-aula" class="form-label">Aula / Laboratorio</label>
-              <input
-                type="text"
-                id="nueva-aula"
-                class="form-input"
-                placeholder="Ej.: A-101, LAB-302..."
-                [ngModel]="nuevoAulaCodigo()"
-                (ngModelChange)="nuevoAulaCodigo.set($event)"
-              />
-            </div>
+        <!-- Cintura Retraída del Modal: Trazabilidad de 3 Pasos -->
+        <div class="workorder-recessed-neck">
+          <div class="trace-steps-pill">
+            <span class="trace-node current">1. Asignación</span>
+            <span class="trace-sep">&bull;</span>
+            <span class="trace-node">2. En Sitio</span>
+            <span class="trace-sep">&bull;</span>
+            <span class="trace-node">3. Certificación</span>
           </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label for="nueva-tecnico" class="form-label">Técnico Asignado *</label>
-              <select
-                id="nueva-tecnico"
-                class="form-select"
-                [ngModel]="nuevoTecnico()"
-                (ngModelChange)="nuevoTecnico.set($event)">
-                <option value="tecnico01">tecnico01 (Soporte Multimedia)</option>
-                <option value="tecnico02">tecnico02 (Electricidad e Iluminación)</option>
-                <option value="soporte_redes">soporte_redes (Conectividad y Red)</option>
-                <option value="tecnico">tecnico (Personal General)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="nueva-mantenimiento" class="form-label">Tipo de Mantenimiento</label>
-              <select
-                id="nueva-mantenimiento"
-                class="form-select"
-                [ngModel]="nuevoTipoMantenimiento()"
-                (ngModelChange)="nuevoTipoMantenimiento.set($event)">
-                <option value="CORRECTIVO">Correctivo (Reparación de falla)</option>
-                <option value="PREVENTIVO">Preventivo (Inspección programada)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="nueva-obs" class="form-label">Observaciones e Instrucciones Iniciales</label>
-            <textarea
-              id="nueva-obs"
-              class="form-textarea"
-              rows="3"
-              placeholder="Instrucciones para el técnico de guardia..."
-              [ngModel]="nuevasObservaciones()"
-              (ngModelChange)="nuevasObservaciones.set($event)">
-            </textarea>
-          </div>
+          <span class="phase-counter-tag">FASE 1/3 &bull; NUEVA ORDEN</span>
         </div>
 
-        <footer class="modal-footer">
-          <button type="button" class="btn-modal-cancel" (click)="cerrarModalNueva()">
-            Cancelar
-          </button>
-          <button
-            type="button"
-            class="btn-modal-submit"
-            [disabled]="!nuevoReporteId()"
-            (click)="crearNuevaAtencion()">
-            <mat-icon>add_task</mat-icon>
-            <span>Crear Orden Técnica</span>
-          </button>
-        </footer>
+        <!-- Módulo Inferior del Modal -->
+        <div class="workorder-lower-block modal-lower-block">
+
+          <div class="modal-body">
+            @if (errorNueva()) {
+              <div class="modal-error-box" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorNueva() }}</span>
+              </div>
+            }
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="nueva-rep-id" class="form-label">ID de Reporte Origen *</label>
+                <div class="m3-modal-field">
+                  <mat-icon>tag</mat-icon>
+                  <input
+                    type="number"
+                    id="nueva-rep-id"
+                    class="form-input"
+                    placeholder="Ej.: 1, 2, 3..."
+                    [ngModel]="nuevoReporteId()"
+                    (ngModelChange)="nuevoReporteId.set($event)"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="nueva-aula" class="form-label">Aula / Laboratorio</label>
+                <div class="m3-modal-field">
+                  <mat-icon>meeting_room</mat-icon>
+                  <input
+                    type="text"
+                    id="nueva-aula"
+                    class="form-input"
+                    placeholder="Ej.: A-101, LAB-302..."
+                    [ngModel]="nuevoAulaCodigo()"
+                    (ngModelChange)="nuevoAulaCodigo.set($event)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="nueva-tecnico" class="form-label">Especialista Asignado *</label>
+                <div class="m3-modal-field">
+                  <mat-icon>engineering</mat-icon>
+                  <select
+                    id="nueva-tecnico"
+                    class="form-select"
+                    [ngModel]="nuevoTecnico()"
+                    (ngModelChange)="nuevoTecnico.set($event)">
+                    <option value="tecnico01">tecnico01 (Soporte Multimedia)</option>
+                    <option value="tecnico02">tecnico02 (Electricidad e Iluminación)</option>
+                    <option value="soporte_redes">soporte_redes (Conectividad y Red)</option>
+                    <option value="tecnico">tecnico (Personal General)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="nueva-mantenimiento" class="form-label">Tipo de Mantenimiento</label>
+                <div class="m3-modal-field">
+                  <mat-icon>handyman</mat-icon>
+                  <select
+                    id="nueva-mantenimiento"
+                    class="form-select"
+                    [ngModel]="nuevoTipoMantenimiento()"
+                    (ngModelChange)="nuevoTipoMantenimiento.set($event)">
+                    <option value="CORRECTIVO">Correctivo (Reparación de falla)</option>
+                    <option value="PREVENTIVO">Preventivo (Inspección programada)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="nueva-obs" class="form-label">Observaciones e Instrucciones de Despacho</label>
+              <div class="m3-modal-textarea">
+                <textarea
+                  id="nueva-obs"
+                  class="form-textarea"
+                  rows="3"
+                  placeholder="Instrucciones técnicas o diagnóstico inicial para el especialista asignado..."
+                  [ngModel]="nuevasObservaciones()"
+                  (ngModelChange)="nuevasObservaciones.set($event)">
+                </textarea>
+              </div>
+            </div>
+          </div>
+
+          <footer class="modal-footer">
+            <button type="button" class="m3-btn-reset" (click)="cerrarModalNueva()">
+              <mat-icon>close</mat-icon>
+              <span>Cancelar</span>
+            </button>
+            <button
+              type="button"
+              class="btn-modal-submit btn-modal-submit--new"
+              [disabled]="!nuevoReporteId()"
+              (click)="crearNuevaAtencion()">
+              <mat-icon>add_task</mat-icon>
+              <span>Crear Orden Técnica</span>
+            </button>
+          </footer>
+        </div>
       </div>
     </div>
   }

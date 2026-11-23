@@ -7,6 +7,7 @@
 
 html {
   color-scheme: light;
+  scrollbar-gutter: stable;
   @include mat.theme((
     color: (
       primary: mat.$azure-palette,

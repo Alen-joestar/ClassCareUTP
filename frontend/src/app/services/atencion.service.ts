@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 import {
   ActualizarEstadoPayload,
   Atencion,
@@ -10,6 +10,7 @@ import {
   ReportePendienteAsignacion
 } from '../models/atencion.model';
 import { AuthService } from './auth.service';
+import { ReporteService } from './reporte.service';
 
 const STORAGE_KEY = 'classcare-atenciones-cache';
 
@@ -75,6 +76,7 @@ const METADATA_REPORTES: Record<number, Partial<Atencion>> = {
 export class AtencionService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly reporteService = inject(ReporteService);
   private readonly apiUrl = '/api/atenciones';
 
   readonly atenciones = signal<Atencion[]>(this.cargarCacheInicial());
@@ -206,9 +208,14 @@ export class AtencionService {
       solicitadoPor: usuarioActual
     };
 
-    return this.http.put<AtencionBackendDTO>(`${this.apiUrl}/${id}/estado`, payload).pipe(
+    return this.authService.asegurarTokenReal().pipe(
+      switchMap(() => this.http.put<AtencionBackendDTO>(`${this.apiUrl}/${id}/estado`, payload)),
       map(dto => this.enriquecerUna(dto)),
-      tap(actualizada => this.actualizarEnMemoria(actualizada)),
+      tap(actualizada => {
+        this.actualizarEnMemoria(actualizada);
+        this.reporteService.cargarReportes();
+        this.reporteService.cargarAulasSugeridas();
+      }),
       catchError(() => {
         const local = this.actualizarEstadoLocal(id, 'EN_ATENCION', payload.observaciones);
         return of(local);
@@ -236,9 +243,14 @@ export class AtencionService {
       solicitadoPor: usuarioActual
     };
 
-    return this.http.put<AtencionBackendDTO>(`${this.apiUrl}/${id}/estado`, payload).pipe(
+    return this.authService.asegurarTokenReal().pipe(
+      switchMap(() => this.http.put<AtencionBackendDTO>(`${this.apiUrl}/${id}/estado`, payload)),
       map(dto => this.enriquecerUna(dto)),
-      tap(actualizada => this.actualizarEnMemoria(actualizada)),
+      tap(actualizada => {
+        this.actualizarEnMemoria(actualizada);
+        this.reporteService.cargarReportes();
+        this.reporteService.cargarAulasSugeridas();
+      }),
       catchError(() => {
         const local = this.actualizarEstadoLocal(id, 'RESUELTO', obsCompletas);
         return of(local);
@@ -306,12 +318,13 @@ export class AtencionService {
   }
 
   private enriquecerUna(dto: AtencionBackendDTO): Atencion {
+    const reporteActivo = this.reporteService.obtenerPorId(dto.reporteId);
     const meta = METADATA_REPORTES[dto.reporteId] || {};
     return {
       ...dto,
-      aulaCodigo: meta.aulaCodigo || `Aula #${dto.reporteId}`,
-      tipoProblema: meta.tipoProblema || 'General',
-      prioridad: meta.prioridad || 'MEDIA',
+      aulaCodigo: reporteActivo?.aulaId || meta.aulaCodigo || `Aula #${dto.reporteId}`,
+      tipoProblema: reporteActivo?.tipoProblema || meta.tipoProblema || 'General',
+      prioridad: (reporteActivo?.prioridad as 'ALTA' | 'MEDIA' | 'BAJA') || meta.prioridad || 'MEDIA',
       tipoMantenimiento: meta.tipoMantenimiento || 'CORRECTIVO',
       impactoAcademico: meta.impactoAcademico || 'Seguimiento por mesa técnica'
     };
