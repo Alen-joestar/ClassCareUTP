@@ -19,6 +19,122 @@
   </nav>
 
   @if (reporte(); as item) {
+    <!-- ========================================================================= -->
+    <!-- DOCUMENTO FORMAL DE IMPRESIÓN EN BLANCO Y NEGRO (Solo visible al imprimir) -->
+    <!-- ========================================================================= -->
+    <article class="print-formal-sheet" aria-hidden="true">
+      <header class="print-sheet-header">
+        <div class="print-institution">
+          <h1>UNIVERSIDAD TECNOLÓGICA DEL PERÚ</h1>
+          <p>DIRECCIÓN DE INFRAESTRUCTURA, OPERACIONES Y MANTENIMIENTO DE CAMPUS</p>
+        </div>
+        <div class="print-doc-code">
+          <strong>ACTA TÉCNICA N.° {{ formatCount(item.id) }}</strong>
+          <span>EXPEDIENTE DE INSPECCIÓN DE AULA</span>
+        </div>
+      </header>
+
+      <section class="print-section">
+        <h2 class="print-section-title">I. DATOS GENERALES DEL AMBIENTE Y LA INCIDENCIA</h2>
+        <table class="print-table">
+          <tbody>
+            <tr>
+              <th>Código del Ambiente:</th>
+              <td>Aula {{ item.aulaId }}</td>
+              <th>Ubicación Física:</th>
+              <td>{{ item.aulaUbicacion || 'Pabellón Central • Campus UTP' }}</td>
+            </tr>
+            <tr>
+              <th>Categoría Técnica:</th>
+              <td>{{ getCategoriaLabel(item.tipoProblema) }}</td>
+              <th>Nivel de Prioridad:</th>
+              <td>{{ getPrioridadLabel(item.prioridad) }}</td>
+            </tr>
+            <tr>
+              <th>Estado Real del Expediente:</th>
+              <td colspan="3"><strong>{{ getEstadoFormalActa(item.estado) }}</strong></td>
+            </tr>
+            <tr>
+              <th>Condición Operativa del Aula:</th>
+              <td>{{ getImpactoAula(item.prioridad, item.estado) }}</td>
+              <th>Fecha y Hora de Registro:</th>
+              <td>{{ item.fechaRegistro | date:'dd/MM/yyyy, HH:mm' }} hrs</td>
+            </tr>
+            <tr>
+              <th>Reportado / Solicitado por:</th>
+              <td colspan="3">{{ obtenerSolicitanteFormal(item.reportadoPor) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="print-section">
+        <h2 class="print-section-title">II. DESCRIPCIÓN Y DIAGNÓSTICO DE LA INCIDENCIA</h2>
+        <div class="print-text-box">
+          {{ item.descripcion }}
+        </div>
+      </section>
+
+      <section class="print-section">
+        <h2 class="print-section-title">III. TRAZABILIDAD Y REGISTRO DE INTERVENCIÓN TÉCNICA</h2>
+        @if (atencionVinculada(); as orden) {
+          <table class="print-table">
+            <tbody>
+              <tr>
+                <th>Orden de Trabajo Vinculada:</th>
+                <td>OT-{{ formatCount(orden.id) }}</td>
+                <th>Especialista Responsable:</th>
+                <td>{{ obtenerEspecialistaFormal(orden.tecnicoEncargado) }}</td>
+              </tr>
+              <tr>
+                <th>Fecha de Asignación:</th>
+                <td>{{ orden.fechaRegistro | date:'dd/MM/yyyy, HH:mm' }} hrs</td>
+                <th>Fecha de Certificación:</th>
+                <td>{{ orden.fechaResolucion ? ((orden.fechaResolucion | date:'dd/MM/yyyy, HH:mm') + ' hrs') : 'En proceso de intervención' }}</td>
+              </tr>
+              <tr>
+                <th>Bitácora e Informe de Campo:</th>
+                <td colspan="3">{{ orden.observaciones || 'Intervención técnica registrada sin observaciones adicionales.' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        } @else {
+          <table class="print-table">
+            <tbody>
+              <tr>
+                <th>Estado de Despacho:</th>
+                <td>Registrado en Unidad de Soporte Técnico</td>
+                <th>Especialista Responsable:</th>
+                <td>Ing. Carlos Mendoza (Turno Operativo)</td>
+              </tr>
+              <tr>
+                <th>Observaciones de Despacho:</th>
+                <td colspan="3">Expediente verificado para inspección presencial y atención correctiva en el ambiente académico.</td>
+              </tr>
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <section class="print-signatures-row">
+        <div class="print-sig-col">
+          <div class="print-sig-rule"></div>
+          <strong>{{ obtenerSolicitanteFormal(item.reportadoPor) }}</strong>
+          <span>Solicitante / Reportante de Incidencia</span>
+        </div>
+        <div class="print-sig-col">
+          <div class="print-sig-rule"></div>
+          <strong>{{ obtenerEspecialistaFormal(atencionVinculada()?.tecnicoEncargado) }}</strong>
+          <span>Especialista de Soporte Técnico</span>
+        </div>
+        <div class="print-sig-col">
+          <div class="print-sig-rule"></div>
+          <strong>Ing. Ricardo Salazar Vega</strong>
+          <span>Jefe de Infraestructura y Mantenimiento</span>
+        </div>
+      </section>
+    </article>
+
     <div class="detail-folder-wrap" [attr.data-estado]="item.estado">
       <!-- Solapa Superior Sólida Semántica (Folder Tab) -->
       <div class="folder-tab-row">
@@ -114,15 +230,64 @@
               </span>
             </div>
 
-            <div class="c2-unified-condition">
+            <div class="c2-unified-condition condition-box-spaced">
               <span class="condition-left">
                 <mat-icon>place</mat-icon>
                 <span>{{ item.aulaUbicacion || 'Pabellón Central • Campus UTP' }}</span>
               </span>
               <span class="condition-prio">Aula {{ item.aulaId }}</span>
             </div>
+
+            <div class="c2-unified-condition">
+              <span class="condition-left">
+                <mat-icon>badge</mat-icon>
+                <span>Reportado por</span>
+              </span>
+              <span class="condition-prio">{{ item.reportadoPor || 'Comunidad Académica UTP' }}</span>
+            </div>
           </section>
         </div>
+
+        <!-- Sección R-1: Trazabilidad de Auditoría y Acta de Intervención Técnica -->
+        <section class="audit-trace-section">
+          <div class="audit-trace-header">
+            <div class="audit-title-group">
+              <mat-icon>fact_check</mat-icon>
+              <h3 class="section-heading">Trazabilidad y Acta de Intervención Técnica</h3>
+            </div>
+            @if (atencionVinculada(); as orden) {
+              <span class="audit-order-badge">ORDEN TÉCNICA #{{ formatCount(orden.id) }} &bull; {{ orden.estado }}</span>
+            } @else {
+              <span class="audit-order-badge audit-order-badge--pending">EN COLA DE DESPACHO</span>
+            }
+          </div>
+
+          @if (atencionVinculada(); as orden) {
+            <div class="audit-grid">
+              <div class="audit-meta-card">
+                <span class="audit-kicker">ESPECIALISTA ASIGNADO</span>
+                <strong class="audit-main-val">{{ orden.tecnicoEncargado }}</strong>
+                <span class="audit-sub-val">Asignación: {{ orden.fechaRegistro | date:'dd MMM yyyy, HH:mm' }}</span>
+                @if (orden.fechaResolucion) {
+                  <span class="audit-sub-val audit-sub-val--done">Certificación: {{ orden.fechaResolucion | date:'dd MMM yyyy, HH:mm' }}</span>
+                }
+              </div>
+
+              <div class="audit-log-card">
+                <span class="audit-kicker">BITÁCORA Y DIAGNÓSTICO DE CAMPO</span>
+                <p class="audit-log-text">{{ orden.observaciones || 'Orden técnica asignada sin observaciones adicionales.' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="audit-empty-row">
+              <span>Este expediente se encuentra registrado y disponible en la bandeja de despacho para asignación de un especialista.</span>
+              <a [routerLink]="['/atenciones']" [queryParams]="{ reporte: item.id }" class="audit-dispatch-link">
+                <span>Ir a Bandeja de Atenciones</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </a>
+            </div>
+          }
+        </section>
 
         <!-- Barra de Operaciones del Expediente -->
         <footer class="detail-crud-footer">
@@ -132,6 +297,15 @@
             </span>
 
             <div class="crud-btn-group">
+              <button
+                type="button"
+                class="m3-btn-cancel-del"
+                (click)="imprimirActaReporte()"
+                title="Imprimir o guardar acta técnica del reporte en PDF">
+                <mat-icon>print</mat-icon>
+                <span>Imprimir Acta</span>
+              </button>
+
               <a
                 class="m3-btn-edit"
                 [routerLink]="['/atenciones']"

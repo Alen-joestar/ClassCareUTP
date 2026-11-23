@@ -91,6 +91,14 @@ public class AuthController {
         return ResponseEntity.ok(usuarioAuthService.listarTodos());
     }
 
+    @PatchMapping("/usuarios/{id}/estado")
+    public ResponseEntity<UsuarioPerfilDTO> cambiarEstadoUsuario(
+            @PathVariable Long id,
+            @RequestBody(required = false) java.util.Map<String, Boolean> body) {
+        Boolean activo = (body != null && body.containsKey("activo")) ? body.get("activo") : null;
+        return ResponseEntity.ok(usuarioAuthService.cambiarEstadoDisponibilidad(id, activo));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UsuarioPerfilDTO> obtenerPerfilActual(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {

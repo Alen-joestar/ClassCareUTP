@@ -323,6 +323,296 @@
   }
 }
 
+// Sección R-1: Trazabilidad y Acta de Intervención Técnica
+.audit-trace-section {
+  margin: 0 1.75rem 1.75rem;
+  padding: 1.25rem 1.35rem;
+  background-color: var(--impact-bg);
+  border: 1px solid var(--impact-border);
+  border-left: 4px solid var(--st-color);
+  border-radius: 0 14px 4px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.audit-trace-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  .section-heading {
+    margin: 0;
+  }
+}
+
+.audit-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  mat-icon {
+    color: var(--st-color);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.audit-order-badge {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: 6px;
+  background-color: rgba(2, 132, 199, 0.14);
+  color: #0284C7;
+
+  &--pending {
+    background-color: rgba(217, 119, 6, 0.14);
+    color: #D97706;
+  }
+}
+
+.audit-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.75fr) 1.45fr;
+  gap: 1rem;
+
+  @media (max-width: 780px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.audit-meta-card,
+.audit-log-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.audit-kicker {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.audit-main-val {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.audit-sub-val {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+
+  &--done {
+    color: #059669;
+    font-weight: 600;
+  }
+}
+
+.audit-log-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.audit-empty-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+}
+
+.audit-dispatch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0284C7;
+  text-decoration: none;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.print-formal-sheet {
+  display: none;
+}
+
+@media print {
+  .detail-nav-bar,
+  .detail-folder-wrap,
+  .not-found-box {
+    display: none !important;
+  }
+
+  .m3-detail-page {
+    padding: 16mm 18mm !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  .print-formal-sheet {
+    display: block !important;
+    font-family: 'Inter', Arial, sans-serif;
+    color: #000000 !important;
+    background: #FFFFFF !important;
+  }
+
+  .print-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #000000;
+
+    .print-institution {
+      h1 {
+        font-size: 14pt;
+        font-weight: 700;
+        margin: 0 0 3px;
+        color: #000000;
+        letter-spacing: 0.02em;
+      }
+
+      p {
+        font-size: 8.5pt;
+        font-weight: 600;
+        margin: 0;
+        color: #222222;
+      }
+    }
+
+    .print-doc-code {
+      text-align: right;
+      border: 1.5px solid #000000;
+      padding: 6px 12px;
+
+      strong {
+        display: block;
+        font-size: 11pt;
+        font-weight: 700;
+        color: #000000;
+      }
+
+      span {
+        display: block;
+        font-size: 7.5pt;
+        font-weight: 600;
+        color: #222222;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .print-section {
+    margin-bottom: 18px;
+    break-inside: avoid;
+  }
+
+  .print-section-title {
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #000000;
+    margin: 0 0 6px;
+    padding: 4px 8px;
+    border: 1px solid #000000;
+    background: #F2F2F2 !important;
+    letter-spacing: 0.02em;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    color: #000000;
+
+    th,
+    td {
+      border: 1px solid #000000;
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      width: 22%;
+      font-weight: 700;
+      background: #FAFAFA !important;
+      color: #000000;
+    }
+
+    td {
+      width: 28%;
+      color: #000000;
+    }
+  }
+
+  .print-text-box {
+    border: 1px solid #000000;
+    padding: 12px 14px;
+    font-size: 9.5pt;
+    line-height: 1.55;
+    color: #000000;
+    min-height: 64px;
+  }
+
+  .print-signatures-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 56px;
+    padding-top: 24px;
+    break-inside: avoid;
+  }
+
+  .print-sig-col {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .print-sig-rule {
+      width: 88%;
+      border-bottom: 1px solid #000000;
+      margin-bottom: 8px;
+    }
+
+    strong {
+      font-size: 8.8pt;
+      font-weight: 700;
+      color: #000000;
+      margin-bottom: 2px;
+    }
+
+    span {
+      font-size: 7.8pt;
+      color: #222222;
+    }
+  }
+}
+
 .detail-crud-footer {
   background-color: var(--card-header-bg);
   border-top: 1px solid var(--card-border);

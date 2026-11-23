@@ -88,6 +88,10 @@ public class ReporteServiceImpl implements ReporteService {
                 EstadoReporte.PENDIENTE,
                 LocalDateTime.now()
         );
+        String autor = (dto.getReportadoPor() != null && !dto.getReportadoPor().isBlank())
+                ? dto.getReportadoPor().trim()
+                : "Comunidad Académica UTP";
+        nuevoReporte.setReportadoPor(autor);
 
         Reporte guardado = reporteRepository.save(nuevoReporte);
         return ReporteResponseDTO.fromDomain(guardado);

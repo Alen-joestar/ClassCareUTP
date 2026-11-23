@@ -686,10 +686,55 @@
   border-radius: 10px;
   border: 1px solid var(--card-border);
   background: var(--surface-subtle);
+  transition: opacity 0.15s ease;
 
   &.is-current {
     border-color: var(--accent-primary);
     background: rgba(2, 132, 199, 0.07);
+  }
+
+  &.is-inactive {
+    opacity: 0.68;
+  }
+}
+
+.btn-shift-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  .shift-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  &.is-on {
+    background: rgba(16, 185, 129, 0.14);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #059669;
+
+    .shift-dot {
+      background: #10B981;
+    }
+  }
+
+  &.is-off {
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #D97706;
+
+    .shift-dot {
+      background: #F59E0B;
+    }
   }
 }
 

@@ -226,6 +226,24 @@ public class UsuarioAuthService implements UserDetailsService {
                 .toList();
     }
 
+    @Transactional
+    public UsuarioPerfilDTO cambiarEstadoDisponibilidad(Long usuarioId, Boolean nuevoEstado) {
+        if (usuarioRepository.count() == 0) {
+            asegurarUsuariosBase();
+        }
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ReglaNegocioException("No se encontró el usuario con ID: " + usuarioId));
+
+        if ("admin".equalsIgnoreCase(usuario.getUsername()) && Boolean.FALSE.equals(nuevoEstado)) {
+            throw new ReglaNegocioException("La cuenta principal de administración no puede ser desactivada.");
+        }
+
+        boolean estadoFinal = (nuevoEstado != null) ? nuevoEstado : !usuario.isActivo();
+        usuario.setActivo(estadoFinal);
+        Usuario actualizado = usuarioRepository.save(usuario);
+        return mapearAPerfilDTO(actualizado);
+    }
+
     public UsuarioPerfilDTO mapearAPerfilDTO(Usuario u) {
         String roleAuthority = "ROLE_" + u.getRol().name();
         return new UsuarioPerfilDTO(

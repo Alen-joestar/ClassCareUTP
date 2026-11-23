@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { PerfilDemo, RolRegistro } from '../../models/auth.model';
+import { PerfilDemo, RolRegistro, UsuarioPerfil } from '../../models/auth.model';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -229,6 +229,23 @@ export class LoginComponent implements OnInit {
     this.loginUsername.set(username);
     this.loginPassword.set('');
     this.errorLogin.set(null);
+  }
+
+  alternarTurnoUsuario(usuario: UsuarioPerfil): void {
+    if (!this.esAdmin() || usuario.username === 'admin') {
+      return;
+    }
+    const nuevoEstado = !usuario.activo;
+    this.authService.cambiarDisponibilidadUsuario(usuario.id, nuevoEstado).subscribe({
+      next: actualizado => {
+        const etiquetaEstado = actualizado.activo ? 'En Turno (Habilitado)' : 'Fuera de Turno (Pausado)';
+        this.snackBar.open(
+          `${actualizado.nombreCompleto}: ${etiquetaEstado}`,
+          'OK',
+          { duration: 3200, horizontalPosition: 'end', verticalPosition: 'bottom' }
+        );
+      }
+    });
   }
 
   obtenerEtiquetaRol(roles: string[]): string {

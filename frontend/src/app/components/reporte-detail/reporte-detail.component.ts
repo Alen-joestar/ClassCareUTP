@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
+import { AtencionService } from '../../services/atencion.service';
 import { AuthService } from '../../services/auth.service';
 import { ReporteService } from '../../services/reporte.service';
 
@@ -23,6 +24,7 @@ export class ReporteDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly reporteService = inject(ReporteService);
+  private readonly atencionService = inject(AtencionService);
   protected readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -37,6 +39,83 @@ export class ReporteDetailComponent {
     }
     return this.reporteService.obtenerPorId(id);
   });
+
+  // Orden de atención técnica vinculada a este reporte (en caso de haber sido asignada en Atenciones)
+  readonly atencionVinculada = computed(() => {
+    const id = this.reporteId();
+    if (id === null || Number.isNaN(id)) {
+      return undefined;
+    }
+    return this.atencionService.atenciones().find(a => a.reporteId === id);
+  });
+
+  imprimirActaReporte(): void {
+    if (typeof window !== 'undefined') {
+      const tituloOriginal = document.title;
+      document.title = ' ';
+      window.print();
+      document.title = tituloOriginal;
+    }
+  }
+
+  getEstadoFormalActa(estado: EstadoReporte): string {
+    switch (estado) {
+      case 'PENDIENTE':
+        return 'Pendiente de Intervención Técnica';
+      case 'EN_ATENCION':
+        return 'En Intervención Técnica en Sitio';
+      case 'RESUELTO':
+        return 'Resuelto y Certificado (Ambiente Operativo)';
+    }
+  }
+
+  obtenerSolicitanteFormal(autor?: string): string {
+    const limpio = (autor || '').trim();
+    if (!limpio || limpio.toLowerCase() === 'alumno') {
+      return 'Docente de Turno — Comunidad Académica UTP';
+    }
+    if (
+      limpio.toLowerCase().includes('admin') ||
+      limpio.toLowerCase() === 'administrador'
+    ) {
+      return 'Ing. Ricardo Salazar Vega (Coordinación de Infraestructura)';
+    }
+    if (
+      limpio.toLowerCase() === 'tecnico' ||
+      limpio.toLowerCase() === 'tecnico01' ||
+      limpio.toLowerCase() === 'soporte técnico utp'
+    ) {
+      return 'Ing. Carlos Mendoza (Especialista de Soporte Técnico)';
+    }
+    return limpio;
+  }
+
+  obtenerEspecialistaFormal(tecnico?: string): string {
+    const limpio = (tecnico || '').trim();
+    if (!limpio) {
+      return 'Por asignar en Unidad de Mantenimiento';
+    }
+    if (
+      limpio.toLowerCase().includes('admin') ||
+      limpio.toLowerCase() === 'administrador'
+    ) {
+      return 'Ing. Ricardo Salazar Vega';
+    }
+    if (
+      limpio.toLowerCase() === 'tecnico' ||
+      limpio.toLowerCase() === 'tecnico01' ||
+      limpio.toLowerCase() === 'soporte técnico utp'
+    ) {
+      return 'Ing. Carlos Mendoza';
+    }
+    if (limpio.toLowerCase() === 'tecnico02') {
+      return 'Ing. Ana Torres';
+    }
+    if (limpio.toLowerCase() === 'soporte_redes') {
+      return 'Ing. Elena Gómez';
+    }
+    return limpio;
+  }
 
   constructor() {
     this.route.paramMap.subscribe(params => {

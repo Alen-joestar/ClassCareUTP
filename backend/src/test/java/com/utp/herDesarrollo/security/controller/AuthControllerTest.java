@@ -13,6 +13,7 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -117,5 +118,21 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", not(empty())))
                 .andExpect(jsonPath("$[*].username", hasItem("tecnico")));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/auth/usuarios/{id}/estado - Debe alternar el estado de turno de un especialista")
+    void debeCambiarEstadoDeDisponibilidadDeTecnico() throws Exception {
+        mockMvc.perform(patch("/api/auth/usuarios/1/estado")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activo\": false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo", is(false)));
+
+        mockMvc.perform(patch("/api/auth/usuarios/1/estado")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activo\": true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo", is(true)));
     }
 }

@@ -52,7 +52,7 @@ describe('Semana 15 - Verificación E2E Frontend (ReporteService + AuthService +
     reporteService = TestBed.inject(ReporteService);
     httpMock = TestBed.inject(HttpTestingController);
 
-    // Drenar el canje inicial de DEMO_JWT en AuthService (si se disparó)
+    // Drenar el canje inicial de DEMO_JWT y la carga de técnicos en AuthService
     const loginInicialReqs = httpMock.match('/api/auth/login');
     for (const req of loginInicialReqs) {
       req.flush({
@@ -61,6 +61,10 @@ describe('Semana 15 - Verificación E2E Frontend (ReporteService + AuthService +
         username: 'tecnico',
         roles: ['ROLE_TECNICO']
       });
+    }
+    const tecnicosInicialReqs = httpMock.match('/api/auth/tecnicos');
+    for (const req of tecnicosInicialReqs) {
+      req.flush([]);
     }
 
     // Drenar las 2 peticiones iniciales del constructor de ReporteService

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstadoReporte, Prioridad, TipoProblema } from '../../models/reporte.model';
+import { AuthService } from '../../services/auth.service';
 import { ReporteService } from '../../services/reporte.service';
 
 export type OrdenReportes = 'RECIENTES' | 'PRIORIDAD_ALTA' | 'PENDIENTES_PRIMERO';
@@ -21,6 +22,7 @@ export type OrdenReportes = 'RECIENTES' | 'PRIORIDAD_ALTA' | 'PENDIENTES_PRIMERO
 })
 export class ReporteListComponent {
   private readonly reporteService = inject(ReporteService);
+  protected readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
 
   constructor() {
@@ -38,6 +40,7 @@ export class ReporteListComponent {
   readonly selectedCategoria = signal<string>('');
   readonly selectedEstado = signal<string>('');
   readonly sortBy = signal<OrdenReportes>('RECIENTES');
+  readonly soloMisReportes = signal<boolean>(false);
   readonly mostrarMenuFiltros = signal<boolean>(false);
 
   // Cantidad de filtros/ordenamientos activos dentro del menú desplegable
@@ -46,6 +49,7 @@ export class ReporteListComponent {
     if (this.selectedCategoria()) count++;
     if (this.selectedPrioridad()) count++;
     if (this.sortBy() !== 'RECIENTES') count++;
+    if (this.soloMisReportes()) count++;
     return count;
   });
 
@@ -61,17 +65,27 @@ export class ReporteListComponent {
     const categoria = this.selectedCategoria();
     const estado = this.selectedEstado();
     const orden = this.sortBy();
+    const misReportes = this.soloMisReportes();
+    const sesion = this.authService.sesion();
+    const miNombre = (sesion?.nombreCompleto || '').trim().toUpperCase();
+    const miUsername = (sesion?.username || '').trim().toUpperCase();
 
     const filtrados = this.reportes().filter(reporte => {
+      const autorReporte = (reporte.reportadoPor || 'Comunidad Académica UTP').trim().toUpperCase();
       const matchesQuery =
         !query ||
         reporte.aulaId.toUpperCase().includes(query) ||
         reporte.descripcion.toUpperCase().includes(query) ||
-        (reporte.aulaUbicacion ?? '').toUpperCase().includes(query);
+        (reporte.aulaUbicacion ?? '').toUpperCase().includes(query) ||
+        autorReporte.includes(query);
       const matchesPrioridad = !prioridad || reporte.prioridad === prioridad;
       const matchesCategoria = !categoria || reporte.tipoProblema === categoria;
       const matchesEstado = !estado || reporte.estado === estado;
-      return matchesQuery && matchesPrioridad && matchesCategoria && matchesEstado;
+      const matchesAutor =
+        !misReportes ||
+        (Boolean(miNombre) && autorReporte.includes(miNombre)) ||
+        (Boolean(miUsername) && autorReporte.includes(miUsername));
+      return matchesQuery && matchesPrioridad && matchesCategoria && matchesEstado && matchesAutor;
     });
 
     const pesoPrioridad: Record<Prioridad, number> = { ALTA: 3, MEDIA: 2, BAJA: 1 };
@@ -138,9 +152,63 @@ export class ReporteListComponent {
     this.selectedCategoria.set('');
     this.selectedEstado.set('');
     this.sortBy.set('RECIENTES');
+    this.soloMisReportes.set(false);
     this.mostrarMenuFiltros.set(false);
     this.reporteService.cargarReportes();
     this.reporteService.cargarAulasSugeridas();
+  }
+
+  toggleMisReportes(): void {
+    this.soloMisReportes.update(v => !v);
+  }
+
+  exportarReportesCsv(): void {
+    const lista = this.filteredReportes();
+    if (lista.length === 0 || typeof document === 'undefined') {
+      return;
+    }
+
+    const cabeceras = [
+      'ID',
+      'Aula',
+      'Ubicacion',
+      'Categoria',
+      'Prioridad',
+      'Estado',
+      'Reportado Por',
+      'Fecha Registro',
+      'Descripcion'
+    ];
+
+    const escapar = (val: string | number | undefined) => {
+      const texto = String(val ?? '').replace(/"/g, '""');
+      return `"${texto}"`;
+    };
+
+    const filas = lista.map(r =>
+      [
+        `#${this.formatCount(r.id)}`,
+        r.aulaId,
+        r.aulaUbicacion || 'Campus UTP',
+        this.getCategoriaLabel(r.tipoProblema),
+        this.getPrioridadLabel(r.prioridad),
+        this.getEstadoLabel(r.estado),
+        r.reportadoPor || 'Comunidad Académica UTP',
+        r.fechaRegistro,
+        r.descripcion
+      ]
+        .map(escapar)
+        .join(';')
+    );
+
+    const contenidoCsv = '\uFEFF' + [cabeceras.join(';'), ...filas].join('\r\n');
+    const blob = new Blob([contenidoCsv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = `reportes-classcare-utp-${new Date().toISOString().slice(0, 10)}.csv`;
+    enlace.click();
+    URL.revokeObjectURL(url);
   }
 
   sincronizarConBackend(): void {

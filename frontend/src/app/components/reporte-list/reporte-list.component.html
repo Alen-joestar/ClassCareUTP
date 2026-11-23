@@ -157,6 +157,28 @@
       }
     </div>
 
+    @if (authService.autenticado()) {
+      <button
+        type="button"
+        class="m3-btn-filter"
+        [class.has-active]="soloMisReportes()"
+        (click)="toggleMisReportes()"
+        title="Filtrar únicamente los reportes enviados con mi cuenta">
+        <mat-icon>person_search</mat-icon>
+        <span>Mis Reportes</span>
+      </button>
+    }
+
+    <button
+      type="button"
+      class="m3-btn-reset"
+      [disabled]="filteredReportes().length === 0"
+      (click)="exportarReportesCsv()"
+      title="Descargar listado filtrado en formato CSV (Excel)">
+      <mat-icon>download</mat-icon>
+      <span>Exportar CSV</span>
+    </button>
+
     <button type="button" class="m3-btn-reset" (click)="resetFilters()">
       <mat-icon>restart_alt</mat-icon>
       <span>Restablecer</span>
@@ -223,9 +245,14 @@
 
           <!-- Pie Tonal -->
           <div class="card-footer">
-            <time class="ticket-date" [attr.datetime]="reporte.fechaRegistro">
-              REGISTRO: {{ reporte.fechaRegistro | date:'dd MMM yyyy' }}
-            </time>
+            <div class="ticket-meta-stack">
+              <time class="ticket-date" [attr.datetime]="reporte.fechaRegistro">
+                REGISTRO: {{ reporte.fechaRegistro | date:'dd MMM yyyy' }}
+              </time>
+              <span class="ticket-author">
+                Por: {{ reporte.reportadoPor || 'Comunidad Académica UTP' }}
+              </span>
+            </div>
 
             <a [routerLink]="['/reportes', reporte.id]" class="m3-btn-inspect">
               <span>Abrir reporte</span>

@@ -133,3 +133,40 @@ a {
   border-radius: 0 12px 4px 12px !important;
   font-family: var(--font-display);
 }
+
+// Reglas Globales de Impresión / Exportación PDF de Actas Técnicas
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body,
+  body[data-mode="dark"] {
+    height: auto !important;
+    min-height: 0 !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  app-root {
+    min-height: 0 !important;
+    display: block !important;
+  }
+
+  .m3-appbar,
+  .m3-footer,
+  .cdk-overlay-container {
+    display: none !important;
+  }
+
+  .m3-main-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}

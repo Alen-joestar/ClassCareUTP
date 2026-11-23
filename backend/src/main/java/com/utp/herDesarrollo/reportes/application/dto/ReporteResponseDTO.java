@@ -21,6 +21,7 @@ public class ReporteResponseDTO {
     private Prioridad prioridad;
     private EstadoReporte estado;
     private LocalDateTime fechaRegistro;
+    private String reportadoPor;
 
     public ReporteResponseDTO() {
     }
@@ -53,6 +54,11 @@ public class ReporteResponseDTO {
             dto.setAulaInternoId(reporte.getAula().getId());
             dto.setAulaUbicacion(reporte.getAula().getUbicacion());
         }
+        dto.setReportadoPor(
+                (reporte.getReportadoPor() != null && !reporte.getReportadoPor().isBlank())
+                        ? reporte.getReportadoPor()
+                        : "Comunidad Académica UTP"
+        );
         return dto;
     }
 
@@ -126,5 +132,13 @@ public class ReporteResponseDTO {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public String getReportadoPor() {
+        return reportadoPor;
+    }
+
+    public void setReportadoPor(String reportadoPor) {
+        this.reportadoPor = reportadoPor;
     }
 }

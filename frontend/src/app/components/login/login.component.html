@@ -411,7 +411,8 @@
             @for (u of usuariosCampus(); track u.username) {
               <div
                 class="directory-item"
-                [class.is-current]="authService.sesion()?.username === u.username">
+                [class.is-current]="authService.sesion()?.username === u.username"
+                [class.is-inactive]="!u.activo">
                 <div class="dir-item-main">
                   <div class="dir-name-row">
                     <strong>{{ u.nombreCompleto }}</strong>
@@ -419,6 +420,19 @@
                   </div>
                   <span class="dir-sub">&#64;{{ u.username }} &bull; {{ u.especialidad || u.correo }}</span>
                 </div>
+
+                @if (u.username !== 'admin') {
+                  <button
+                    type="button"
+                    class="btn-shift-toggle"
+                    [class.is-on]="u.activo"
+                    [class.is-off]="!u.activo"
+                    [attr.title]="u.activo ? 'Cambiar a Fuera de Turno' : 'Habilitar En Turno'"
+                    (click)="alternarTurnoUsuario(u)">
+                    <span class="shift-dot"></span>
+                    <span>{{ u.activo ? 'En Turno' : 'Fuera de Turno' }}</span>
+                  </button>
+                }
               </div>
             }
           </div>

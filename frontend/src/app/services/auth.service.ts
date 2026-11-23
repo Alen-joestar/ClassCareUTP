@@ -301,6 +301,20 @@ export class AuthService {
   }
 
   /**
+   * Permite al Administrador alternar la disponibilidad de turno (En Turno / Fuera de Turno) de un usuario.
+   */
+  cambiarDisponibilidadUsuario(id: number, activo: boolean): Observable<UsuarioPerfil> {
+    return this.http.patch<UsuarioPerfil>(`${this.apiUrl}/usuarios/${id}/estado`, { activo }).pipe(
+      tap(actualizado => {
+        this.usuariosState.update(lista =>
+          lista.map(u => (u.id === actualizado.id ? actualizado : u))
+        );
+        this.cargarTecnicos().subscribe();
+      })
+    );
+  }
+
+  /**
    * Permite cambiar rápidamente entre los usuarios base para pruebas RBAC en vivo.
    */
   loginRapido(perfil: PerfilDemo): Observable<SesionUsuario> {
