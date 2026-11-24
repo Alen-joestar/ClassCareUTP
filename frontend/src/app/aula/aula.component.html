@@ -1,12 +1,16 @@
 <section class="m3-aulas-page" aria-labelledby="aula-title">
 
-  <!-- Bloque Hero Marino Institucional con KPIs Interactivos (Unificado con Reportes) -->
   <header class="hero-banner">
     <div class="hero-copy">
       <h2 id="aula-title" class="hero-title">Catálogo de Aulas y Laboratorios</h2>
       <p class="hero-subtitle">
         Supervisión de infraestructura académica, aforo y disponibilidad operativa en tiempo real. Haz clic en cualquier indicador para filtrar por estado.
       </p>
+      <a class="hero-tracking-link" routerLink="/aulas/seguimiento">
+        <mat-icon>monitor_heart</mat-icon>
+        <span>Seguimiento de Aulas</span>
+        <mat-icon class="hero-tracking-arrow">arrow_forward</mat-icon>
+      </a>
     </div>
 
     <div class="kpi-strip" role="toolbar" aria-label="Resumen y filtro rápido de aulas">
@@ -68,7 +72,6 @@
     </div>
   }
 
-  <!-- Barra de Filtros Tonal M3 Unificada -->
   <section class="filter-bar" aria-label="Filtros de aulas">
     <div class="m3-input-box">
       <mat-icon class="filter-icon">search</mat-icon>
@@ -123,14 +126,12 @@
     <p class="filter-error" role="alert">{{ errorCapacidadMinima() }}</p>
   }
 
-  <!-- Panel de Administración de Aula (Misma Geometría de Placa Arquitectónica en Relieve 22px 4px 22px 4px) -->
   @if (formularioVisible() && puedeGestionar()) {
     <div
       id="panel-formulario-aula"
       class="aula-editor-wrap"
       [attr.data-estado]="claveEstado(datosFormulario.estado)">
       <section class="aula-editor-surface" aria-labelledby="form-title">
-        <!-- Cabecera Tonal con Placa en Vivo del Aula -->
         <header class="aula-editor-header">
           <div class="editor-header-left">
             <div class="room-door-plaque">
@@ -153,7 +154,6 @@
 
         <form #aulaForm="ngForm" (ngSubmit)="guardarAula()" class="aula-editor-form">
           <div class="editor-body">
-            <!-- Fila Superior: 3 Campos de Identificación y Aforo con Íconos M3 -->
             <div class="editor-fields-grid">
               <div class="editor-field">
                 <label for="aula-codigo-input" class="editor-label">1. Código del Ambiente *</label>
@@ -240,7 +240,6 @@
               </div>
             </div>
 
-            <!-- Fila Inferior: Selector Visual de Estado Operativo en 3 Tarjetas Semánticas -->
             <div class="editor-field">
               <span class="editor-label">4. Condición y Estado Operativo del Ambiente *</span>
               <input type="hidden" name="estado" [(ngModel)]="datosFormulario.estado" required />
@@ -295,7 +294,6 @@
             }
           </div>
 
-          <!-- Pie Tonal del Editor con Resumen en Vivo y Acciones -->
           <footer class="aula-editor-footer">
             <span class="editor-live-summary">
               VISTA PREVIA: <strong>{{ (datosFormulario.codigo.trim() || 'SIN CÓDIGO').toUpperCase() }}</strong> &bull;
@@ -319,7 +317,6 @@
     </div>
   }
 
-  <!-- Cuadrícula de Aulas en Formato Placa Arquitectónica de Ambiente M3 -->
   @if (cargando() && aulas().length === 0) {
     <div class="empty-state-box" role="status">
       <mat-icon class="empty-icon">sync</mat-icon>
@@ -331,7 +328,6 @@
       @for (aula of aulasPaginadas(); track aula.id) {
         <article class="room-arch-card" [attr.data-estado]="claveEstado(aula.estado)">
           <div class="room-arch-surface">
-            <!-- Franja Arquitectónica Superior e Identidad de Puerta de Ambiente -->
             <header class="room-arch-header">
               <div class="room-door-identity">
                 <div class="room-door-plaque">
@@ -350,7 +346,6 @@
               <span class="ticket-id-tag">#{{ formatCount(aula.id) }}</span>
             </header>
 
-            <!-- Cuerpo de Especificaciones Físicas del Ambiente -->
             <div class="room-arch-body">
               <div class="room-aforo-row">
                 <span class="aforo-left">
@@ -372,7 +367,6 @@
               </div>
             </div>
 
-            <!-- Pie de Tarjeta Unificado -->
             <footer class="card-footer">
               <div class="admin-Quick-btns">
                 <button
