@@ -1,0 +1,275 @@
+<section class="tracking-page" aria-labelledby="tracking-title">
+  <header class="tracking-header">
+    <div class="tracking-heading">
+      <a class="back-link" routerLink="/aulas">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Catálogo de aulas</span>
+      </a>
+      <h2 id="tracking-title">Seguimiento de Aulas</h2>
+      <p>Consulta la disponibilidad y el estado de atención de las incidencias reportadas en las aulas.</p>
+    </div>
+    <div class="tracking-tools">
+      <div class="sync-status"
+        [class.sync-status--online]="sincronizado()"
+        [class.sync-status--loading]="cargando()">
+        <mat-icon>{{ sincronizado() ? 'cloud_done' : (cargando() ? 'sync' : 'cloud_off') }}</mat-icon>
+        <span>{{ estadoSincronizacion() }}</span>
+      </div>
+      <button type="button" class="refresh-button" (click)="actualizarDatos()" [disabled]="cargando()">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="summary-grid" aria-label="Resumen de aulas">
+    <article class="summary-item">
+      <span class="summary-icon summary-icon--total"><mat-icon>meeting_room</mat-icon></span>
+      <div><strong>{{ totalAulas() }}</strong><span>Total de aulas</span></div>
+    </article>
+    <article class="summary-item">
+      <span class="summary-icon summary-icon--available"><mat-icon>check_circle</mat-icon></span>
+      <div><strong>{{ aulasDisponibles() }}</strong><span>Disponibles</span></div>
+    </article>
+    <article class="summary-item">
+      <span class="summary-icon summary-icon--occupied"><mat-icon>groups</mat-icon></span>
+      <div><strong>{{ aulasOcupadas() }}</strong><span>Ocupadas</span></div>
+    </article>
+    <article class="summary-item">
+      <span class="summary-icon summary-icon--pending"><mat-icon>build_circle</mat-icon></span>
+      <div><strong>{{ aulasConIncidenciasAbiertas() }}</strong><span>Aulas con incidencias abiertas</span></div>
+    </article>
+  </section>
+
+  <section class="filter-panel" aria-label="Filtros de seguimiento">
+    <label class="search-field">
+      <mat-icon>search</mat-icon>
+      <input
+        type="search"
+        placeholder="Buscar código o ubicación"
+        [ngModel]="busqueda()"
+        (ngModelChange)="cambiarBusqueda($event)"
+        aria-label="Buscar por código de aula o ubicación">
+    </label>
+
+    <label class="select-field">
+      <span class="sr-only">Estado del aula</span>
+      <mat-icon>filter_list</mat-icon>
+      <select [ngModel]="estadoSeleccionado()" (ngModelChange)="estadoSeleccionado.set($event)" aria-label="Filtrar por estado del aula">
+        <option value="">Todos los estados</option>
+        <option value="Disponible">Disponible</option>
+        <option value="Ocupada">Ocupada</option>
+        <option value="Mantenimiento">En mantenimiento</option>
+      </select>
+    </label>
+
+    <label class="select-field">
+      <span class="sr-only">Disponibilidad</span>
+      <mat-icon>event_available</mat-icon>
+      <select [ngModel]="disponibilidadSeleccionada()" (ngModelChange)="disponibilidadSeleccionada.set($event)" aria-label="Filtrar por disponibilidad">
+        <option value="">Toda disponibilidad</option>
+        <option value="disponible">Disponible ahora</option>
+        <option value="no-disponible">No disponible</option>
+      </select>
+    </label>
+
+    <label class="select-field">
+      <span class="sr-only">Estado de incidencia</span>
+      <mat-icon>assignment</mat-icon>
+      <select [ngModel]="incidenciaSeleccionada()" (ngModelChange)="incidenciaSeleccionada.set($event)" aria-label="Filtrar por estado de incidencia">
+        <option value="">Todos los estados</option>
+        <option value="sin-incidencias">Sin incidencias</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="En atención">En atención</option>
+        <option value="Solucionada">Solucionada</option>
+      </select>
+    </label>
+
+    <button type="button" class="clear-filters" (click)="limpiarFiltros()">
+      <mat-icon>restart_alt</mat-icon>
+      <span>Limpiar</span>
+    </button>
+  </section>
+
+  <section class="table-panel" aria-labelledby="table-title">
+    <div class="table-heading">
+      <div>
+        <h3 id="table-title">Estado por aula</h3>
+        <p>Consulta el estado operativo y el avance de las atenciones.</p>
+      </div>
+      <span class="result-count">{{ aulasFiltradas().length }} de {{ totalAulas() }} aulas</span>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Ubicación</th>
+            <th scope="col">Capacidad</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Incidencias</th>
+            <th scope="col">Atención</th>
+            <th scope="col"><span class="sr-only">Acción</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (aula of aulasFiltradas(); track aula.codigo) {
+            <tr>
+              <td><span class="room-code">{{ aula.codigo }}</span></td>
+              <td>{{ aula.ubicacion }}</td>
+              <td>{{ aula.capacidad }} <span class="muted">personas</span></td>
+              <td><span class="status-tag room-status" [class]=" 'status-tag room-status ' + claseEstadoAula(aula.estado) ">
+                <span class="status-dot"></span>{{ etiquetaEstadoAula(aula.estado) }}
+              </span></td>
+              <td><span class="incident-count" [class.incident-count--has]="aula.incidencias.length > 0">
+                {{ aula.incidencias.length }}
+              </span></td>
+              <td>
+                <span class="status-tag attention-status"
+                  [class]=" 'status-tag attention-status ' + claseEstadoIncidencia(estadoAtencion(aula)) ">
+                  {{ estadoAtencion(aula) }}
+                </span>
+              </td>
+              <td>
+                <button type="button" class="details-button" (click)="abrirDetalles(aula)"
+                  [attr.aria-label]="'Ver detalles de ' + aula.codigo">
+                  <mat-icon>visibility</mat-icon>
+                  <span>Ver detalles</span>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  @if (cargando() && aulas().length === 0) {
+                    <mat-icon class="loading-icon">sync</mat-icon>
+                    <strong>Sincronizando datos del sistema</strong>
+                    <span>Consultando aulas, reportes y atenciones.</span>
+                  } @else if (aulas().length === 0 && errorSincronizacion()) {
+                    <mat-icon>cloud_off</mat-icon>
+                    <strong>No se pudieron cargar las aulas</strong>
+                    <span>{{ errorSincronizacion() }}</span>
+                    <button type="button" (click)="actualizarDatos()">Reintentar sincronización</button>
+                  } @else {
+                    <mat-icon>search_off</mat-icon>
+                    <strong>No se encontraron aulas</strong>
+                    <span>Prueba ajustando la búsqueda o los filtros seleccionados.</span>
+                    <button type="button" (click)="limpiarFiltros()">Limpiar filtros</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+
+@if (aulaSeleccionada(); as aula) {
+  <div class="details-overlay" (keydown.escape)="cerrarDetalles()">
+    <button type="button" class="overlay-dismiss" aria-label="Cerrar detalles" (click)="cerrarDetalles()"></button>
+    <aside class="details-drawer" role="dialog" aria-modal="true" [attr.aria-label]="'Detalles del aula ' + aula.codigo">
+      <header class="drawer-header">
+        <div>
+          <span class="drawer-overline">SEGUIMIENTO DE AULA</span>
+          <h2>{{ aula.codigo }}</h2>
+          <p>{{ aula.ubicacion }}</p>
+        </div>
+        <button type="button" class="drawer-close" aria-label="Cerrar panel" (click)="cerrarDetalles()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </header>
+
+      <div class="drawer-content">
+        <section class="detail-section" aria-labelledby="room-info-title">
+          <h3 id="room-info-title">Información del aula</h3>
+          <div class="room-facts">
+            <div><span>Código</span><strong>{{ aula.codigo }}</strong></div>
+            <div><span>Ubicación</span><strong>{{ aula.ubicacion }}</strong></div>
+            <div><span>Capacidad</span><strong>{{ aula.capacidad }} personas</strong></div>
+            <div><span>Estado actual</span><strong>{{ etiquetaEstadoAula(aula.estado) }}</strong></div>
+          </div>
+        </section>
+
+        <section class="detail-section incidents-section" aria-labelledby="incidents-title">
+          <div class="section-title-row">
+            <h3 id="incidents-title">Incidencias asociadas</h3>
+            <span class="result-count">{{ aula.incidencias.length }}</span>
+          </div>
+
+          @if (aula.incidencias.length === 0) {
+            <div class="no-incidents">
+              <mat-icon>task_alt</mat-icon>
+              <div><strong>Sin problemas reportados</strong><span>Esta aula no presenta incidencias registradas.</span></div>
+            </div>
+          } @else {
+            @for (incidencia of aula.incidencias; track incidencia.reporteId) {
+              <article class="incident-card">
+                <div class="incident-title-row">
+                  <div>
+                    <span class="incident-type">{{ incidencia.tipo }}</span>
+                    <h4>{{ incidencia.descripcion }}</h4>
+                  </div>
+                  <span class="status-tag attention-status"
+                    [class]=" 'status-tag attention-status ' + claseEstadoIncidencia(incidencia.estado) ">
+                    {{ incidencia.estado }}
+                  </span>
+                </div>
+                <div class="incident-meta">
+                  <span><mat-icon>calendar_today</mat-icon> Reportada {{ incidencia.fechaReporte | date:'dd/MM/yyyy, HH:mm' }}</span>
+                  @if (incidencia.tecnico) {
+                    <span><mat-icon>person</mat-icon> {{ incidencia.tecnico }}</span>
+                  }
+                </div>
+
+                <div class="timeline" aria-label="Seguimiento de incidencia">
+                  <div class="timeline-step is-complete">
+                    <span class="timeline-marker"><mat-icon>check</mat-icon></span>
+                    <div><strong>Incidencia reportada</strong><time>{{ incidencia.fechaReporte | date:'dd/MM/yyyy, HH:mm' }}</time></div>
+                  </div>
+                  <div class="timeline-step"
+                    [class.is-complete]="incidencia.estado !== 'Pendiente'"
+                    [class.is-current]="incidencia.estado === 'En atención'">
+                    <span class="timeline-marker">
+                      <mat-icon>{{ incidencia.estado !== 'Pendiente' ? 'check' : 'schedule' }}</mat-icon>
+                    </span>
+                    <div>
+                      <strong>Atención iniciada</strong>
+                      <time>{{ incidencia.estado === 'Pendiente' ? 'Pendiente de inicio' : 'Fecha de inicio no registrada' }}</time>
+                    </div>
+                  </div>
+                  <div class="timeline-step"
+                    [class.is-complete]="incidencia.estado === 'Solucionada'"
+                    [class.is-current]="incidencia.estado === 'En atención'">
+                    <span class="timeline-marker">
+                      <mat-icon>{{ incidencia.estado === 'Solucionada' ? 'check' : 'build' }}</mat-icon>
+                    </span>
+                    <div>
+                      <strong>Problema solucionado</strong>
+                      <time>{{ incidencia.fechaResolucion ? (incidencia.fechaResolucion | date:'dd/MM/yyyy, HH:mm') : (incidencia.estado === 'Solucionada' ? 'Fecha no disponible' : 'Aún sin resolver') }}</time>
+                    </div>
+                  </div>
+                </div>
+
+                @if (incidencia.estado === 'Solucionada') {
+                  <div class="resolution-note">
+                    <strong><mat-icon>verified</mat-icon> {{ incidencia.solucion ? 'Solución registrada' : 'No se registró una descripción específica de la solución' }}</strong>
+                    @if (incidencia.solucion) {
+                      <p>{{ incidencia.solucion }}</p>
+                    }
+                    @if (incidencia.fechaResolucion) {
+                      <span>Resuelta el {{ incidencia.fechaResolucion | date:'dd/MM/yyyy, HH:mm' }}</span>
+                    }
+                  </div>
+                }
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </aside>
+  </div>
+}

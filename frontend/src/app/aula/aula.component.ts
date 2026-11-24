@@ -14,7 +14,7 @@ const NUEVA_AULA: AulaFormData = {
   estado: 'Disponible'
 };
 
-const AULAS_POR_PAGINA = 8;
+const AULAS_POR_PAGINA = 6;
 
 @Component({
   selector: 'app-aula',
@@ -33,9 +33,6 @@ export class AulaComponent implements OnInit {
   readonly capacidadMinima = signal<number | null>(null);
   readonly cargando = signal(false);
   readonly errorCarga = signal('');
-  readonly mensaje = signal('');
-  readonly tipoMensaje = signal<'exito' | 'error'>('exito');
-  private mensajeTimer: ReturnType<typeof setTimeout> | null = null;
   readonly formularioVisible = signal(false);
   readonly aulaAEliminar = signal<Aula | null>(null);
   readonly sesion = this.authService.sesion;
@@ -66,7 +63,8 @@ export class AulaComponent implements OnInit {
         !query ||
         this.normalizar(aula.codigo).includes(query) ||
         this.normalizar(aula.ubicacion).includes(query);
-      const coincideEstado = !estado || this.normalizar(aula.estado) === estado;
+      const coincideEstado =
+        !estado || this.claveEstado(aula.estado) === this.claveEstado(estado);
       return coincideTexto && coincideEstado && aula.capacidad >= capacidad;
     });
   });
@@ -132,11 +130,9 @@ export class AulaComponent implements OnInit {
       await this.aulaService.listar();
       this.ajustarPagina();
     } catch (error) {
-      if (this.aulas().length === 0) {
-        this.errorCarga.set(
-          this.aulaService.mensajeError(error, 'No se pudieron cargar las aulas.')
-        );
-      }
+      this.errorCarga.set(
+        this.aulaService.mensajeError(error, 'No se pudieron cargar las aulas.')
+      );
     } finally {
       this.cargando.set(false);
     }
@@ -172,22 +168,14 @@ export class AulaComponent implements OnInit {
     this.authService.logout();
     this.formularioVisible.set(false);
     this.aulaEnEdicion = null;
-    this.mostrarNotificacion('La sesión se cerró correctamente.', 'exito');
+    this.mostrarNotificacion('La sesión se cerró correctamente.');
   }
 
   abrirAcceso(): void {
     this.authService.abrirPanel();
   }
 
-  cerrarMensaje(): void {
-    if (this.mensajeTimer) {
-      clearTimeout(this.mensajeTimer);
-      this.mensajeTimer = null;
-    }
-    this.mensaje.set('');
-  }
-
-  private mostrarNotificacion(texto: string, _tipo: 'exito' | 'error' = 'exito'): void {
+  private mostrarNotificacion(texto: string): void {
     this.snackBar.open(texto, 'Cerrar', {
       duration: 4000,
       horizontalPosition: 'end',
@@ -274,10 +262,12 @@ export class AulaComponent implements OnInit {
     try {
       if (this.aulaEnEdicion === null) {
         await this.aulaService.registrar(datos);
-        this.mostrarNotificacion(`Aula ${datos.codigo} registrada exitosamente`, 'exito');
+
+        this.mostrarNotificacion(`Aula ${datos.codigo} registrada exitosamente.`);
       } else {
         await this.aulaService.actualizar(this.aulaEnEdicion, datos);
-        this.mostrarNotificacion(`Datos del aula ${datos.codigo} actualizados correctamente`, 'exito');
+        this.mostrarNotificacion(`Datos del aula ${datos.codigo} actualizados exitosamente.`);
+
       }
       this.cancelarFormulario();
       await this.cargarAulas();
@@ -287,7 +277,7 @@ export class AulaComponent implements OnInit {
         'No se pudieron guardar los datos del aula.'
       );
       this.errorFormulario = msg;
-      this.mostrarNotificacion(msg, 'error');
+      this.mostrarNotificacion(msg);
     } finally {
       this.guardando = false;
     }
@@ -298,11 +288,15 @@ export class AulaComponent implements OnInit {
       this.notificarPermisoRequerido(() => this.confirmarEliminacion(aula));
       return;
     }
-    this.cerrarMensaje();
     this.aulaAEliminar.set(aula);
   }
 
   async eliminarAula(): Promise<void> {
+    if (!this.puedeGestionar()) {
+      this.notificarPermisoRequerido(() => void this.eliminarAula());
+      return;
+    }
+
     const aula = this.aulaAEliminar();
     if (!aula) {
       return;
@@ -311,13 +305,10 @@ export class AulaComponent implements OnInit {
     try {
       await this.aulaService.eliminar(aula.id);
       this.aulaAEliminar.set(null);
-      this.mostrarNotificacion(`El aula ${aula.codigo} se eliminó correctamente.`, 'exito');
+      this.mostrarNotificacion(`El aula ${aula.codigo} se eliminó correctamente.`);
       await this.cargarAulas();
     } catch (error) {
-      this.mostrarNotificacion(
-        this.aulaService.mensajeError(error, 'No se pudo eliminar el aula.'),
-        'error'
-      );
+      this.mostrarNotificacion(this.aulaService.mensajeError(error, 'No se pudo eliminar el aula.'));
       this.aulaAEliminar.set(null);
     }
   }
