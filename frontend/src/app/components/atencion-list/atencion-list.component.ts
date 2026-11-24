@@ -398,4 +398,103 @@ export class AtencionListComponent {
   getMantenimientoLabel(tipo?: TipoMantenimiento): string {
     return tipo === 'PREVENTIVO' ? 'Mant. Preventivo' : 'Mant. Correctivo';
   }
+
+  // --- Modal de Ficha Técnica / Acta de Conformidad (Opción 2) ---
+  readonly mostrarModalFicha = signal<boolean>(false);
+  readonly atencionFicha = signal<Atencion | null>(null);
+
+  abrirModalFicha(atencion: Atencion): void {
+    this.atencionFicha.set(atencion);
+    this.mostrarModalFicha.set(true);
+  }
+
+  cerrarModalFicha(): void {
+    this.mostrarModalFicha.set(false);
+    this.atencionFicha.set(null);
+  }
+
+  imprimirFicha(): void {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  }
+
+  // --- Indicador de Tiempo de Atención (SLA) y Nivel de Urgencia (Opción 3) ---
+  getNivelUrgencia(atencion: Atencion): { label: string; icono: string; clase: string } {
+    const prio = atencion.prioridad;
+    if (prio === 'ALTA') {
+      return { label: 'CRÍTICA / ALTA', icono: 'priority_high', clase: 'urgencia-alta' };
+    }
+    if (prio === 'BAJA') {
+      return { label: 'PREVENTIVO / BAJA', icono: 'check_circle', clase: 'urgencia-baja' };
+    }
+    return { label: 'PRIORIDAD MEDIA', icono: 'warning_amber', clase: 'urgencia-media' };
+  }
+
+  calcularSLA(atencion: Atencion): { texto: string; badge: string; nivel: 'en_tiempo' | 'alerta' | 'resuelto' } {
+    if (atencion.estado === 'RESUELTO') {
+      const tiempo = this.calcularTiempoResolucion(atencion);
+      return {
+        texto: `Resuelto en ${tiempo}`,
+        badge: 'SLA CUMPLIDO',
+        nivel: 'resuelto'
+      };
+    }
+
+    const reg = new Date(atencion.fechaRegistro).getTime();
+    const ahora = Date.now();
+    const difMin = Math.max(1, Math.round((ahora - reg) / 60000));
+
+    // Helpers para formatear tiempo de forma compacta
+    const formatearTiempo = (minutos: number): string => {
+      if (minutos < 60) return `${minutos}m`;
+      const dias = Math.floor(minutos / 1440);
+      const horas = Math.floor((minutos % 1440) / 60);
+      const mins = minutos % 60;
+      if (dias > 0) return horas > 0 ? `${dias}d ${horas}h` : `${dias}d`;
+      return mins > 0 ? `${horas}h ${mins}m` : `${horas}h`;
+    };
+
+    if (atencion.estado === 'EN_ATENCION') {
+      const texto = `En sitio: ${formatearTiempo(difMin)}`;
+      if (difMin <= 180) {
+        return { texto, badge: 'EN CURSO', nivel: 'en_tiempo' };
+      }
+      const dias = Math.floor(difMin / 1440);
+      const badge = dias > 0 ? `SLA +${dias}d` : 'SLA >3h';
+      return { texto, badge, nivel: 'alerta' };
+    }
+
+    // PENDIENTE
+    if (difMin <= 45) {
+      return { texto: `Espera: ${formatearTiempo(difMin)}`, badge: 'EN PLAZO', nivel: 'en_tiempo' };
+    }
+    if (difMin <= 480) {
+      return { texto: `Espera: ${formatearTiempo(difMin)}`, badge: '¡ATENDER!', nivel: 'alerta' };
+    }
+    // Más de 8h → resaltar con días
+    const dias = Math.floor(difMin / 1440);
+    const badge = dias > 0 ? `CRÍTICO • ${dias}d` : 'CRÍTICO';
+    return { texto: `Espera: ${formatearTiempo(difMin)}`, badge, nivel: 'alerta' };
+  }
+
+  calcularTiempoResolucion(atencion: Atencion): string {
+    if (!atencion.fechaResolucion) {
+      return '45 minutos';
+    }
+    const reg = new Date(atencion.fechaRegistro).getTime();
+    const res = new Date(atencion.fechaResolucion).getTime();
+    const difMin = Math.max(1, Math.round((res - reg) / 60000));
+
+    if (difMin < 60) {
+      return `${difMin} min`;
+    }
+    const horas = Math.floor(difMin / 60);
+    const min = difMin % 60;
+    return min > 0 ? `${horas}h ${min}m` : `${horas}h`;
+  }
+
+  generarCodigoActa(atencion: Atencion): string {
+    return `ACTA-UTP-${new Date().getFullYear()}-${String(atencion.id).padStart(4, '0')}`;
+  }
 }
