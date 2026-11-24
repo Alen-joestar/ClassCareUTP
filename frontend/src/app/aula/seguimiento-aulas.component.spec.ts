@@ -101,7 +101,7 @@ describe('SeguimientoAulasComponent', () => {
     expect(component.aulasFiltradas().map(aula => aula.codigo)).toEqual(['A-103']);
   });
 
-  it('joins real report and attention data in the details panel', () => {
+  it('combines report and attention data in the details panel', () => {
     const component = fixture.componentInstance;
     component.busqueda.set('A-104');
     component.abrirDetalles(component.aulas()[3]);
@@ -133,6 +133,77 @@ describe('SeguimientoAulasComponent', () => {
 
     expect(component.aulasOcupadas()).toBe(2);
     expect(component.estadoAtencion(component.aulas()[2])).toBe('Solucionada');
+  });
+
+  it('updates an incident when its attention changes from pending to in progress', () => {
+    const component = fixture.componentInstance;
+    const aula = component.aulas().find(item => item.codigo === 'A-103')!;
+    expect(aula.incidencias[0].estado).toBe('Pendiente');
+
+    atencionesState.update(atenciones => [
+      ...atenciones,
+      {
+        id: 11,
+        reporteId: 3,
+        tecnicoEncargado: 'Carlos Ruiz',
+        estado: 'EN_ATENCION',
+        fechaRegistro: '2026-11-22T10:00:00'
+      }
+    ]);
+
+    expect(component.aulas().find(item => item.codigo === 'A-103')!.incidencias[0].estado)
+      .toBe('En atención');
+    expect(component.aulasConIncidenciasAbiertas()).toBe(1);
+  });
+
+  it('keeps individual statuses for multiple incidents in one aula', () => {
+    reportesState.update(reportes => [
+      ...reportes,
+      crearReporte(5, 'A-103', 'RESUELTO', 'La lámpara no enciende.')
+    ]);
+
+    const aula = fixture.componentInstance.aulas().find(item => item.codigo === 'A-103')!;
+
+    expect(aula.incidencias.map(incidencia => incidencia.estado).sort())
+      .toEqual(['Pendiente', 'Solucionada']);
+    expect(fixture.componentInstance.estadoAtencion(aula)).toBe('Pendiente');
+  });
+
+  it('refreshes the open details panel when shared data changes', () => {
+    const component = fixture.componentInstance;
+    component.abrirDetalles(component.aulas().find(aula => aula.codigo === 'A-104')!);
+    fixture.detectChanges();
+
+    aulasState.update(aulas =>
+      aulas.map(aula => aula.codigo === 'A-104'
+        ? { ...aula, ubicacion: 'Pabellón C · Piso 3' }
+        : aula)
+    );
+    reportesState.update(reportes =>
+      reportes.map(reporte => reporte.id === 4
+        ? { ...reporte, descripcion: 'Descripción actualizada.' }
+        : reporte)
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Pabellón C · Piso 3');
+    expect(fixture.nativeElement.textContent).toContain('Descripción actualizada.');
+  });
+
+  it('does not present general observations as a specific solution', () => {
+    atencionesState.update(atenciones =>
+      atenciones.map(atencion => ({
+        ...atencion,
+        observaciones: 'Se revisó el punto de acceso.'
+      }))
+    );
+    const component = fixture.componentInstance;
+    component.abrirDetalles(component.aulas().find(aula => aula.codigo === 'A-104')!);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent)
+      .toContain('No se registró una descripción específica de la solución');
+    expect(fixture.nativeElement.textContent).not.toContain('Se revisó el punto de acceso.');
   });
 
   it('shows an empty state when combined filters have no matches', () => {

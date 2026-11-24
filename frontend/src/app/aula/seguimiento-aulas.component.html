@@ -37,7 +37,7 @@
     </article>
     <article class="summary-item">
       <span class="summary-icon summary-icon--pending"><mat-icon>build_circle</mat-icon></span>
-      <div><strong>{{ aulasConIncidenciasPendientes() }}</strong><span>Incidencias pendientes</span></div>
+      <div><strong>{{ aulasConIncidenciasAbiertas() }}</strong><span>Aulas con incidencias abiertas</span></div>
     </article>
   </section>
 
@@ -238,7 +238,7 @@
                     </span>
                     <div>
                       <strong>Atención iniciada</strong>
-                      <time>{{ incidencia.estado === 'Pendiente' ? 'Pendiente de inicio' : 'Fecha no disponible' }}</time>
+                      <time>{{ incidencia.estado === 'Pendiente' ? 'Pendiente de inicio' : 'Fecha de inicio no registrada' }}</time>
                     </div>
                   </div>
                   <div class="timeline-step"
@@ -254,10 +254,12 @@
                   </div>
                 </div>
 
-                @if (incidencia.estado === 'Solucionada' && incidencia.solucion) {
+                @if (incidencia.estado === 'Solucionada') {
                   <div class="resolution-note">
-                    <strong><mat-icon>verified</mat-icon> Solución registrada</strong>
-                    <p>{{ incidencia.solucion }}</p>
+                    <strong><mat-icon>verified</mat-icon> {{ incidencia.solucion ? 'Solución registrada' : 'No se registró una descripción específica de la solución' }}</strong>
+                    @if (incidencia.solucion) {
+                      <p>{{ incidencia.solucion }}</p>
+                    }
                     @if (incidencia.fechaResolucion) {
                       <span>Resuelta el {{ incidencia.fechaResolucion | date:'dd/MM/yyyy, HH:mm' }}</span>
                     }

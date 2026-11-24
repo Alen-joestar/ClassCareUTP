@@ -46,7 +46,11 @@ export class SeguimientoAulasComponent implements OnInit {
   readonly estadoSeleccionado = signal<'' | EstadoAula>('');
   readonly disponibilidadSeleccionada = signal<FiltroDisponibilidad>('');
   readonly incidenciaSeleccionada = signal<FiltroIncidencia>('');
-  readonly aulaSeleccionada = signal<AulaSeguimiento | null>(null);
+  private readonly aulaSeleccionadaId = signal<number | null>(null);
+  readonly aulaSeleccionada = computed(() => {
+    const id = this.aulaSeleccionadaId();
+    return id === null ? null : this.aulas().find(aula => aula.id === id) ?? null;
+  });
 
   readonly cargando = computed(() =>
     this.aulaService.cargando() ||
@@ -66,7 +70,7 @@ export class SeguimientoAulasComponent implements OnInit {
       return 'Sincronizando datos…';
     }
     return this.sincronizado()
-      ? 'Sincronizado con la base de datos'
+      ? 'Sincronizado con el sistema'
       : 'Datos locales · sin sincronización';
   });
   readonly aulas = computed(() => {
@@ -127,7 +131,7 @@ export class SeguimientoAulasComponent implements OnInit {
   readonly aulasOcupadas = computed(() =>
     this.aulas().filter(aula => this.normalizar(aula.estado) === 'ocupada').length
   );
-  readonly aulasConIncidenciasPendientes = computed(() =>
+  readonly aulasConIncidenciasAbiertas = computed(() =>
     this.aulas().filter(aula =>
       aula.incidencias.some(incidencia => incidencia.estado !== 'Solucionada')
     ).length
@@ -155,11 +159,11 @@ export class SeguimientoAulasComponent implements OnInit {
   }
 
   abrirDetalles(aula: AulaSeguimiento): void {
-    this.aulaSeleccionada.set(aula);
+    this.aulaSeleccionadaId.set(aula.id);
   }
 
   cerrarDetalles(): void {
-    this.aulaSeleccionada.set(null);
+    this.aulaSeleccionadaId.set(null);
   }
 
   estadoAtencion(aula: AulaSeguimiento): string {
@@ -248,7 +252,7 @@ export class SeguimientoAulasComponent implements OnInit {
 
   private extraerSolucion(observaciones: string): string {
     const coincidencia = observaciones.match(/\[Solución:\s*([^\]]+)\]/i);
-    return coincidencia?.[1]?.trim() || observaciones;
+    return coincidencia?.[1]?.trim() ?? '';
   }
 
   private normalizar(valor: string): string {
