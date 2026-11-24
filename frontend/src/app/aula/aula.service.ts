@@ -9,19 +9,31 @@ const AULAS_CACHE_KEY = 'classcare-aulas-cache';
 export class AulaService {
   private readonly aulasState = signal<Aula[]>(this.cargarCacheInicial());
   readonly aulas = this.aulasState.asReadonly();
+  readonly cargando = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly origenDatos = signal<'API' | 'LOCAL'>('LOCAL');
 
-  constructor(private readonly http: HttpClient) {
-    void this.listar().catch(() => {});
-  }
+  constructor(private readonly http: HttpClient) {}
 
   async listar(): Promise<Aula[]> {
-    const aulas = await firstValueFrom(this.http.get<Aula[]>('/api/aulas'));
-    if (!Array.isArray(aulas)) {
-      throw new Error('La respuesta de la API no contiene una lista de aulas válida.');
+    this.cargando.set(true);
+    this.error.set(null);
+    try {
+      const aulas = await firstValueFrom(this.http.get<Aula[]>('/api/aulas'));
+      if (!Array.isArray(aulas)) {
+        throw new Error('La respuesta de la API no contiene una lista de aulas válida.');
+      }
+      this.aulasState.set(aulas);
+      this.guardarEnCache(aulas);
+      this.origenDatos.set('API');
+      return aulas;
+    } catch (error) {
+      this.origenDatos.set('LOCAL');
+      this.error.set(this.mensajeError(error, 'No se pudieron cargar las aulas.'));
+      throw error;
+    } finally {
+      this.cargando.set(false);
     }
-    this.aulasState.set(aulas);
-    this.guardarEnCache(aulas);
-    return aulas;
   }
 
   private cargarCacheInicial(): Aula[] {

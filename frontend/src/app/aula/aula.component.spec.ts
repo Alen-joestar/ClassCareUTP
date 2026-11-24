@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { Aula } from './aula.model';
 import { AulaService } from './aula.service';
@@ -8,15 +9,19 @@ import { AulaComponent } from './aula.component';
 describe('AulaComponent pagination', () => {
   let fixture: ComponentFixture<AulaComponent>;
   let registrosSolicitados: number;
+  let aulasState: ReturnType<typeof signal<Aula[]>>;
 
   beforeEach(async () => {
     registrosSolicitados = 0;
+    aulasState = signal<Aula[]>([]);
     await TestBed.configureTestingModule({
       imports: [AulaComponent],
       providers: [
+        provideRouter([]),
         {
           provide: AulaService,
           useValue: {
+            aulas: aulasState.asReadonly(),
             listar: async () => [],
             registrar: async () => {
               registrosSolicitados++;
@@ -27,7 +32,7 @@ describe('AulaComponent pagination', () => {
         {
           provide: AuthService,
           useValue: {
-            sesion: signal(null),
+            sesion: signal({ roles: ['ROLE_TECNICO'] }),
             logout: () => undefined,
             abrirPanel: () => undefined
           }
@@ -40,32 +45,46 @@ describe('AulaComponent pagination', () => {
     await fixture.whenStable();
   });
 
-  it('limits the catalog to eight rooms and shows the remaining rooms on the next page', () => {
-    fixture.componentInstance.aulas.set(crearAulas(10));
+  it('limits the catalog to six rooms and shows the remaining rooms on the next page', () => {
+    aulasState.set(crearAulas(10));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('.aula-card').length).toBe(8);
+    expect(fixture.nativeElement.querySelectorAll('.room-arch-card').length).toBe(6);
     expect(fixture.componentInstance.primerResultado()).toBe(1);
-    expect(fixture.componentInstance.ultimoResultado()).toBe(8);
+    expect(fixture.componentInstance.ultimoResultado()).toBe(6);
 
     fixture.componentInstance.irPagina(2);
     fixture.detectChanges();
 
-    const tarjetas = fixture.nativeElement.querySelectorAll('.aula-card');
-    expect(tarjetas.length).toBe(2);
-    expect(tarjetas[0].querySelector('.room-code').textContent.trim()).toBe('A-109');
-    expect(fixture.componentInstance.primerResultado()).toBe(9);
+    const tarjetas = fixture.nativeElement.querySelectorAll('.room-arch-card');
+    expect(tarjetas.length).toBe(4);
+    expect(tarjetas[0].querySelector('.room-door-plaque').textContent.trim()).toBe('A-107');
+    expect(fixture.componentInstance.primerResultado()).toBe(7);
     expect(fixture.componentInstance.ultimoResultado()).toBe(10);
   });
 
   it('returns to the first page when a filter changes', () => {
-    fixture.componentInstance.aulas.set(crearAulas(10));
+    aulasState.set(crearAulas(10));
     fixture.componentInstance.irPagina(2);
 
     fixture.componentInstance.cambiarBusqueda('A-110');
 
     expect(fixture.componentInstance.paginaActual()).toBe(1);
     expect(fixture.componentInstance.aulasPaginadas().map(aula => aula.codigo)).toEqual(['A-110']);
+  });
+
+  it('matches both maintenance status labels in the catalog filter', () => {
+    aulasState.set([
+      { ...crearAulas(1)[0], estado: 'En mantenimiento' },
+      { ...crearAulas(1)[0], id: 2, codigo: 'A-102', estado: 'Mantenimiento' }
+    ]);
+
+    fixture.componentInstance.cambiarEstado('Mantenimiento');
+
+    expect(fixture.componentInstance.aulasFiltradas().map(aula => aula.codigo)).toEqual([
+      'A-101',
+      'A-102'
+    ]);
   });
 
   it('rejects whitespace-only fields before sending the request', async () => {
@@ -93,7 +112,7 @@ describe('AulaComponent pagination', () => {
   });
 
   it('reports invalid minimum-capacity filters instead of silently applying them', () => {
-    fixture.componentInstance.aulas.set(crearAulas(10));
+    aulasState.set(crearAulas(10));
     fixture.componentInstance.cambiarCapacidadMinima(20.5);
 
     expect(fixture.componentInstance.errorCapacidadMinima()).toBe(
@@ -103,7 +122,7 @@ describe('AulaComponent pagination', () => {
   });
 
   it('applies a valid numeric minimum-capacity filter', () => {
-    fixture.componentInstance.aulas.set(crearAulas(10));
+    aulasState.set(crearAulas(10));
     fixture.componentInstance.cambiarCapacidadMinima(28);
 
     expect(fixture.componentInstance.errorCapacidadMinima()).toBe('');
