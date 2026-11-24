@@ -49,6 +49,9 @@ public class Reporte {
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
 
+    @Column(name = "reportado_por", length = 100)
+    private String reportadoPor;
+
     public Reporte() {
     }
 
@@ -126,6 +129,14 @@ public class Reporte {
         this.fechaRegistro = fechaRegistro;
     }
 
+    public String getReportadoPor() {
+        return reportadoPor;
+    }
+
+    public void setReportadoPor(String reportadoPor) {
+        this.reportadoPor = reportadoPor;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -149,6 +160,7 @@ public class Reporte {
                 ", prioridad=" + prioridad +
                 ", estado=" + estado +
                 ", fechaRegistro=" + fechaRegistro +
+                ", reportadoPor='" + reportadoPor + '\'' +
                 '}';
     }
 }

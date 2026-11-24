@@ -12,6 +12,7 @@ public class CrearReporteDTO {
     private TipoProblema tipoProblema;
     private String descripcion;
     private Prioridad prioridad;
+    private String reportadoPor;
 
     public CrearReporteDTO() {
     }
@@ -21,6 +22,14 @@ public class CrearReporteDTO {
         this.tipoProblema = tipoProblema;
         this.descripcion = descripcion;
         this.prioridad = prioridad;
+    }
+
+    public CrearReporteDTO(String aulaId, TipoProblema tipoProblema, String descripcion, Prioridad prioridad, String reportadoPor) {
+        this.aulaId = aulaId;
+        this.tipoProblema = tipoProblema;
+        this.descripcion = descripcion;
+        this.prioridad = prioridad;
+        this.reportadoPor = reportadoPor;
     }
 
     public String getAulaId() {
@@ -53,5 +62,13 @@ public class CrearReporteDTO {
 
     public void setPrioridad(Prioridad prioridad) {
         this.prioridad = prioridad;
+    }
+
+    public String getReportadoPor() {
+        return reportadoPor;
+    }
+
+    public void setReportadoPor(String reportadoPor) {
+        this.reportadoPor = reportadoPor;
     }
 }

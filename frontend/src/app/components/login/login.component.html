@@ -1,0 +1,443 @@
+<section class="m3-auth-page">
+  <!-- Contenedor Corporativo de Doble Panel -->
+  <div class="auth-corporate-shell" [class.auth-corporate-shell--admin]="esAdmin()">
+
+    <!-- Panel Izquierdo: Identidad Corporativa ClassCare Campus UTP -->
+    <aside class="auth-brand-panel">
+      <div class="brand-panel-top">
+        <a routerLink="/reportes" class="back-campus-pill">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Volver al campus</span>
+        </a>
+
+        <div class="brand-identity-block">
+          <div class="brand-emblem">
+            <mat-icon>domain_verification</mat-icon>
+          </div>
+          <span class="brand-kicker">UNIVERSIDAD TECNOLÓGICA DEL PERÚ</span>
+          <h2 class="brand-headline">ClassCare Campus</h2>
+          <p class="brand-lead">
+            Plataforma centralizada para la supervisión de aulas, reporte de incidencias operativas y despacho de mantenimiento en tiempo real.
+          </p>
+        </div>
+
+        <ul class="brand-pillars-list">
+          <li>
+            <mat-icon>meeting_room</mat-icon>
+            <div>
+              <strong>Monitoreo de Ambientes</strong>
+              <span>Consulta disponibilidad y estado operativo de aulas y laboratorios.</span>
+            </div>
+          </li>
+          <li>
+            <mat-icon>assignment_turned_in</mat-icon>
+            <div>
+              <strong>Trazabilidad de Mantenimiento</strong>
+              <span>Seguimiento en 3 etapas desde el reporte hasta la liberación del aula.</span>
+            </div>
+          </li>
+          <li>
+            <mat-icon>verified_user</mat-icon>
+            <div>
+              <strong>Acceso según Perfil Institucional</strong>
+              <span>Permisos diferenciados para comunidad académica, soporte técnico y dirección.</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      @if (authService.sesion(); as sesionActual) {
+        <div class="current-user-mini-card">
+          <div class="mini-card-avatar">{{ authService.inicialesUsuario() }}</div>
+          <div class="mini-card-info">
+            <span class="mini-card-kicker">SESIÓN ACTUALMENTE ACTIVA</span>
+            <strong>{{ sesionActual.nombreCompleto || sesionActual.username }}</strong>
+            <span>{{ authService.rolCargo() }} &bull; {{ sesionActual.correo }}</span>
+          </div>
+        </div>
+      }
+    </aside>
+
+    <!-- Panel Central: Tarjeta de Login y Registro -->
+    <article class="auth-credential-card">
+      <!-- Pestañas de Modo -->
+      <div class="auth-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="auth-tab-btn"
+          [class.active]="modoActivo() === 'login'"
+          (click)="cambiarModo('login')">
+          <mat-icon>login</mat-icon>
+          <div class="tab-label-stack">
+            <strong>Iniciar Sesión</strong>
+            <span>Ingresa con tu cuenta UTP</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="auth-tab-btn"
+          [class.active]="modoActivo() === 'registro'"
+          (click)="cambiarModo('registro')">
+          <mat-icon>{{ esAdmin() ? 'engineering' : 'person_add' }}</mat-icon>
+          <div class="tab-label-stack">
+            <strong>{{ esAdmin() ? 'Alta de Personal' : 'Crear Cuenta' }}</strong>
+            <span>{{ esAdmin() ? 'Gestión de roles y técnicos' : 'Registro académico' }}</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- MODO 1: INICIAR SESIÓN -->
+      @if (modoActivo() === 'login') {
+        <form class="auth-form-body" (ngSubmit)="iniciarSesion()" novalidate>
+          <div class="form-section-intro">
+            <div class="intro-icon-badge">
+              <mat-icon>lock_person</mat-icon>
+            </div>
+            <div>
+              <h3>Bienvenido a ClassCare Campus</h3>
+              <p>Ingresa tus credenciales institucionales para continuar.</p>
+            </div>
+          </div>
+
+          @if (errorLogin()) {
+            <div class="auth-alert auth-alert--error" role="alert">
+              <mat-icon>error_outline</mat-icon>
+              <span>{{ errorLogin() }}</span>
+            </div>
+          }
+
+          <div class="m3-auth-field-group">
+            <label for="login-username" class="m3-auth-label">Usuario o Código Institucional *</label>
+            <div class="m3-auth-input-box">
+              <mat-icon>person</mat-icon>
+              <input
+                id="login-username"
+                type="text"
+                name="loginUsername"
+                placeholder="Ingresa tu usuario institucional"
+                autocomplete="username"
+                [ngModel]="loginUsername()"
+                (ngModelChange)="loginUsername.set($event)"
+              />
+            </div>
+          </div>
+
+          <div class="m3-auth-field-group">
+            <label for="login-password" class="m3-auth-label">Contraseña *</label>
+            <div class="m3-auth-input-box">
+              <mat-icon>lock</mat-icon>
+              <input
+                id="login-password"
+                [type]="mostrarPasswordLogin() ? 'text' : 'password'"
+                name="loginPassword"
+                placeholder="Ingresa tu contraseña"
+                autocomplete="current-password"
+                [ngModel]="loginPassword()"
+                (ngModelChange)="loginPassword.set($event)"
+              />
+              <button
+                type="button"
+                class="btn-toggle-eye"
+                (click)="mostrarPasswordLogin.set(!mostrarPasswordLogin())"
+                [attr.aria-label]="mostrarPasswordLogin() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <mat-icon>{{ mostrarPasswordLogin() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-submit-row">
+            <button type="submit" class="btn-auth-primary" [disabled]="cargandoLogin()">
+              <mat-icon>arrow_forward</mat-icon>
+              <span>{{ cargandoLogin() ? 'Verificando credenciales...' : 'Iniciar Sesión' }}</span>
+            </button>
+          </div>
+
+          <div class="auth-switch-prompt">
+            <span>¿Eres docente o estudiante y aún no tienes cuenta?</span>
+            <button type="button" class="link-inline-btn" (click)="cambiarModo('registro')">
+              Regístrate aquí
+            </button>
+          </div>
+
+          <!-- Acordeón Discreto y Oculto por Defecto para Pruebas / Sustentación -->
+          <div class="demo-collapsible-zone">
+            <button
+              type="button"
+              class="demo-toggle-link"
+              (click)="toggleAccesosDemo()">
+              <mat-icon>{{ mostrarAccesosDemo() ? 'expand_less' : 'science' }}</mat-icon>
+              <span>{{ mostrarAccesosDemo() ? 'Ocultar accesos de prueba' : 'Accesos rápidos de evaluación' }}</span>
+            </button>
+
+            @if (mostrarAccesosDemo()) {
+              <div class="quick-demo-grid">
+                <button
+                  type="button"
+                  class="demo-chip-btn"
+                  [class.is-active]="authService.sesion()?.username === 'cmendoza'"
+                  (click)="accesoRapidoDemo('cmendoza')">
+                  <mat-icon>engineering</mat-icon>
+                  <div>
+                    <strong>Carlos Mendoza</strong>
+                    <span>Soporte Técnico</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  class="demo-chip-btn"
+                  [class.is-active]="authService.sesion()?.username === 'atorres'"
+                  (click)="accesoRapidoDemo('atorres')">
+                  <mat-icon>bolt</mat-icon>
+                  <div>
+                    <strong>Ana Torres</strong>
+                    <span>Soporte Técnico</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  class="demo-chip-btn"
+                  [class.is-active]="authService.sesion()?.username === 'admin'"
+                  (click)="accesoRapidoDemo('admin')">
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  <div>
+                    <strong>Administrador</strong>
+                    <span>Control Total</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  class="demo-chip-btn"
+                  [class.is-active]="authService.sesion()?.username === 'alumno'"
+                  (click)="accesoRapidoDemo('alumno')">
+                  <mat-icon>school</mat-icon>
+                  <div>
+                    <strong>Académico</strong>
+                    <span>Docente / Alumno</span>
+                  </div>
+                </button>
+              </div>
+            }
+          </div>
+        </form>
+      }
+
+      <!-- MODO 2: CREAR CUENTA ACADÉMICA (PÚBLICO) O ALTA DE PERSONAL (SOLO ADMIN) -->
+      @if (modoActivo() === 'registro') {
+        <form class="auth-form-body" (ngSubmit)="registrarNuevoUsuario()" novalidate>
+          <div class="form-section-intro">
+            <div class="intro-icon-badge intro-icon-badge--register">
+              <mat-icon>{{ esAdmin() ? 'manage_accounts' : 'person_add_alt_1' }}</mat-icon>
+            </div>
+            <div>
+              <h3>{{ esAdmin() ? 'Alta de Personal y Especialistas del Campus' : 'Crear Cuenta Académica UTP' }}</h3>
+              <p>
+                {{ esAdmin()
+                  ? 'Como Administrador puedes incorporar nuevos especialistas de Soporte Técnico o personal administrativo.'
+                  : 'Regístrate con tu correo institucional para consultar aulas y reportar incidencias en el campus.' }}
+              </p>
+            </div>
+          </div>
+
+          @if (!esAdmin()) {
+            <div class="public-role-notice">
+              <mat-icon>info_outline</mat-icon>
+              <span>
+                Esta cuenta se creará con perfil de <strong>Comunidad Académica (Docente / Estudiante)</strong>. El alta de especialistas técnicos es gestionada exclusivamente por la Administración de Infraestructura.
+              </span>
+            </div>
+          }
+
+          @if (errorRegistro()) {
+            <div class="auth-alert auth-alert--error" role="alert">
+              <mat-icon>error_outline</mat-icon>
+              <span>{{ errorRegistro() }}</span>
+            </div>
+          }
+
+          <div class="form-grid-2">
+            <div class="m3-auth-field-group">
+              <label for="reg-nombre" class="m3-auth-label">Nombre y Apellido Completo *</label>
+              <div class="m3-auth-input-box">
+                <mat-icon>badge</mat-icon>
+                <input
+                  id="reg-nombre"
+                  type="text"
+                  name="regNombreCompleto"
+                  placeholder="Ej.: Jorge Ramírez"
+                  [ngModel]="regNombreCompleto()"
+                  (ngModelChange)="regNombreCompleto.set($event)"
+                />
+              </div>
+            </div>
+
+            <div class="m3-auth-field-group">
+              <label for="reg-username" class="m3-auth-label">Nombre de Usuario *</label>
+              <div class="m3-auth-input-box">
+                <mat-icon>alternate_email</mat-icon>
+                <input
+                  id="reg-username"
+                  type="text"
+                  name="regUsername"
+                  placeholder="Ej.: jramirez"
+                  [ngModel]="regUsername()"
+                  (ngModelChange)="autocompletarCorreoDesdeUsername($event)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="m3-auth-field-group">
+              <label for="reg-correo" class="m3-auth-label">Correo Institucional *</label>
+              <div class="m3-auth-input-box">
+                <mat-icon>mail</mat-icon>
+                <input
+                  id="reg-correo"
+                  type="email"
+                  name="regCorreo"
+                  placeholder="usuario@utp.edu.pe"
+                  [ngModel]="regCorreo()"
+                  (ngModelChange)="regCorreo.set($event)"
+                />
+              </div>
+            </div>
+
+            <div class="m3-auth-field-group">
+              <label for="reg-password" class="m3-auth-label">Contraseña *</label>
+              <div class="m3-auth-input-box">
+                <mat-icon>lock</mat-icon>
+                <input
+                  id="reg-password"
+                  [type]="mostrarPasswordReg() ? 'text' : 'password'"
+                  name="regPassword"
+                  placeholder="Mínimo 4 caracteres"
+                  [ngModel]="regPassword()"
+                  (ngModelChange)="regPassword.set($event)"
+                />
+                <button
+                  type="button"
+                  class="btn-toggle-eye"
+                  (click)="mostrarPasswordReg.set(!mostrarPasswordReg())">
+                  <mat-icon>{{ mostrarPasswordReg() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selector de Rol: SOLO visible cuando el usuario actual es ADMINISTRADOR -->
+          @if (esAdmin()) {
+            <div class="m3-auth-field-group">
+              <span class="m3-auth-label">Rol Operativo Asignado (Exclusivo Administrador) *</span>
+              <div class="role-cards-grid">
+                <button
+                  type="button"
+                  class="role-option-card"
+                  [class.selected]="regRol() === 'TECNICO'"
+                  (click)="seleccionarRolRegistro('TECNICO')">
+                  <mat-icon>engineering</mat-icon>
+                  <strong>Soporte Técnico</strong>
+                  <span>Habilitado en bandeja de Atenciones y gestión de Aulas</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="role-option-card"
+                  [class.selected]="regRol() === 'ALUMNO'"
+                  (click)="seleccionarRolRegistro('ALUMNO')">
+                  <mat-icon>school</mat-icon>
+                  <strong>Docente / Estudiante</strong>
+                  <span>Consulta ambientes y registra reportes de avería</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="role-option-card"
+                  [class.selected]="regRol() === 'ADMIN'"
+                  (click)="seleccionarRolRegistro('ADMIN')">
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  <strong>Administrador</strong>
+                  <span>Control integral de infraestructura y personal</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <div class="m3-auth-field-group">
+            <label for="reg-especialidad" class="m3-auth-label">
+              {{ esAdmin() && regRol() === 'TECNICO' ? 'Especialidad Técnica Asignada' : 'Facultad o Escuela Profesional' }}
+            </label>
+            <div class="m3-auth-input-box">
+              <mat-icon>{{ esAdmin() && regRol() === 'TECNICO' ? 'workspace_premium' : 'school' }}</mat-icon>
+              <input
+                id="reg-especialidad"
+                type="text"
+                name="regEspecialidad"
+                [placeholder]="esAdmin() && regRol() === 'TECNICO' ? 'Ej.: Redes y Conectividad, Climatización, Audiovisual...' : 'Ej.: Ingeniería de Sistemas, Arquitectura, Administración...'"
+                [ngModel]="regEspecialidad()"
+                (ngModelChange)="regEspecialidad.set($event)"
+              />
+            </div>
+          </div>
+
+          <div class="auth-submit-row">
+            <button type="submit" class="btn-auth-primary btn-auth-primary--register" [disabled]="cargandoRegistro()">
+              <mat-icon>how_to_reg</mat-icon>
+              <span>{{ cargandoRegistro() ? 'Procesando alta...' : (esAdmin() ? 'Dar de Alta en el Campus' : 'Crear mi Cuenta Institucional') }}</span>
+            </button>
+          </div>
+        </form>
+      }
+    </article>
+
+    <!-- Columna de Directorio: SOLO visible para Administradores autenticados -->
+    @if (esAdmin()) {
+      <aside class="auth-sidebar-column">
+        <div class="campus-directory-card">
+          <div class="directory-header">
+            <div>
+              <h4>Directorio de Personal (Admin)</h4>
+              <p>{{ usuariosCampus().length }} cuentas activas ({{ totalTecnicos() }} técnicos)</p>
+            </div>
+            <span class="db-tag">ADMIN</span>
+          </div>
+
+          <div class="directory-list">
+            @for (u of usuariosCampus(); track u.username) {
+              <div
+                class="directory-item"
+                [class.is-current]="authService.sesion()?.username === u.username"
+                [class.is-inactive]="!u.activo">
+                <div class="dir-item-main">
+                  <div class="dir-name-row">
+                    <strong>{{ u.nombreCompleto }}</strong>
+                    <span class="dir-role-chip" [attr.data-rol]="u.rol">{{ u.rol }}</span>
+                  </div>
+                  <span class="dir-sub">&#64;{{ u.username }} &bull; {{ u.especialidad || u.correo }}</span>
+                </div>
+
+                @if (u.username !== 'admin') {
+                  <button
+                    type="button"
+                    class="btn-shift-toggle"
+                    [class.is-on]="u.activo"
+                    [class.is-off]="!u.activo"
+                    [attr.title]="u.activo ? 'Cambiar a Fuera de Turno' : 'Habilitar En Turno'"
+                    (click)="alternarTurnoUsuario(u)">
+                    <span class="shift-dot"></span>
+                    <span>{{ u.activo ? 'En Turno' : 'Fuera de Turno' }}</span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </aside>
+    }
+  </div>
+</section>

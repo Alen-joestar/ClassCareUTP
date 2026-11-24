@@ -571,12 +571,24 @@
   align-items: center;
 }
 
+.ticket-meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .ticket-date {
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
+}
+
+.ticket-author {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .m3-btn-inspect {

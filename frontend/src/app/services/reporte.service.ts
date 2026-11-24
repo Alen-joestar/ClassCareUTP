@@ -233,15 +233,21 @@ export class ReporteService {
     const ubicacionCalculada =
       payload.aulaUbicacion.trim() || this.deducirUbicacionDesdeCodigo(codigoNormalizado);
 
+    const autorSesion =
+      this.authService.sesion()?.nombreCompleto ||
+      this.authService.sesion()?.username ||
+      'Comunidad Académica UTP';
+
     const requestDto: CrearReporteRequestDTO = {
       aulaId: codigoNormalizado,
       tipoProblema: payload.tipoProblema,
       descripcion: payload.descripcion.trim(),
-      prioridad: payload.prioridad
+      prioridad: payload.prioridad,
+      reportadoPor: autorSesion
     };
 
     return this.http.post<Reporte>(this.apiUrl, requestDto).pipe(
-      map(creado => this.normalizarReporte(creado, ubicacionCalculada)),
+      map(creado => this.normalizarReporte(creado, ubicacionCalculada, autorSesion)),
       tap(creadoRemoto => {
         this.backendConectadoState.set(true);
         this.reportesState.update(lista => [creadoRemoto, ...lista]);
@@ -264,7 +270,8 @@ export class ReporteService {
           prioridad: payload.prioridad,
           estado: 'PENDIENTE',
           descripcion: payload.descripcion.trim(),
-          fechaRegistro: new Date().toISOString()
+          fechaRegistro: new Date().toISOString(),
+          reportadoPor: autorSesion
         };
         this.reportesState.update(lista => [nuevoReporteLocal, ...lista]);
         return of(nuevoReporteLocal);
@@ -407,14 +414,15 @@ export class ReporteService {
     );
   }
 
-  private normalizarReporte(item: Reporte, ubicacionRespaldo?: string): Reporte {
+  private normalizarReporte(item: Reporte, ubicacionRespaldo?: string, autorRespaldo?: string): Reporte {
     return {
       ...item,
       aulaId: (item.aulaId ?? '').trim().toUpperCase(),
       aulaUbicacion:
         item.aulaUbicacion ||
         ubicacionRespaldo ||
-        this.deducirUbicacionDesdeCodigo(item.aulaId ?? '')
+        this.deducirUbicacionDesdeCodigo(item.aulaId ?? ''),
+      reportadoPor: item.reportadoPor || autorRespaldo || 'Comunidad Académica UTP'
     };
   }
 

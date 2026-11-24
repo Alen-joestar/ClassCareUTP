@@ -12,21 +12,20 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
- * Configuración central de seguridad y control de acceso basado en roles (RBAC).
- * Unifica las políticas de acceso para los tres módulos:
- * - Reportes: consulta pública, registro libre, actualización restringida (TECNICO, ADMIN) y eliminación exclusiva (ADMIN).
- * - Aulas: consulta pública y gestión restringida (POST, PUT, DELETE para TECNICO, ADMIN).
- * - Atenciones: consulta y registro libre, actualización restringida (TECNICO, ADMIN).
+ * Configuración central de seguridad, políticas CORS y control de acceso basado en roles (RBAC).
+ * Unifica las políticas de acceso para los tres módulos y delega la gestión de usuarios
+ * al servicio persistente UsuarioAuthService (JPA).
  */
 @Configuration
 @EnableWebSecurity
@@ -42,18 +41,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Vistas estáticas de los tres módulos
+                        // Peticiones preflight CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Vistas estáticas de los módulos y login
                         .requestMatchers(
                                 "/", "/index.html", "/css/**",
                                 "/js/**", "/images/**", "/error",
-                                "/aulas/**", "/atenciones/**"
+                                "/aulas/**", "/atenciones/**", "/login/**"
                         ).permitAll()
 
-                        // Autenticación JWT
+                        // Autenticación JWT, registro de usuarios y directorio de técnicos
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // Módulo de Aulas: consultas públicas
@@ -94,6 +97,23 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:80,http://localhost}") List<String> allowedOrigins
+    ) {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -103,32 +123,5 @@ public class SecurityConfig {
             AuthenticationConfiguration authenticationConfiguration
     ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(
-            PasswordEncoder passwordEncoder,
-            @Value("${app.security.tecnico.password}") String passwordTecnico,
-            @Value("${app.security.admin.password}") String passwordAdmin
-    ) {
-        UserDetails tecnico = User.builder()
-                .username("tecnico")
-                .password(passwordEncoder.encode(passwordTecnico))
-                .roles("TECNICO")
-                .build();
-
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode(passwordAdmin))
-                .roles("ADMIN")
-                .build();
-
-        UserDetails alumno = User.builder()
-                .username("alumno")
-                .password(passwordEncoder.encode("alumno123"))
-                .roles("ALUMNO")
-                .build();
-
-        return new InMemoryUserDetailsManager(tecnico, admin, alumno);
     }
 }

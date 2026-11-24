@@ -113,10 +113,12 @@
       <span>Restablecer</span>
     </button>
 
-    <button type="button" class="m3-btn-new" (click)="nuevaAula()">
-      <mat-icon>add_circle</mat-icon>
-      <span>Nueva Aula</span>
-    </button>
+    @if (puedeGestionar()) {
+      <button type="button" class="m3-btn-new" (click)="nuevaAula()">
+        <mat-icon>add_circle</mat-icon>
+        <span>Nueva Aula</span>
+      </button>
+    }
   </section>
 
   @if (errorCapacidadMinima()) {
@@ -324,7 +326,7 @@
     <div class="empty-state-box" role="status">
       <mat-icon class="empty-icon">sync</mat-icon>
       <h3 class="empty-title">Cargando catálogo de aulas...</h3>
-      <p class="empty-desc">Sincronizando ambientes académicos con PostgreSQL y Spring Boot.</p>
+      <p class="empty-desc">Sincronizando catálogo de ambientes académicos del campus.</p>
     </div>
   } @else if (aulasFiltradas().length > 0) {
     <section class="cards-grid" aria-label="Aulas registradas" aria-live="polite">
@@ -374,23 +376,27 @@
 
             <!-- Pie de Tarjeta Unificado -->
             <footer class="card-footer">
-              <div class="admin-Quick-btns">
-                <button
-                  type="button"
-                  class="m3-icon-action"
-                  title="Editar datos del aula"
-                  (click)="editarAula(aula)">
-                  <mat-icon>edit</mat-icon>
-                  <span>Editar</span>
-                </button>
-                <button
-                  type="button"
-                  class="m3-icon-action m3-icon-action--danger"
-                  title="Eliminar aula del catálogo"
-                  (click)="confirmarEliminacion(aula)">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
-              </div>
+              @if (puedeGestionar()) {
+                <div class="admin-Quick-btns">
+                  <button
+                    type="button"
+                    class="m3-icon-action"
+                    title="Editar datos del aula"
+                    (click)="editarAula(aula)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="m3-icon-action m3-icon-action--danger"
+                    title="Eliminar aula del catálogo"
+                    (click)="confirmarEliminacion(aula)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              } @else {
+                <span class="ticket-date">AMBIENTE VERIFICADO</span>
+              }
 
               @if (claveEstado(aula.estado) === 'mantenimiento') {
                 <a

@@ -8,7 +8,7 @@
     </a>
 
     <span class="form-hint">
-      {{ modoEdicion() ? 'MODO EDICIÓN TÉCNICA (PUT /api/reportes/' + reporteEditandoId() + ')' : 'VALIDACIÓN EN TIEMPO REAL Y COHERENCIA DE CAMPUS ACTIVA' }}
+      {{ modoEdicion() ? 'EDICIÓN DE EXPEDIENTE #' + formatCount(reporteEditandoId()!) : 'SISTEMA DE VERIFICACIÓN DE AMBIENTES Y PREVENCIÓN DE DUPLICADOS' }}
     </span>
   </nav>
 
@@ -21,7 +21,7 @@
           <mat-icon>{{ modoEdicion() ? 'edit_note' : 'note_add' }}</mat-icon>
           <span>{{ modoEdicion() ? 'EDICIÓN DEL REPORTE #' + formatCount(reporteEditandoId()!) : 'REGISTRO DE NUEVO REPORTE' }}</span>
         </span>
-        <span class="folder-stage-tag">{{ modoEdicion() ? 'ACTUALIZACIÓN TÉCNICA • JWT' : 'ETAPA INICIAL 1/3 • PENDIENTE' }}</span>
+        <span class="folder-stage-tag">{{ modoEdicion() ? 'ACTUALIZACIÓN DE DIAGNÓSTICO' : 'ETAPA INICIAL 1/3 • PENDIENTE' }}</span>
       </div>
 
       <article class="form-card">
@@ -170,7 +170,7 @@
               <span
                 class="char-counter"
                 [class.counter-warn]="getCaracteresReales() > 230">
-                {{ getCaracteresReales() }} / 255 caracteres útiles
+                {{ getCaracteresReales() }} / 255 caracteres
               </span>
             </div>
 
@@ -182,7 +182,7 @@
                 id="descripcionInput"
                 rows="4"
                 formControlName="descripcion"
-                placeholder="Describe el problema con al menos 2 palabras descriptivas y 10 caracteres útiles (ej: Proyector sin señal HDMI en el aula)..."></textarea>
+                placeholder="Detalla la avería observada, el equipo o mobiliario afectado y su ubicación en el aula (ej.: Proyector multimedia sin señal HDMI en el escritorio del docente)..."></textarea>
             </div>
 
             @if (f.descripcion.invalid && (f.descripcion.touched || f.descripcion.dirty)) {

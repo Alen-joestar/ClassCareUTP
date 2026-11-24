@@ -2,7 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Atencion, EstadoAtencion, ReportePendienteAsignacion, TipoMantenimiento } from '../../models/atencion.model';
 import { AtencionService } from '../../services/atencion.service';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
     DatePipe,
     FormsModule,
     MatIconModule,
+    MatSnackBarModule,
     RouterLink
   ],
   templateUrl: './atencion-list.component.html',
@@ -23,6 +25,8 @@ export class AtencionListComponent {
   readonly atencionService = inject(AtencionService);
   readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
 
   constructor() {
     this.route.queryParamMap.subscribe(params => {
@@ -70,7 +74,28 @@ export class AtencionListComponent {
   // Usuario técnico en sesión actual (obtenido dinámicamente desde AuthService / JWT)
   readonly tecnicoLogueado = computed(() => {
     const sesion = this.authService.sesion();
-    return sesion ? sesion.username : 'tecnico01';
+    if (!sesion) return 'tecnico01';
+    return sesion.nombreCompleto || sesion.username;
+  });
+
+  // Opciones de técnicos para el modal de Derivar / Nueva Atención (combina BD + técnicos base)
+  readonly opcionesTecnicosModal = computed(() => {
+    const registrados = this.authService.tecnicosRegistrados();
+    const mapa = new Map<string, string>();
+
+    for (const t of registrados) {
+      const clave = t.nombreCompleto || t.username;
+      const etiqueta = `${t.nombreCompleto} (@${t.username} • ${t.especialidad || 'Soporte Técnico'})`;
+      mapa.set(clave, etiqueta);
+    }
+
+    for (const a of this.atenciones()) {
+      if (a.tecnicoEncargado && !mapa.has(a.tecnicoEncargado)) {
+        mapa.set(a.tecnicoEncargado, `${a.tecnicoEncargado} (Especialista en Turno)`);
+      }
+    }
+
+    return Array.from(mapa.entries()).map(([valor, etiqueta]) => ({ valor, etiqueta }));
   });
 
   // Permisos según rol RBAC (ROLE_TECNICO o ROLE_ADMIN)
@@ -113,9 +138,15 @@ export class AtencionListComponent {
     return Math.round((this.totalResueltos() / total) * 100);
   });
 
-  // Lista de técnicos disponibles con carga activa
+  // Lista de técnicos disponibles con carga activa (incluye técnicos registrados en BD)
   readonly tecnicosDisponibles = computed(() => {
     const map = new Map<string, number>();
+    for (const t of this.authService.tecnicosRegistrados()) {
+      const nombre = t.nombreCompleto || t.username;
+      if (!map.has(nombre)) {
+        map.set(nombre, 0);
+      }
+    }
     for (const atencion of this.atenciones()) {
       const count = map.get(atencion.tecnicoEncargado) || 0;
       map.set(atencion.tecnicoEncargado, count + 1);
@@ -319,23 +350,24 @@ export class AtencionListComponent {
   }
 
   private mostrarExito(mensaje: string): void {
-    this.mensajeExito.set(mensaje);
-    this.mensajeAlerta.set(null);
-    setTimeout(() => {
-      if (this.mensajeExito() === mensaje) {
-        this.mensajeExito.set(null);
-      }
-    }, 5000);
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 4000,
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom'
+    });
   }
 
   private mostrarAlerta(mensaje: string): void {
-    this.mensajeAlerta.set(mensaje);
-    this.mensajeExito.set(null);
-    setTimeout(() => {
-      if (this.mensajeAlerta() === mensaje) {
-        this.mensajeAlerta.set(null);
-      }
-    }, 6000);
+    this.snackBar
+      .open(mensaje, 'Iniciar sesión', {
+        duration: 5000,
+        horizontalPosition: 'end',
+        verticalPosition: 'bottom'
+      })
+      .onAction()
+      .subscribe(() => {
+        this.router.navigate(['/login'], { queryParams: { returnUrl: '/atenciones' } });
+      });
   }
 
   // Stepper de Ciclo de Vida: 1=Asignado, 2=En Proceso, 3=Certificado

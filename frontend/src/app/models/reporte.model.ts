@@ -20,6 +20,7 @@ export interface Reporte {
   estado: EstadoReporte;
   descripcion: string;
   fechaRegistro: string;
+  reportadoPor?: string;
 }
 
 export interface CrearReportePayload {
@@ -38,6 +39,7 @@ export interface CrearReporteRequestDTO {
   tipoProblema: TipoProblema;
   descripcion: string;
   prioridad: Prioridad;
+  reportadoPor?: string;
 }
 
 /**

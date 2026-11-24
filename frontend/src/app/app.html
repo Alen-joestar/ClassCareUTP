@@ -7,7 +7,7 @@
       </div>
       <div class="campus-brand__titles">
         <h1 class="campus-brand__name">ClassCare Campus</h1>
-        <p class="campus-brand__desc">Inspección y Mantenimiento de Aulas &bull; UTP</p>
+        <p class="campus-brand__desc">Gestión de Infraestructura y Mantenimiento &bull; UTP</p>
       </div>
     </a>
 
@@ -34,107 +34,75 @@
         <span>Atenciones</span>
       </a>
 
-      <!-- Selector y Panel de Autenticación JWT (Semana 14: POST /api/auth/login + authInterceptor) -->
-      <div class="jwt-menu-wrapper">
-        <button
-          type="button"
-          class="m3-jwt-pill"
-          [class.m3-jwt-pill--authorized]="authService.puedeActualizarReportes()"
-          [class.m3-jwt-pill--readonly]="authService.autenticado() && !authService.puedeActualizarReportes()"
-          (click)="togglePanelJwt()"
-          title="Abrir panel de autenticación JWT (/api/auth/login)">
-          <mat-icon>{{ authService.autenticado() ? 'verified_user' : 'lock_open' }}</mat-icon>
-          <span>{{ authService.rolEtiqueta() }}</span>
-          <mat-icon class="jwt-chevron">expand_more</mat-icon>
-        </button>
+      <!-- Menú de Cuenta Institucional -->
+      @if (authService.autenticado()) {
+        <div class="jwt-menu-wrapper">
+          <button
+            type="button"
+            class="m3-jwt-pill"
+            [class.m3-jwt-pill--authorized]="authService.puedeActualizarReportes()"
+            [class.m3-jwt-pill--readonly]="!authService.puedeActualizarReportes()"
+            (click)="togglePanelJwt()"
+            title="Ver perfil institucional">
+            <span class="nav-avatar-circle">{{ authService.inicialesUsuario() }}</span>
+            <span>{{ authService.rolEtiqueta() }}</span>
+            <mat-icon class="jwt-chevron">expand_more</mat-icon>
+          </button>
 
-        @if (mostrarPanelJwt()) {
-          <div class="jwt-popover" role="dialog" aria-label="Panel de sesión JWT">
-            <div class="jwt-popover__header">
-              <strong>Autenticación JWT &bull; RBAC</strong>
-              <button type="button" class="jwt-close-btn" (click)="cerrarPanelJwt()" aria-label="Cerrar panel">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-
-            @if (authService.sesion(); as sesionActual) {
-              <div class="jwt-active-card">
-                <div class="jwt-active-row">
-                  <span>Usuario: <strong>{{ sesionActual.username }}</strong></span>
-                  <span class="jwt-origin-tag">{{ sesionActual.origen }}</span>
+          @if (mostrarPanelJwt()) {
+            <div class="jwt-popover" role="dialog" aria-label="Menú de cuenta institucional">
+              @if (authService.sesion(); as sesionActual) {
+                <div class="profile-menu-header">
+                  <div class="profile-avatar-lg">{{ authService.inicialesUsuario() }}</div>
+                  <div class="profile-menu-meta">
+                    <strong>{{ sesionActual.nombreCompleto || sesionActual.username }}</strong>
+                    <span class="profile-menu-role">{{ authService.rolCargo() }}</span>
+                    <span class="profile-menu-mail">{{ sesionActual.correo || (sesionActual.username + '@utp.edu.pe') }}</span>
+                  </div>
                 </div>
-                <span class="jwt-role-line">Roles: {{ sesionActual.roles.join(', ') }}</span>
-                <code class="jwt-token-preview">Bearer {{ sesionActual.token.slice(0, 34) }}...</code>
-              </div>
-            }
+              }
 
-            <div class="jwt-quick-section">
-              <span class="jwt-caption">Cambio rápido de rol (1 clic):</span>
-              <div class="jwt-quick-grid">
+              <div class="profile-menu-actions">
+                <a
+                  routerLink="/login"
+                  [queryParams]="{ modo: 'login' }"
+                  class="profile-action-item"
+                  (click)="cerrarPanelJwt()">
+                  <mat-icon>switch_account</mat-icon>
+                  <span>Cambiar de cuenta</span>
+                </a>
+
+                @if (authService.puedeEliminarReportes()) {
+                  <a
+                    routerLink="/login"
+                    [queryParams]="{ modo: 'registro' }"
+                    class="profile-action-item profile-action-item--admin"
+                    (click)="cerrarPanelJwt()">
+                    <mat-icon>person_add</mat-icon>
+                    <span>Alta de Personal (Admin)</span>
+                  </a>
+                }
+
                 <button
                   type="button"
-                  class="jwt-role-btn"
-                  [class.active]="authService.sesion()?.username === 'tecnico'"
-                  (click)="seleccionarPerfilRapido('tecnico')">
-                  <strong>Técnico</strong>
-                  <span>Editar / Estados</span>
-                </button>
-                <button
-                  type="button"
-                  class="jwt-role-btn"
-                  [class.active]="authService.sesion()?.username === 'admin'"
-                  (click)="seleccionarPerfilRapido('admin')">
-                  <strong>Admin</strong>
-                  <span>Control Total</span>
-                </button>
-                <button
-                  type="button"
-                  class="jwt-role-btn"
-                  [class.active]="authService.sesion()?.username === 'alumno'"
-                  (click)="seleccionarPerfilRapido('alumno')">
-                  <strong>Alumno</strong>
-                  <span>Solo Consulta</span>
-                </button>
-                <button
-                  type="button"
-                  class="jwt-role-btn jwt-role-btn--logout"
-                  [class.active]="!authService.autenticado()"
+                  class="profile-action-item profile-action-item--logout"
                   (click)="cerrarSesionJwt()">
-                  <strong>Sin JWT</strong>
-                  <span>Público (401)</span>
+                  <mat-icon>logout</mat-icon>
+                  <span>Cerrar sesión</span>
                 </button>
               </div>
             </div>
-
-            <form class="jwt-manual-form" (ngSubmit)="iniciarSesionManual()">
-              <span class="jwt-caption">Login manual (POST /api/auth/login):</span>
-              <div class="jwt-inputs-row">
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Usuario (tecnico, admin)"
-                  [ngModel]="loginUsername()"
-                  (ngModelChange)="loginUsername.set($event)"
-                />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Contraseña"
-                  [ngModel]="loginPassword()"
-                  (ngModelChange)="loginPassword.set($event)"
-                />
-              </div>
-              @if (errorLogin()) {
-                <span class="jwt-error-msg">{{ errorLogin() }}</span>
-              }
-              <button type="submit" class="jwt-submit-btn">
-                <mat-icon>key</mat-icon>
-                <span>Autenticar y generar Bearer Token</span>
-              </button>
-            </form>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      } @else {
+        <a
+          routerLink="/login"
+          class="m3-jwt-pill m3-jwt-pill--login"
+          title="Iniciar sesión con tu cuenta institucional">
+          <mat-icon>login</mat-icon>
+          <span>Iniciar Sesión</span>
+        </a>
+      }
 
       <button
         type="button"
@@ -156,7 +124,7 @@
 <!-- Pie de Página Institucional -->
 <footer class="m3-footer">
   <div class="m3-footer__inner">
-    <span><strong>ClassCare Campus</strong> &mdash; Plataforma de Gestión de Mantenimiento de Aulas</span>
+    <span><strong>ClassCare Campus</strong> &mdash; Sistema de Gestión de Infraestructura y Mantenimiento Académico</span>
     <span class="m3-footer__uni">UNIVERSIDAD TECNOLÓGICA DEL PERÚ (UTP)</span>
   </div>
 </footer>
