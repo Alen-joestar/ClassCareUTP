@@ -255,6 +255,13 @@
               <span class="workorder-room-line">
                 Aula {{ atencion.aulaCodigo || 'N/A' }}
               </span>
+              <span class="urgency-pill"
+                [class.urgencia-alta]="getNivelUrgencia(atencion).clase === 'urgencia-alta'"
+                [class.urgencia-media]="getNivelUrgencia(atencion).clase === 'urgencia-media'"
+                [class.urgencia-baja]="getNivelUrgencia(atencion).clase === 'urgencia-baja'">
+                <mat-icon>{{ getNivelUrgencia(atencion).icono }}</mat-icon>
+                <span>{{ getNivelUrgencia(atencion).label }}</span>
+              </span>
             </div>
           </div>
 
@@ -334,6 +341,14 @@
                   <span>Cierre: {{ atencion.fechaResolucion | date:'dd MMM, HH:mm' }}</span>
                 </span>
               }
+              <span class="time-entry sla-tracker"
+                [class.sla--resuelto]="calcularSLA(atencion).nivel === 'resuelto'"
+                [class.sla--en_tiempo]="calcularSLA(atencion).nivel === 'en_tiempo'"
+                [class.sla--alerta]="calcularSLA(atencion).nivel === 'alerta'">
+                <mat-icon aria-hidden="true">timer</mat-icon>
+                <span>{{ calcularSLA(atencion).texto }}</span>
+                <span class="sla-chip">{{ calcularSLA(atencion).badge }}</span>
+              </span>
             </div>
 
             <div class="workorder-action">
@@ -365,6 +380,15 @@
                   <span>Certificado</span>
                 </span>
               }
+
+              <button
+                type="button"
+                class="btn-action btn-action--doc"
+                (click)="abrirModalFicha(atencion)"
+                title="Ver y emitir Acta de Conformidad Técnica Oficial UTP">
+                <mat-icon>description</mat-icon>
+                <span>Ficha Técnica</span>
+              </button>
             </div>
           </footer>
         </div>
@@ -670,6 +694,106 @@
         </div>
       </div>
     </div>
+  }
+
+  <!-- Modal de Ficha Técnica / Acta de Conformidad Institucional UTP (Opción 2) -->
+  @if (mostrarModalFicha()) {
+    @if (atencionFicha(); as atencionActual) {
+      <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-ficha-title" (click)="cerrarModalFicha()">
+        <div class="modal-card modal-card--ficha printable-sheet" (click)="$event.stopPropagation()">
+          <header class="ficha-header">
+            <div class="ficha-header-top">
+              <div class="utp-brand-badge">
+                <mat-icon>school</mat-icon>
+                <div class="brand-text">
+                  <strong>UNIVERSIDAD TECNOLÓGICA DEL PERÚ</strong>
+                  <span>DIRECCIÓN DE TECNOLOGÍAS Y OPERACIONES &bull; DTO</span>
+                </div>
+              </div>
+              <div class="acta-code-box">
+                <span class="acta-lbl">ACTA INSTITUCIONAL DE INTERVENCIÓN</span>
+                <strong class="acta-num">{{ generarCodigoActa(atencionActual) }}</strong>
+              </div>
+            </div>
+            <h3 id="modal-ficha-title" class="ficha-title">Certificado de Conformidad Técnica de Aula</h3>
+            <p class="ficha-subtitle">Documento oficial de control de calidad y mantenimiento técnico de ambientes universitarios.</p>
+          </header>
+
+          <div class="ficha-body">
+            <!-- Cuadrícula de Datos Oficiales -->
+            <div class="ficha-grid">
+              <div class="ficha-cell">
+                <span class="cell-label">Ambiente Académico</span>
+                <strong class="cell-val">Aula {{ atencionActual.aulaCodigo || 'N/A' }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Ticket de Origen</span>
+                <strong class="cell-val">Reporte #{{ formatCount(atencionActual.reporteId) }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Tipo de Mantenimiento</span>
+                <strong class="cell-val">{{ getMantenimientoLabel(atencionActual.tipoMantenimiento) }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Nivel de Impacto / Urgencia</span>
+                <strong class="cell-val" [class]="getNivelUrgencia(atencionActual).clase">{{ getNivelUrgencia(atencionActual).label }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Especialista Asignado</span>
+                <strong class="cell-val">{{ atencionActual.tecnicoEncargado }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Estado Operativo</span>
+                <strong class="cell-val">{{ getEstadoLabel(atencionActual.estado) }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Fecha / Hora de Apertura</span>
+                <strong class="cell-val">{{ atencionActual.fechaRegistro | date:'dd/MM/yyyy • HH:mm' }}</strong>
+              </div>
+              <div class="ficha-cell">
+                <span class="cell-label">Cumplimiento de SLA</span>
+                <strong class="cell-val">{{ calcularSLA(atencionActual).texto }} ({{ calcularSLA(atencionActual).badge }})</strong>
+              </div>
+            </div>
+
+            <!-- Dictamen y Diagnóstico Técnico -->
+            <div class="ficha-dictamen">
+              <span class="dictamen-label">DICTAMEN TÉCNICO Y ACCIONES REALIZADAS</span>
+              <div class="dictamen-box">
+                <p>{{ atencionActual.observaciones || 'Inspección de diagnóstico y verificación técnica ejecutada en el ambiente.' }}</p>
+              </div>
+            </div>
+
+            <!-- Declaración de Conformidad y Sellos -->
+            <div class="ficha-signatures">
+              <div class="signature-box">
+                <div class="signature-line"></div>
+                <span class="sig-name">{{ atencionActual.tecnicoEncargado }}</span>
+                <span class="sig-role">Especialista Técnico Responsable</span>
+              </div>
+              <div class="signature-box">
+                <div class="utp-seal">
+                  <mat-icon>verified</mat-icon>
+                  <span>CLASSCARE UTP<br>VALIDADO EN CAMPUS</span>
+                </div>
+                <span class="sig-role">Sello Digital de Acreditación DTO</span>
+              </div>
+            </div>
+          </div>
+
+          <footer class="ficha-footer no-print">
+            <button type="button" class="btn-ficha-print" (click)="imprimirFicha()">
+              <mat-icon>print</mat-icon>
+              <span>Imprimir Acta (A4)</span>
+            </button>
+            <button type="button" class="btn-ficha-close" (click)="cerrarModalFicha()">
+              <mat-icon>close</mat-icon>
+              <span>Cerrar</span>
+            </button>
+          </footer>
+        </div>
+      </div>
+    }
   }
 
 </section>
